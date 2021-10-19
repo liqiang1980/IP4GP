@@ -13,7 +13,7 @@ import scipy.io as io
 #
 # pcd = mesh.sample_points_uniformly(number_of_points=20000)
 # pcd = mesh.sample_points_poisson_disk(number_of_points=10000, pcl=pcd)
-pcd = o3d.io.read_point_cloud("./fingertip_part.pcd")
+pcd = o3d.io.read_point_cloud("../../model/fingertip_part.pcd")
 # o3d.io.write_point_cloud('bottle.pcd',pcd)
 save_point = np.array([[0,0,0]])
 save_point_x = np.array([])

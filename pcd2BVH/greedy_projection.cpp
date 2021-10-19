@@ -11,7 +11,7 @@ main ()
   // Load input file into a PointCloud<T> with an appropriate type
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
   pcl::PCLPointCloud2 cloud_blob;
-  pcl::io::loadPCDFile ("cup_1.pcd", cloud_blob);
+  pcl::io::loadPCDFile ("../../model/cup_1.pcd", cloud_blob);
   pcl::fromPCLPointCloud2 (cloud_blob, *cloud);
   //* the data should be available in cloud
 
@@ -58,7 +58,7 @@ main ()
   gp3.reconstruct (triangles);
 
   // pcl::io::saveVTKFile ("mesh_bottle.vtk", triangles);
-  pcl::io::saveOBJFile ("cup_1.obj", triangles);
+  pcl::io::saveOBJFile ("../../model/cup_1.obj", triangles);
 
 
   // Additional vertex information

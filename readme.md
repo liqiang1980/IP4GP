@@ -12,7 +12,7 @@
   cd pcd2BVH
   ccmake ../
   make -j3
-
+  ```
 - tactile 为姿态估计的python程序，直接运行里面的ur5_allegro.py即可，如果报库确实，使用pip install安装需要的库
 - checkout pcl from:  https://github.com/PointCloudLibrary/pcl.git
 
@@ -25,19 +25,21 @@
 
 
 Point cloud pre-processing
+  ```bash
 - 运行tactile/create_point.py 由stl文件产生点云
 - 运行pcd_cut/build中 ./point_cut 裁切点云
-- 运行tactile/read_point.py 查看输出的点云
-- pcd2BVH/build 中 ./greedy_project 生成BVH模型  ```
+- 运行pcd_cut/build/read_point.py 查看输出的点云
+- pcd2BVH/build 中 ./greedy_project 生成BVH模型  
+  ```
 
 运行程序 in tactile folder
 ```bash
-python ur5_allegro.py
+python3 ur5_allegro.py
 ```
 
 查看输出 in tactile folder
 ```bash
-python plot_pose.py
+python3 plot_pose.py
 ```
 
 # install 3rdparty components

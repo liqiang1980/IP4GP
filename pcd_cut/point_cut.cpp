@@ -10,7 +10,7 @@ int main(int argc, char** argv)
 
 	// Fill in the cloud data
 	pcl::PCDReader reader;
-	reader.read("fingertip.pcd", *cloud);
+	reader.read("../../model/fingertip.pcd", *cloud);
 	std::cerr << "Cloud before filtering: " << cloud->points.size() << std::endl;
 	// Create the filtering object
 	pcl::PassThrough<pcl::PointXYZ> pass; // 声明直通滤波
@@ -40,7 +40,7 @@ int main(int argc, char** argv)
 
 	// save filterd data
 	pcl::PCDWriter writer;
-	writer.write("fingertip_part.pcd", *cloud_filtered, false);
+	writer.write("../../model/fingertip_part.pcd", *cloud_filtered, false);
 
 	return 0;
 }

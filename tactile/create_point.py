@@ -1,3 +1,5 @@
+#!/usr/bin/env python3  
+
 import open3d as o3d
 import numpy as np
 import time, os
@@ -12,7 +14,7 @@ o3d.visualization.draw_geometries([mesh])
 pcd = mesh.sample_points_uniformly(number_of_points=5000)
 pcd = mesh.sample_points_poisson_disk(number_of_points=2500, pcl=pcd)
 
-o3d.io.write_point_cloud('cup_1.pcd',pcd)
+o3d.io.write_point_cloud('../model/cup_1.pcd',pcd)
 save_point = np.array([[0,0,0]])
 save_point_x = np.array([])
 save_point_y = np.array([])
