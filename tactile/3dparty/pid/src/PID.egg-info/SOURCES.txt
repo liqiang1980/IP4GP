@@ -1,6 +1,0 @@
-setup.py
-src/PID/pid.py
-src/PID.egg-info/PKG-INFO
-src/PID.egg-info/SOURCES.txt
-src/PID.egg-info/dependency_links.txt
-src/PID.egg-info/top_level.txt

@@ -44,6 +44,20 @@ python3 plot_pose.py
 
 # install 3rdparty components
 
+## install mujoco-py (2.0)
+```bash
+  pip3 install -U 'mujoco-py<2.1,>=2.0' 
+```
+## install gym
+```bash
+  pip3 install gym
+```
+
+## install torch
+```bash
+  pip3 install torch
+```
+
 ## install pykdl
 - https://github.com/orocos/orocos_kinematics_dynamics
     - install orocos_kdl 
