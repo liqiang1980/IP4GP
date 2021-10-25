@@ -1,6 +1,6 @@
 import numpy as np
 import fcl
-import pcl
+#import pcl
 
 class OBJ:
     def __init__(self, filename, swapyz=False):
