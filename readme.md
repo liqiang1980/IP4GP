@@ -67,12 +67,13 @@ python3 plot_pose.py
         
         read related INSTALL.md at folder  3dparty/orocos_kinematics_dynamics/python_orocos_kdl/INSTALL.md
 
-        - Note: Using cmake with python3
-
+        - Note: Using cmake with python3 
+            in python_orocos_kdl
+            mdir build
             cmake -DCMAKE_BUILD_TYPE=Release -DPYTHON_VERSION=3 ..
 
 ## install pykdl_utils
-dependence PyKDL
+- dependence PyKDL
 
 ```bash
 cd 3dparty/pykdl_utils
