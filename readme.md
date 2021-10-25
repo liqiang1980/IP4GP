@@ -42,6 +42,11 @@ python3 ur5_allegro.py
 python3 plot_pose.py
 ```
 
+# attention for ROS user
+
+Please do not source ../devel/setup.bash
+in my case it cause the pykdl confliction. (there are default compile orocos version in /opt/ros/melodic/..., which is not the same with python3 bind version)
+
 # install 3rdparty components
 
 ## install mujoco-py (2.0)
