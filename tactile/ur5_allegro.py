@@ -208,7 +208,7 @@ def prediction_model(sim):
             np.save("pos_save/link_3_tip_trans.npy", link_3_tip_trans)
             np.save("pos_save/cup_trans.npy", cup_trans)
 
-    print("count_time:", count_time)
+    #print("count_time:", count_time)
 
     # 1.接触时的 初始姿态记录与更新
     # 2. 接触点记录
@@ -336,16 +336,16 @@ def collision_test():
     if res.is_collision:
         contact = res.contacts[0]
         normals = contact.normal
-        print("normal:", normals)
+        #print("normal:", normals)
 
-    print_collision_result('cup', 'fingertip', res)
+    #print_collision_result('cup', 'fingertip', res)
 
     req = fcl.DistanceRequest(enable_nearest_points=True)
     res = fcl.DistanceResult()
 
     dist = fcl.distance(o_cup,o_fingertip,
                         req, res)
-    print_distance_result('o_cup', 'o_fingertip', res)
+    #print_distance_result('o_cup', 'o_fingertip', res)
 
 #fcl 碰撞结果显示
 def print_collision_result(o1_name, o2_name, result):
@@ -366,6 +366,7 @@ def print_distance_result(o1_name, o2_name, result):
     print( '')
 
 #****************************上面是函数定义************************************#
+print('start from here...................................')
 xml_path = "./UR5/UR5_allegro_test.xml"
 model = load_model_from_path(xml_path)
 sim = MjSim(model)
