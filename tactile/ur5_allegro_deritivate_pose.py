@@ -75,6 +75,29 @@ def show_coordinate(sim, body_name):
     viewer.add_marker(pos=palm_link_pose[:3], mat =palm_link_rot_y, type=const.GEOM_ARROW, label="palm_link_coordinate", size=np.array([0.001, 0.001, 0.5]), rgba=np.array([0.0, 0.0, 1.0, 1.0]))
     viewer.add_marker(pos=palm_link_pose[:3], mat =palm_link_rot_z, type=const.GEOM_ARROW, label="palm_link_coordinate", size=np.array([0.001, 0.001, 0.5]), rgba=np.array([1.0, 0.0, 0.0, 1.0]))
 
+def show_contact_point(sim):
+    global pose_fcl_1
+    palm_link_pose = f.get_body_posquat(sim, "palm_link")
+    rot_palm_link = f.as_matrix(np.hstack((palm_link_pose[4:], palm_link_pose[3])))
+    #这里的最初的轴是它的y轴
+    contact_pose = np.empty(3).transpose()
+    print("palm_link_pose:", palm_link_pose.shape)
+    print("pose_fcl_1：", pose_fcl_1.shape)
+    print("rot_palm_link:", rot_palm_link.shape)
+    # 首先将渲染完成  为什么选取最近点？ 解释其中的原因
+    contact_pose = palm_link_pose[:3].transpose() + np.matmul(rot_palm_link, pose_fcl_1.transpose())
+    # contact_pose[0] = palm_link_pose[0] + pose_fcl_1[0]
+    # contact_pose[1] = palm_link_pose[1] + pose_fcl_1[1]
+    # contact_pose[2] = palm_link_pose[2] + pose_fcl_1[2]
+    # print("contact_pose:", contact_pose)
+    # contact_pose = contact_pose.transpose()
+
+# 这里该怎么修改
+
+    # view中的mat是绕全局坐标系下的旋转，而不是局部坐标系下的旋转
+    #红色是x轴， 绿色是y轴，蓝色是z轴
+    viewer.add_marker(pos=contact_pose, type=const.GEOM_SPHERE, label="palm_link_coordinate", size=np.array([0.01, 0.01, 0.01]), rgba=np.array([0.0, 1.0, 0.0, 1.0]))
+
 def control_input():
     if not (np.array(sensor_data) > 0.0).any():
         sim.data.ctrl[7] = sim.data.ctrl[7] + 0.005
@@ -256,6 +279,19 @@ def get_Ht(contact_point_name, grasp_matrix_trans):
     Ht = np.matmul(de_n_c, grasp_matrix_trans[0:3, :]) #3*6
     return Ht
 
+# 返回相应的位置
+def get_Ht_contact_point(grasp_matrix_trans):
+    # 这里主要是坐标系的变换问题 统一到同一个坐标系下面
+    # Ht = grasp_matrix_trans[0:3, :] #3*6
+    grasp_pinv_1 = np.linalg.pinv(grasp_matrix_trans)
+    grasp_pinv_6_3 = grasp_pinv_1[:, 0:3]
+    grasp_pinv_6_3_inv = np.linalg.pinv(grasp_pinv_6_3)
+    Ht = grasp_pinv_6_3_inv
+    print("grasp_pinv_6_3_inv:", grasp_pinv_6_3_inv)
+    print("grasp_matrix_trans[0:3, :]:", grasp_matrix_trans[0:3, :])
+
+    return Ht
+
 def Pt_update(Kt, Ht, Pt):
     Kt_mul_Ht = np.matmul(Kt, Ht)
     I_mat = np.eye(6)
@@ -266,6 +302,7 @@ def Pt_update(Kt, Ht, Pt):
 def get_Kt(Ht, Pt, Rt):
     Kt_behind = mul_three(Ht, Pt, Ht.transpose())  #3*6  * 6*6 * 6*3
     Kt_behind_Rt = Kt_behind + Rt   #3*3
+    print("Kt_behind:", Kt_behind)
     Kt_behind_Rt = Kt_behind_Rt.astype(np.float)
     Kt_behind_Rt_inv = np.linalg.inv(Kt_behind_Rt) #3*3
     Kt = mul_three(Pt, Ht.transpose(), Kt_behind_Rt_inv) #6*6  * 6*3 * 3*3 = 6*3
@@ -289,6 +326,101 @@ def get_err_ht_Zt(contact_point_name, normal_fcl_func):
     err_Zt_ht = Zt + ht #主要是决定方向
     return err_Zt_ht
 
+def get_Zt_Pose(contact_point_name):
+    #这里的R_i可能有问题，主要是相对的坐标关系，是不是在同一个坐标系下
+    posquat_base_point = f.get_relative_posquat(sim, "palm_link", contact_point_name)
+    contact_point_pos = np.array([posquat_base_point[0:3]])
+    Zt = contact_point_pos.transpose()
+    return Zt
+
+def get_err_ht_Zt_Pose(contact_point_name, Pose_fcl_func):
+    # 统一在手掌坐标系下
+    Zt = get_Zt_Pose(contact_point_name)
+    print("Zt:", Zt)
+    ht = np.array([Pose_fcl_func]).transpose()
+    print("ht:", ht)
+
+    # # 这里应该都是相减的
+    # if np.sign(Zt[2][0]) == np.sign(ht[2][0]):
+    #     ht = -ht
+
+    err_Zt_ht = Zt - ht #主要是决定方向
+    return err_Zt_ht
+
+def one_finger_predict_contact_point(contact_point_name_1, pose_fcl_1):
+    global x_t, x_t_1
+    global q_pos_pre_1
+    global Pt_1, count_time
+
+    q_pos_1 = np.array([sim.data.qpos[126], sim.data.qpos[127], sim.data.qpos[164], sim.data.qpos[201]])
+    delta_Ut_1 = q_pos_1 - q_pos_pre_1
+    q_pos_pre_1 = q_pos_1
+
+    u_t = delta_Ut_1.transpose()
+
+    print("count_time:", count_time)
+    count_time += 1
+
+    grasp_matrix_trans_1 = get_grasp_matrix_trans(contact_point_name_1, x_t_1)
+    grasp_matrix_trans_pinv_1 = np.linalg.pinv(grasp_matrix_trans_1)
+
+    # # 雅克比的伪逆 每个关节角的变化也需要记录
+    J_finger = kdl_kin_1.jacobian(q_pos_1)
+
+    # G*J*u_t*delta_t
+    prediction_part = mul_three(grasp_matrix_trans_pinv_1, J_finger, u_t)
+    prediction = prediction_part[0, 0:]
+    # 这里可能有问题
+    x_t = x_t_1 - prediction
+    # x_t = x_t_1 + prediction
+
+    de_F = matrix_6_6_get(1,1,1,1,1,1)
+    # one
+    # 这里可能需要修改
+    # V_t = matrix_6_6_get(-0.00005,-0.00005,-0.00005,0.005,0.005,0.005)
+    V_t = matrix_6_6_get(0.0,-0.0,0.0,0.0,0.0,-0.0)
+    temp_Pt = mul_three(de_F, Pt_1, de_F.transpose())
+    Pt = temp_Pt + V_t
+
+    # 1.无接触时的切换问题  2.初始化的问题 3. normal_fcl获取的问题
+    # 这里是相应的Ht矩阵的获得 ********#######********
+    Ht_use = get_Ht_contact_point(grasp_matrix_trans_1) #3*6
+    # Ht_use = get_Ht_contact_point(grasp_matrix_trans_1[0:3, :]) #3*6
+    # Ht_use = get_Ht_contact_point(grasp_matrix_trans_pinv_1[0:3, :]) #3*6
+    print("Ht_use:", Ht_use)
+
+# ht: [[0.10552722]
+#  [0.04144933]
+#  [0.0706775 ]]
+# err_Zt_ht_use: [[-0.00316391]
+#  [ 0.0096543 ]
+#  [-0.00022295]]
+    # 这个参数需要进行调整 **********#####******
+    # 测量矩阵是 测量误差，但是这里的误差是m单位，肯定没有那么大，输出一下
+    # Rt = np.eye(3) #单位矩阵 R平方
+    Rt = np.array([[0.000512004, 0, 0],  #3*3
+                    [0, 0.000800299, 0],
+                    [0, 0, 0.00047765]])
+
+    Kt = get_Kt(Ht_use, Pt, Rt)  #6*3 -> 6*6
+
+    # 这里没有角度的信息 返回相应的位置 接触点位置和手指位置的差
+    err_Zt_ht_use = get_err_ht_Zt_Pose(contact_point_name_1, pose_fcl_1)
+    print("err_Zt_ht_use:",err_Zt_ht_use)
+
+    Kt_err_Zt_ht = np.matmul(Kt, err_Zt_ht_use).transpose()
+
+    # x_t_update是局部变量 *************###########************
+    x_t_update = x_t + Kt_err_Zt_ht #1*6
+    print("Kt_err_Zt_ht:", Kt_err_Zt_ht)
+    x_t_update = x_t_update.astype(np.float)
+    x_t_1 = x_t_update
+    print("x_t_1:", x_t_1)
+
+    Pt_1 = Pt_update(Kt, Ht_use, Pt)
+    return x_t_update
+
+# 调试一下 inhand manipulation
 # 手指关节的问题，确定手指关节
 def two_finger_predict(contact_point_name_1, contact_point_name_2, normal_fcl_1, normal_fcl_2):
     global x_t, x_t_1
@@ -441,13 +573,14 @@ def prediction_model(sim):
         if first_contact == True:
             #x_t_1的更新
             x_t_1 = f.get_relative_posquat(sim, "palm_link", "cup")
-            delta_x = np.array([0.002,0.002,0.002,0,0,0])
+            # delta_x = np.array([0.02,0.02,0.02,0,0,0])
+            delta_x = np.array([0.0,0.0,0.0,0,0,0])
             x_t_1 = np.array([f.pos_quat2pos_XYZ_RPY(x_t_1)]) + delta_x
             x_t = x_t_1
             print("x_t_1:", x_t_1)
 
             #这里需要修改matrix_6_6_get
-            Pt_1 = matrix_6_6_get(0.00001,0.00001,0.00001,0.00001,0.00001,0.00001)
+            Pt_1 = matrix_6_6_get(0.002,0.002,0.002,0.00001,0.00001,0.00001)
 
             q_pos_1 = np.array([sim.data.qpos[126], sim.data.qpos[127], sim.data.qpos[164], sim.data.qpos[201]])
             q_pos_pre_1 = q_pos_1
@@ -458,7 +591,10 @@ def prediction_model(sim):
                 s_name = model._sensor_id2name[i[0]]
                 contact_point_name_1 = s_name
             first_contact = False
+
         x_t_update = np.zeros((1,6))
+        collision_test_pose(x_t_1)
+
         if (np.array(sensor_data[432:503]) > 0.0).any():
             if second_contact == True:
                 q_pos_2 = np.array([sim.data.qpos[570], sim.data.qpos[571], sim.data.qpos[572], sim.data.qpos[573]])
@@ -475,7 +611,7 @@ def prediction_model(sim):
             x_t_update = two_finger_predict(contact_point_name_1, contact_point_name_2, normal_fcl_1, normal_fcl_2)
             print("x_t_update222222222222222222222222222222********************")
         else:
-            x_t_update = one_finger_predict(contact_point_name_1, normal_fcl_1)
+            x_t_update = one_finger_predict_contact_point(contact_point_name_1, pose_fcl_1)
             print("x_t_update1111111111111111111111111111111********************")
 
         print("x_t_update:", x_t_update)
@@ -568,6 +704,33 @@ def collision_part(pos_R_cup_global, pos_R_fingertip_global):
 
     return res
 
+def collision_part_distance(pos_R_cup_global, pos_R_fingertip_global):
+    global mesh_cup
+    global mesh_fingertip
+    R_cup_global = pos_R_cup_global[0:3, 0:3]
+    pos_cup_global = pos_R_cup_global[0:3, 3]*1000
+
+    R_fingertip_global = pos_R_fingertip_global[0:3, 0:3]
+    pos_fingertip_global = pos_R_fingertip_global[0:3, 3] *1000
+
+    t_cup_global = fcl.Transform(R_cup_global, pos_cup_global)
+
+    t_fingertip_global =  fcl.Transform(R_fingertip_global, pos_fingertip_global)
+
+    o_cup = fcl.CollisionObject(mesh_cup, t_cup_global)
+    o_fingertip = fcl.CollisionObject(mesh_fingertip, t_fingertip_global)
+
+    req = fcl.CollisionRequest(enable_contact=True)
+    res = fcl.CollisionResult()
+    n_contacts = fcl.collide(o_cup, o_fingertip, req, res)
+
+    req = fcl.DistanceRequest(enable_nearest_points=True)
+    res = fcl.DistanceResult()
+
+    dist = fcl.distance(o_cup,o_fingertip,
+                        req, res)
+    return res
+
 #碰撞检测显示
 # finger_name "link_3.0_fcl"
 def collision_test():
@@ -605,6 +768,63 @@ def collision_test():
     #
     # dist = fcl.distance(o_cup,o_fingertip,
     #                     req, res)
+
+#1.实时修改接触点信息
+# 看一下碰撞检测中的问题 是否有相应的问题 ***********###############*********
+def collision_test_pose(pose_realtime):
+    global pose_fcl_1, pose_fcl_2
+    # 变量提取
+    # 这里需要看一下
+    # 这里改成了link_3.0_tip
+
+    link_3_tip_pos_global = f.get_relative_posquat(sim, "palm_link", "link_3.0_tip")
+    link_3_tip_trans_global = f.posquat2trans(link_3_tip_pos_global)
+
+    link_15_tip_pos_global = f.get_relative_posquat(sim, "palm_link", "link_15.0_fcl")
+    link_15_tip_trans_global = f.posquat2trans(link_15_tip_pos_global)
+
+    cup_trans_global = np.eye(4)
+    pos = np.array(pose_realtime[0, :3]).ravel()
+    rot = f.RPY2Rot_mat(pose_realtime)
+    cup_trans_global[0:3, 0:3] = rot
+    cup_trans_global[0:3, 3] = pos.transpose()
+
+    print("cup_trans_global:", cup_trans_global)
+
+    cup_pose_global_GD = f.get_relative_posquat(sim, "palm_link", "cup")
+    cup_trans_global_GD = f.posquat2trans(cup_pose_global_GD)
+    print("cup_trans_global_GD:", cup_trans_global_GD)
+
+    # 做一个坐标系的转换
+    # res1 = collision_part(cup_trans_global, link_3_tip_trans_global)
+    #这里应该是15，这里是一个问题。
+    # contact_fcl 和 前向部分都需要修改。
+    # 如何确认大拇指的位置。
+    # res2 = collision_part(cup_trans_global, link_15_tip_trans_global)
+
+    distance_res = collision_part_distance(cup_trans_global, link_3_tip_trans_global)
+    # 这里返回的是毫米,需要进行处理  pose_fcl_1
+    pose_fcl_mm = distance_res.nearest_points[0].transpose()
+    print("pose_fcl_mm:", pose_fcl_mm)
+    pose_fcl_1 = pose_fcl_mm/1000
+
+    print("pose_fcl_1:", pose_fcl_1)
+    print_distance_result('o_cup', 'o_fingertip', distance_res)
+
+    # 这里需要修改最近的接触点和接触距离
+    # 接触点怎么添加
+    # if res1.is_collision:
+    #     contact = res1.contacts[0]
+    #     normals = contact.normal
+    #     normal_fcl_1 = np.array([[normals[0], normals[1], normals[2]]]).transpose()
+    #     print("normal1:", normals)
+    #
+    # if res2.is_collision:
+    #     contact = res2.contacts[0]
+    #     normals = contact.normal
+    #     normal_fcl_2 = np.array([[normals[0], normals[1], normals[2]]]).transpose()
+    #     print("normal2:", normals)
+
 
 #fcl 碰撞结果显示
 def print_collision_result(o1_name, o2_name, result):
@@ -651,10 +871,10 @@ trans_cup = f.posquat2trans(pose_cup)
 pos_pregrasp = [0.5, -0.05, 0.1]
 
 #参数设定
-# trans_pregrasp = np.array([[0, 0, 1, 0.12],
-#                          [0, 1, 0, -0.25],
-#                          [-1, 0, 0, 0.01],
-#                          [0, 0, 0, 1]])
+trans_pregrasp = np.array([[0, 0, 1, 0.12],
+                         [0, 1, 0, -0.25],
+                         [-1, 0, 0, 0.01],
+                         [0, 0, 0, 1]])
 # trans_pregrasp = np.array([[0, 0, 1, 0.10],
 #                          [0, 1, 0, -0.20],
 #                          [-1, 0, 0, 0.01],
@@ -664,11 +884,12 @@ pos_pregrasp = [0.5, -0.05, 0.1]
 #                          [-1, 0, 0, 0.01],
 #                          [0, 0, 0, 1]])
 
-# #2
-trans_pregrasp = np.array([[0, 0, 1, 0.08],
-                         [0, 1, 0, -0.22],
-                         [-1, 0, 0, 0.01],
-                         [0, 0, 0, 1]])
+# #2两个手指
+# trans_pregrasp = np.array([[0, 0, 1, 0.08],
+#                          [0, 1, 0, -0.22],
+#                          [-1, 0, 0, 0.01],
+#                          [0, 0, 0, 1]])
+
 # trans_pregrasp = np.array([[0, 0, 1, 0.07],
 #                          [0, 1, 0, -0.15],
 #                          [-1, 0, 0, 0.01],
@@ -697,6 +918,7 @@ first_contact = True
 second_contact = True
 x_t = np.array([0, 0, 0, 0, 0, 0])
 x_t_1 = np.array([0, 0, 0, 0, 0, 0])
+# pose_realtime =
 contact_point_name_1 = ""
 contact_point_name_2 = ""
 count_time  = 0
@@ -718,7 +940,12 @@ Pt_1 = 0.00001 * np.eye(6)
 
 #normal:
 normal_fcl_1 = np.array([[0, 0, 0]]).transpose()
-normal_fcl_1 = np.array([[0, 0, 0]]).transpose()
+# 这里做了修改
+normal_fcl_2 = np.array([[0, 0, 0]]).transpose()
+
+pose_fcl_1 = np.array([[0, 0, 0]]).transpose()
+pose_fcl_2 = np.array([[0, 0, 0]]).transpose()
+
 #fcl库加载cup 的 BVH模型
 obj_cup = fcl_python.OBJ( "cup_1.obj")
 verts_cup = obj_cup.get_vertices()
@@ -751,7 +978,8 @@ while True:
         sim.data.ctrl[7] = sim.data.ctrl[7] + 0.005
         sim.data.ctrl[8] = sim.data.ctrl[8] + 0.005
         sim.data.ctrl[9] = sim.data.ctrl[9] + 0.005
-        sim.data.ctrl[18] = sim.data.ctrl[18] + 0.008
+        # 双指添加
+        # sim.data.ctrl[18] = sim.data.ctrl[18] + 0.008
 
         # sim.data.ctrl[19] = sim.data.ctrl[19] + 0.05
         # sim.data.ctrl[20] = sim.data.ctrl[20] + 0.01
@@ -762,20 +990,21 @@ while True:
         sim.data.ctrl[8] = sim.data.ctrl[8] + 0.0005
         sim.data.ctrl[9] = sim.data.ctrl[9] + 0.0005
 
-        if not (np.array(sensor_data[432:503]) > 0.0).any():
-            # sim.data.ctrl[19] = sim.data.ctrl[19] + 0.05
-            sim.data.ctrl[20] = sim.data.ctrl[20] + 0.05
-            sim.data.ctrl[21] = sim.data.ctrl[21] + 0.08
-        else:
-            # sim.data.ctrl[19] = sim.data.ctrl[19] + 0.0005
-            # #1
-            sim.data.ctrl[20] = sim.data.ctrl[20] + 0.005
-            sim.data.ctrl[21] = sim.data.ctrl[21] + 0.01
+        # if not (np.array(sensor_data[432:503]) > 0.0).any():
+        #     # sim.data.ctrl[19] = sim.data.ctrl[19] + 0.05
+        #     sim.data.ctrl[20] = sim.data.ctrl[20] + 0.05
+        #     sim.data.ctrl[21] = sim.data.ctrl[21] + 0.08
+        # else:
+        #     # sim.data.ctrl[19] = sim.data.ctrl[19] + 0.0005
+        #     # #1
+        #     sim.data.ctrl[20] = sim.data.ctrl[20] + 0.005
+        #     sim.data.ctrl[21] = sim.data.ctrl[21] + 0.01
 
     contact = sim.data.contact
 
     #前向prediction_model
-    collision_test()
+    # collision_test()
+    # collision_test_pose(pose_realtime)
     prediction_model(sim)
     # print("sim.data.qpos:\n", np.where(np.array(sim.data.qpos) > 0.01))
     #碰撞检测，输出normal
@@ -785,6 +1014,7 @@ while True:
         if (np.array(sensor_data) > 0.0).any():
             a = np.where(np.array(sensor_data) > 0.0)
             show_coordinate(sim, "palm_link")
+            show_contact_point(sim)
             touch_visual(a, save_point_output)
 
         sim.step()
