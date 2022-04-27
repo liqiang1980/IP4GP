@@ -2047,7 +2047,10 @@ Control Engineering / Automation Engineering
 <!--                                                                    <geom pos="0 0 0.0267" name="link_7.0_tip" rgba="0.9 0.9 0.9 1" type="mesh" mesh="link_7.0_tip" />-->
 																		<body name="link_7.0_tip" pos="0.002 0 0.0157">
 																			<geom pos="0 0 0" rgba="0.9 0.9 0.9 1" type="mesh" mesh="link_7.0_tip"  euler="0 0 0"/>
-																			<body name="link_7.0_tactile" pos="0.0095 0 0.016">
+                                      <body name="link_7.0_fcl" pos="0.001 0.0 0.0">
+                                      <site name="link_7.0_fcl" />
+                                      </body>
+                                      <body name="link_7.0_tactile" pos="0.0095 0 0.016">
 																				<body name="touch_7_1_1" pos=" 0.0041745 0.006123 -0.012485 "  euler=" 0.0 0.0 0.4583 ">
                                                                                 <joint  type="slide" pos="0 0 0" stiffness="5" axis="1 0 0" limited="true" range="-0.0015 0.0015" damping="1"/>
                                                                                 <site name="touch_7_1_1" />
@@ -3438,8 +3441,11 @@ Control Engineering / Automation Engineering
                                                                     <!-- <geom size="0.012" pos="0 0 0.0423" rgba="0.9 0.9 0.9 1" /> -->
 <!--                                                                    <geom pos="0 0 0.0423" name="link_15.0_tip" rgba="0.9 0.9 0.9 1" type="mesh" mesh="link_15.0_tip" />-->
 <!--																		<body name="link_15.0_tip" pos="0.002 0 0.0157+0.0423-0.0267">-->
-                                                                            <body name="link_15.0_tip" pos="0.002 0 0.0313">
+                                      <body name="link_15.0_tip" pos="0.002 0 0.0313">
 																			<geom pos="0 0 0" rgba="0.9 0.9 0.9 1" type="mesh" mesh="link_15.0_tip"  euler="0 0 0"/>
+                                      <body name="link_15.0_fcl" pos="0.001 0.0 0.0">
+                                      <site name="link_15.0_fcl" />
+                                      </body>
 																			<body name="link_15.0_tactile" pos="0.0095 0 0.016">
 																				<body name="touch_15_1_1" pos=" 0.0041745 0.006123 -0.012485 "  euler=" 0.0 0.0 0.4583 ">
                                                                                 <joint  type="slide" pos="0 0 0" stiffness="5" axis="1 0 0" limited="true" range="-0.0015 0.0015" damping="1"/>
@@ -3857,20 +3863,25 @@ Control Engineering / Automation Engineering
         <!-- <position name='finger_2_0' ctrllimited="true" ctrlrange="-0.174 1.709" joint='joint_2.0'/>
         <position name='finger_3_0' ctrllimited="true" ctrlrange="-0.227 1.618" joint='joint_3.0'/> -->
 
-        <position name='finger_4_0' ctrllimited="true" ctrlrange="-0.47 0.47" joint='joint_4.0'/>
+        <position name='finger_4_0' ctrllimited="true" kp="20" ctrlrange="-0.47 0.47" joint='joint_4.0'/>
+        <position name='finger_5_0' ctrllimited="true" kp="20" ctrlrange="-0.196 1.61" joint='joint_5.0'/>
+        <position name='finger_6_0' ctrllimited="true" kp="20" ctrlrange="-0.174 1.709" joint='joint_6.0'/>
+        <position name='finger_7_0' ctrllimited="true" kp="20" ctrlrange="-0.227 1.618" joint='joint_7.0'/>
+
+        <!-- <position name='finger_4_0' ctrllimited="true" ctrlrange="-0.47 0.47" joint='joint_4.0'/>
         <position name='finger_5_0' ctrllimited="true" ctrlrange="-0.196 1.61" joint='joint_5.0'/>
         <position name='finger_6_0' ctrllimited="true" ctrlrange="-0.174 1.709" joint='joint_6.0'/>
-        <position name='finger_7_0' ctrllimited="true" ctrlrange="-0.227 1.618" joint='joint_7.0'/>
+        <position name='finger_7_0' ctrllimited="true" ctrlrange="-0.227 1.618" joint='joint_7.0'/> -->
 
         <position name='finger_8_0' ctrllimited="true" ctrlrange="-0.47 0.47" joint='joint_8.0'/>
         <position name='finger_9_0' ctrllimited="true" ctrlrange="-0.196 1.61" joint='joint_9.0'/>
         <position name='finger_10_0' ctrllimited="true" ctrlrange="-0.174 1.709" joint='joint_10.0'/>
         <position name='finger_11_0' ctrllimited="true" ctrlrange="-0.227 1.618" joint='joint_11.0'/>
 
-        <position name='finger_12_0' ctrllimited="true" kp="1" ctrlrange="0.263 1.396" joint='joint_12.0'/>
-        <position name='finger_13_0' ctrllimited="true" ctrlrange="-0.105 1.163" joint='joint_13.0'/>
-        <position name='finger_14_0' ctrllimited="true" ctrlrange="-0.189 1.644" joint='joint_14.0'/>
-        <position name='finger_15_0' ctrllimited="true" ctrlrange="-0.162 1.719" joint='joint_15.0'/>
+        <position name='finger_12_0' ctrllimited="true" kp="20" ctrlrange="0.263 1.396" joint='joint_12.0'/>
+        <position name='finger_13_0' ctrllimited="true" kp="50" ctrlrange="-0.105 1.163" joint='joint_13.0'/>
+        <position name='finger_14_0' ctrllimited="true" kp="50" ctrlrange="-0.189 1.644" joint='joint_14.0'/>
+        <position name='finger_15_0' ctrllimited="true" kp="50" ctrlrange="-0.162 1.719" joint='joint_15.0'/>
 
     </actuator>
 
