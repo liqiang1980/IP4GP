@@ -4,7 +4,7 @@ from gym.envs.mujoco import mujoco_env
 from gym.envs.robotics.rotations import quat2euler, euler2quat, mat2euler, quat_mul, quat_conjugate
 import os
 import random
-import torch
+#import torch
 # from mjremote import mjremote
 import time
 import matplotlib.pyplot as plt
@@ -21,10 +21,10 @@ import PyKDL as kdl
 
 from PID import pid
 
-#robot = URDF.from_xml_file('./UR5/allegro_hand_tactile_right.urdf')
-#kdl_tree = kdl_tree_from_urdf_model(robot)
-## kdl_kin = KDLKinematics(robot, "palm_link", "link_3.0_tip")
-#kdl_chain = kdl_tree.getChain("palm_link", "link_3.0_tip")
+robot = URDF.from_xml_file('./UR5/allegro_hand_tactile_right.urdf')
+kdl_tree = kdl_tree_from_urdf_model(robot)
+# kdl_kin = KDLKinematics(robot, "palm_link", "link_3.0_tip")
+kdl_chain = kdl_tree.getChain("palm_link", "link_3.0_tip")
 
 def get_geom_posquat(sim, name):
     rot = sim.data.get_geom_xmat(name)
@@ -124,6 +124,7 @@ def posquat2trans(posquat):
     tform[0:3, 0:3] = rot
     tform[0:3, 3] = pos.transpose()
     return tform
+
 
 def qpos_equal(qpos1, qpos2):
     qpos1 = np.array(qpos1)
@@ -268,6 +269,16 @@ def pos_quat2pos_XYZ_RPY(pos_quat):
     pos_XYZ_angle[-3:] = euler0
     # pos_euler_XYZ = np.hstack([pos_quat[0:3], euler0])
     return pos_XYZ_angle
+
+# RPY角和POS之间的转换
+def RPY2Rot_mat(pos_rpy):
+    #mujoco的四元数需要调换位置最前面的放在最后面
+    #欧拉角转四元数的函数有问题 弧度和角度之间的转换
+    print("pos_rpy[-3:]:", pos_rpy[0, -3:])
+    r = R.from_rotvec(pos_rpy[0, -3:])
+    rot = r.as_matrix()
+
+    return rot
 
 def move_ik(sim, ee_tget_posquat, gripper_action=0.04, viewer=None):
     # ee_target is in world frame

@@ -1014,7 +1014,7 @@ while True:
         if (np.array(sensor_data) > 0.0).any():
             a = np.where(np.array(sensor_data) > 0.0)
             show_coordinate(sim, "palm_link")
-            show_contact_point(sim)
+            #show_contact_point(sim)
             touch_visual(a, save_point_output)
 
         sim.step()
