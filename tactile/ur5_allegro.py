@@ -366,7 +366,6 @@ def print_distance_result(o1_name, o2_name, result):
     print( '')
 
 #****************************上面是函数定义************************************#
-print('start from here...................................')
 xml_path = "./UR5/UR5_allegro_test.xml"
 model = load_model_from_path(xml_path)
 sim = MjSim(model)
@@ -440,14 +439,14 @@ mesh_cup = fcl.BVHModel()
 mesh_cup.beginModel(len(verts_cup), len(tris_cup))
 mesh_cup.addSubModel(verts_cup, tris_cup)
 mesh_cup.endModel()
-print("len_verts_cup:", len(verts_cup))
+#print("len_verts_cup:", len(verts_cup))
 
 #fcl库加载finger_tip 的 BVH模型
 obj_fingertip = fcl_python.OBJ( "fingertip_part.obj")
 verts_fingertip = obj_fingertip.get_vertices()
 tris_fingertip = obj_fingertip.get_faces()
-print("len_verts_fingertip:", len(verts_fingertip))
-print("len_tris_fingertip:", len(tris_fingertip))
+#print("len_verts_fingertip:", len(verts_fingertip))
+#print("len_tris_fingertip:", len(tris_fingertip))
 
 mesh_fingertip = fcl.BVHModel()
 mesh_fingertip.beginModel(len(verts_fingertip), len(tris_fingertip))
@@ -483,6 +482,6 @@ while True:
         sim.step()
     viewer.render()
 
-while True:
-    sim.step()
-    viewer.render()
+#while True:
+    #sim.step()
+    #viewer.render()
