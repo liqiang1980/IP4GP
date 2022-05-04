@@ -5,7 +5,7 @@ from open3d import *
 import scipy.io as io
 
 
-object_path = './UR5/mesh/visual/bottle.STL'
+object_path = '../../UR5/mesh/visual/bottle.STL'
 
 mesh = o3d.io.read_triangle_mesh(object_path)
 o3d.visualization.draw_geometries([mesh])

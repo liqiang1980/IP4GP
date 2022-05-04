@@ -2,7 +2,7 @@ from urdf_parser_py.urdf import URDF
 from pykdl_utils.kdl_parser import kdl_tree_from_urdf_model
 from pykdl_utils.kdl_kinematics import KDLKinematics
 # robot = URDF.from_xml_file('/home/zongtaowang/workspace/sim_tactile/test_urdf.urdf')
-robot = URDF.from_xml_file('/home/ycj/tactile/UR5/allegro_hand_tactile_right.urdf')
+robot = URDF.from_xml_file('../../UR5/allegro_hand_tactile_right.urdf')
 tree = kdl_tree_from_urdf_model(robot)
 
 print(tree.getNrOfSegments())

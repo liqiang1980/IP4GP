@@ -43,7 +43,9 @@
 ## program running
 
 - add fcl_python fun fun2 module path
-export PYTHONPATH=to-your-ekf_V3s-folder:$PYTHONPATH
+ ```bash
+  export PYTHONPATH=to-your-ekf_V3s-folder:$PYTHONPATH
+ ```
 - run one_finger_contact
  ```bash
   cd One_Fin_Program
