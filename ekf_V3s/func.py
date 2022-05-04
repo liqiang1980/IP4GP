@@ -21,7 +21,7 @@ import PyKDL as kdl
 
 # from PID import pid
 
-robot = URDF.from_xml_file('/home/lqg/PycharmProjects/tactile_final/UR5/allegro_hand_tactile_right.urdf')
+robot = URDF.from_xml_file('../UR5/allegro_hand_tactile_right.urdf')
 kdl_tree = kdl_tree_from_urdf_model(robot)
 # kdl_kin = KDLKinematics(robot, "palm_link", "link_3.0_tip")
 kdl_chain = kdl_tree.getChain("palm_link", "link_3.0_tip")

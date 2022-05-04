@@ -34,12 +34,34 @@
 
 #### 	执行主文件：
 
-​		one_fin_v3B.py & one_fin_v3bf.py & one_fin_v3bi.py：绘图主程序 & fEKF主程序 & iEKF主程序
+​		one_fin_v3B.py & one_fin_v3bf.py & one_fin_v3bi.py：绘图主程序 & pior EKF only主程序 & posterior EKF主程序
 
 #### 	其他文件：
 
 ​		output.npy：来自CJ的代码部分，似乎没有用
 
+## program running
+
+- add fcl_python fun fun2 module path
+export PYTHONPATH=to-your-ekf_V3s-folder:$PYTHONPATH
+- run one_finger_contact
+ ```bash
+  cd One_Fin_Program
+  python3 one_fin_v3bf.py
+  python3 one_fin_v3bi.py
+  ```
+- run two_finger_contact
+ ```bash
+  cd Two_Fin_Program
+  python3 mul_fin_v3bf.py
+  python3 mul_fin_v3bi.py
+  ```
+- run in_hand_contact
+ ```bash
+  cd In_hand_Program
+  python3 in_hand_v3bf.py
+  python3 in_hand_v3bi.py
+  ```
 
 
 

@@ -5,9 +5,9 @@ from matplotlib import pyplot as plt
 #############**********#############**********#############**********#############**********#############**********#####
 def plot_error(folder):
     # 文件的路径
-    file_dir_error_1 = '/home/lqg/PycharmProjects/ekf_v3s/' + folder + '/save_error_xyz.npy'
-    file_dir_error_2 = '/home/lqg/PycharmProjects/ekf_v3s/' + folder + '/save_error_rpy.npy'
-    file_dir_time = '/home/lqg/PycharmProjects/ekf_v3s/' + folder + '/save_count_time.npy'
+    file_dir_error_1 = './' + folder + '/save_error_xyz.npy'
+    file_dir_error_2 = './' + folder + '/save_error_rpy.npy'
+    file_dir_time = './' + folder + '/save_count_time.npy'
     # plydata = PlyData.read(file_dir)  # 读取文件
     # data = plydata.elements[0].data  # 读取数据
 
@@ -59,13 +59,13 @@ def plot_error(folder):
 #############**********#############**********#############**********#############**********#############**********#####
 def plot_all():
     # 文件的路径
-    file_dir_y_1 = '/home/lqg/PycharmProjects/ekf_v3/save_f/save_pose_y_t_xyz.npy'
-    file_dir_y_2 = '/home/lqg/PycharmProjects/ekf_v3/save_f/save_pose_y_t_rpy.npy'
-    file_dir_yi_1 = '/home/lqg/PycharmProjects/ekf_v3/save_i/save_pose_y_t_xyz.npy'
-    file_dir_yi_2 = '/home/lqg/PycharmProjects/ekf_v3/save_i/save_pose_y_t_rpy.npy'
-    file_dir_GD_1 = '/home/lqg/PycharmProjects/ekf_v3/save_f/save_pose_GD_xyz.npy'
-    file_dir_GD_2 = '/home/lqg/PycharmProjects/ekf_v3/save_f/save_pose_GD_rpy.npy'
-    file_dir_time = '/home/lqg/PycharmProjects/ekf_v3/save_i/save_count_time.npy'
+    file_dir_y_1 = './save_f/save_pose_y_t_xyz.npy'
+    file_dir_y_2 = './save_f/save_pose_y_t_rpy.npy'
+    file_dir_yi_1 = './save_i/save_pose_y_t_xyz.npy'
+    file_dir_yi_2 = './save_i/save_pose_y_t_rpy.npy'
+    file_dir_GD_1 = './save_f/save_pose_GD_xyz.npy'
+    file_dir_GD_2 = './save_f/save_pose_GD_rpy.npy'
+    file_dir_time = './save_i/save_count_time.npy'
 
     # axis y
     y_t_xyz = np.load(file_dir_y_1)  # xyz of Estimate
@@ -175,13 +175,13 @@ def plot_all():
 
 def plot_all1():
     # 文件的路径
-    file_dir_y_1 = '/home/lqg/PycharmProjects/ekf_v2/save_f/save_pose_y_t_xyz.npy'
-    file_dir_y_2 = '/home/lqg/PycharmProjects/ekf_v2/save_f/save_pose_y_t_rpy.npy'
-    file_dir_yi_1 = '/home/lqg/PycharmProjects/ekf_v2/save_i/save_pose_y_t_xyz.npy'
-    file_dir_yi_2 = '/home/lqg/PycharmProjects/ekf_v2/save_i/save_pose_y_t_rpy.npy'
-    file_dir_GD_1 = '/home/lqg/PycharmProjects/ekf_v2/save_f/save_pose_GD_xyz.npy'
-    file_dir_GD_2 = '/home/lqg/PycharmProjects/ekf_v2/save_f/save_pose_GD_rpy.npy'
-    file_dir_time = '/home/lqg/PycharmProjects/ekf_v2/save_f/save_count_time.npy'
+    file_dir_y_1 = './save_f/save_pose_y_t_xyz.npy'
+    file_dir_y_2 = './save_f/save_pose_y_t_rpy.npy'
+    file_dir_yi_1 = './save_i/save_pose_y_t_xyz.npy'
+    file_dir_yi_2 = './save_i/save_pose_y_t_rpy.npy'
+    file_dir_GD_1 = './save_f/save_pose_GD_xyz.npy'
+    file_dir_GD_2 = './save_f/save_pose_GD_rpy.npy'
+    file_dir_time = './save_f/save_count_time.npy'
 
     # axis y
     y_t_xyz = np.load(file_dir_y_1)  # xyz of Estimate
