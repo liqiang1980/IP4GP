@@ -18,7 +18,7 @@ import test_Plot_plus as plt_plus
 #
 #######################################
 #########################################   GLOBAL VARIABLES   #########################################################
-xml_path = "../../UR5/UR5_allegro_test.xml"
+xml_path = "../../UR5/UR5_tactile_allegro_hand.xml"
 model = load_model_from_path(xml_path)
 sim = MjSim(model)
 viewer = MjViewer(sim)

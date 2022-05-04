@@ -10,7 +10,7 @@ import func as f
 # sim.data.ctrl[9] = -0.1
 
 # xml_path = "/home/bidan/project/adaptivegrasp/UR5/UR5gripper.xml"
-xml_path = "../../UR5/UR5_allegro_test.xml"
+xml_path = "../../UR5/UR5_tactile_allegro_hand.xml"
 model = load_model_from_path(xml_path)
 sim = MjSim(model)
 # sim.model.eq_active[7] = False
