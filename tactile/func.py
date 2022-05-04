@@ -21,7 +21,7 @@ import PyKDL as kdl
 
 from PID import pid
 
-robot = URDF.from_xml_file('../../UR5/allegro_hand_tactile_right.urdf')
+robot = URDF.from_xml_file('../UR5/allegro_hand_tactile_right.urdf')
 kdl_tree = kdl_tree_from_urdf_model(robot)
 # kdl_kin = KDLKinematics(robot, "palm_link", "link_3.0_tip")
 kdl_chain = kdl_tree.getChain("palm_link", "link_3.0_tip")
@@ -459,7 +459,7 @@ def move_ik_kdl_finger_wdls_king(sim, ee_tget_posquat, gripper_action=0.04, view
             break
         try:
             q_pos_test = sim.data.qpos
-            q_pos_temp  = np.array(q_pos_test[13:17])
+            q_pos_temp = np.array(q_pos_test[13:17])
             # q_pos_temp  = np.array(q_pos_test[17:21])
             # vel = np.hstack(((ee_tget_posquat[:3] - ee_curr_posquat[:3]) / 5, quat2vel(mul_quat(ee_tget_posquat[-4:], conj_quat(ee_curr_posquat[-4:])), 1)))
             vel = np.hstack(((ee_tget_posquat[:3] - ee_curr_posquat[:3]), quat2vel(mul_quat(ee_tget_posquat[-4:], conj_quat(ee_curr_posquat[-4:])), 1)))
@@ -479,7 +479,7 @@ def move_ik_kdl_finger_wdls_king(sim, ee_tget_posquat, gripper_action=0.04, view
 
             _ik_v_kdl.CartToJnt(q_pos_input, vel_twist, q_out)
             q_out = np.array(joint_kdl_to_list(q_out))
-            sim.data.ctrl[6:10]   = sim.data.qpos[13:17] + q_out
+            sim.data.ctrl[6:10] = sim.data.qpos[13:17] + q_out
             # sim.data.ctrl[10:14] = sim.data.qpos[17:21] + q_out
             sim.step()
             viewer.render()

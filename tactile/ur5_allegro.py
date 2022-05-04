@@ -317,14 +317,14 @@ def collision_test():
     pos_R_fingertip_global = link_3_tip_trans_global
 
     R_cup_global = pos_R_cup_global[0:3, 0:3]
-    pos_cup_global = pos_R_cup_global[0:3, 3]*1000
+    pos_cup_global = pos_R_cup_global[0:3, 3] * 1000
 
     R_fingertip_global = pos_R_fingertip_global[0:3, 0:3]
-    pos_fingertip_global = pos_R_fingertip_global[0:3, 3] *1000
+    pos_fingertip_global = pos_R_fingertip_global[0:3, 3] * 1000
 
     t_cup_global = fcl.Transform(R_cup_global, pos_cup_global)
 
-    t_fingertip_global =  fcl.Transform(R_fingertip_global, pos_fingertip_global)
+    t_fingertip_global = fcl.Transform(R_fingertip_global, pos_fingertip_global)
 
     o_cup = fcl.CollisionObject(mesh_cup, t_cup_global)
     o_fingertip = fcl.CollisionObject(mesh_fingertip, t_fingertip_global)
@@ -367,16 +367,16 @@ def print_distance_result(o1_name, o2_name, result):
     print( '')
 
 #****************************上面是函数定义************************************#
-xml_path = "../../UR5/UR5_tactile_allegro_hand.xml"
+xml_path = "../UR5/UR5_tactile_allegro_hand.xml"
 model = load_model_from_path(xml_path)
 sim = MjSim(model)
 viewer = MjViewer(sim)
 
 #这里仅定义了link_3.0_tip的测试，使用其他关节请重新定义kdl_kin变量
-robot = URDF.from_xml_file('../../UR5/allegro_hand_tactile_right.urdf')
+robot = URDF.from_xml_file('../UR5/allegro_hand_tactile_right.urdf')
 kdl_tree = kdl_tree_from_urdf_model(robot)
 kdl_kin = KDLKinematics(robot, "palm_link", "link_3.0_tip")
-kdl_chain = kdl_tree.getChain("palm_link", "link_3.0_tip")
+#kdl_chain = kdl_tree.getChain("palm_link", "link_3.0_tip")
 
 robot_init()
 Camera_set()
@@ -389,7 +389,7 @@ for i in range(50):
 # Move to cup
 pose_cup = f.get_body_posquat(sim, "cup")
 trans_cup = f.posquat2trans(pose_cup)
-pos_pregrasp = [0.5, -0.05, 0.1]
+#pos_pregrasp = [0.5, -0.05, 0.1]
 
 trans_pregrasp = np.array([[0, 0, 1, 0.12],
                          [0, 1, 0, -0.25],
@@ -420,15 +420,15 @@ x_t = np.array([0, 0, 0, 0, 0, 0])
 x_t_1 = np.array([0, 0, 0, 0, 0, 0])
 contact_point_name = ""
 debug_temps = np.array([])
-count_time  = 0
+count_time = 0
 
 #全局变量的初始化
-save_pose_x_t_xyz = np.array([[0,0,0]])
-save_pose_GD_xyz = np.array([[0,0,0]])
-save_pose_x_t_rpy = np.array([[0,0,0]])
-save_pose_GD_rpy = np.array([[0,0,0]])
+save_pose_x_t_xyz = np.array([[0, 0, 0]])
+save_pose_GD_xyz = np.array([[0, 0, 0]])
+save_pose_x_t_rpy = np.array([[0, 0, 0]])
+save_pose_GD_rpy = np.array([[0, 0, 0]])
 save_count_time = np.array([0])
-q_pos_test_pre =  np.array([sim.data.qpos[11], sim.data.qpos[127], sim.data.qpos[164], sim.data.qpos[201]])
+q_pos_test_pre = np.array([sim.data.qpos[11], sim.data.qpos[127], sim.data.qpos[164], sim.data.qpos[201]])
 
 #fcl库加载cup 的 BVH模型
 obj_cup = fcl_python.OBJ( "cup_1.obj")

@@ -845,13 +845,13 @@ def print_distance_result(o1_name, o2_name, result):
     print( '')
 
 #****************************上面是函数定义************************************#
-xml_path = "../../UR5/UR5_tactile_allegro_hand.xml"
+xml_path = "../UR5/UR5_tactile_allegro_hand.xml"
 model = load_model_from_path(xml_path)
 sim = MjSim(model)
 viewer = MjViewer(sim)
 
 #这里仅定义了link_3.0_tip的测试，使用其他关节请重新定义kdl_kin变量
-robot = URDF.from_xml_file('../../UR5/allegro_hand_tactile_right.urdf')
+robot = URDF.from_xml_file('../UR5/allegro_hand_tactile_right.urdf')
 kdl_tree = kdl_tree_from_urdf_model(robot)
 kdl_kin_1 = KDLKinematics(robot, "palm_link", "link_3.0_tip")
 kdl_kin_2 = KDLKinematics(robot, "palm_link", "link_15.0_tip")
