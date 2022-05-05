@@ -17,6 +17,7 @@ import fcl
 
 from sympy import *
 import math
+import tactile_allegro_mujo_const
 
 #指定一个表格，来对应相应的关节
 #关节对应顺序表
@@ -37,18 +38,18 @@ def Camera_set():
     viewer.cam.azimuth = 0
 
 def robot_init():
-    sim.data.ctrl[0] = 0.8
-    sim.data.ctrl[1] = -0.78
-    sim.data.ctrl[2] = 1.13
-    sim.data.ctrl[3] = -1.
-    sim.data.ctrl[4] = 0
-    sim.data.ctrl[5] = -0.3
+    sim.data.ctrl[tactile_allegro_mujo_const.UR_CTRL_1] = 0.8
+    sim.data.ctrl[tactile_allegro_mujo_const.UR_CTRL_2] = -0.78
+    sim.data.ctrl[tactile_allegro_mujo_const.UR_CTRL_3] = 1.13
+    sim.data.ctrl[tactile_allegro_mujo_const.UR_CTRL_4] = -1.
+    sim.data.ctrl[tactile_allegro_mujo_const.UR_CTRL_5] = 0
+    sim.data.ctrl[tactile_allegro_mujo_const.UR_CTRL_6] = -0.3
 
 def hand_init():
-    sim.data.ctrl[6] = -0.00502071
-    sim.data.ctrl[7] = 0.2
-    sim.data.ctrl[8] = 0.68513787
-    sim.data.ctrl[9] = 0.85640426
+    sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_1] = -0.00502071
+    sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] = 0.2
+    sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] = 0.68513787
+    sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] = 0.85640426
 
 #雅克比测试
 def jac_geom(sim, geom_name):
@@ -65,9 +66,9 @@ def show_coordinate(sim, body_name):
     palm_link_pose = f.get_body_posquat(sim, body_name)
     rot_palm_link = f.as_matrix(np.hstack((palm_link_pose[4:], palm_link_pose[3])))
     #这里的最初的轴是它的y轴
-    palm_link_rot_x = np.array([[1, 0, 0],[0,1,0],[0,0,1]])
-    palm_link_rot_y = np.array([[1, 0, 0],[0,0,1],[0,1,0]]) #绕X轴的旋转 -90
-    palm_link_rot_z = np.array([[0, 0, -1],[0,1,0],[1,0,0]])#绕y轴的旋转 90
+    palm_link_rot_x = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    palm_link_rot_y = np.array([[1, 0, 0], [0, 0, 1], [0,1,0]]) #绕X轴的旋转 -90
+    palm_link_rot_z = np.array([[0, 0, -1], [0, 1, 0], [1, 0, 0]])#绕y轴的旋转 90
 
     # view中的mat是绕全局坐标系下的旋转，而不是局部坐标系下的旋转
     #红色是x轴， 绿色是y轴，蓝色是z轴
@@ -77,16 +78,18 @@ def show_coordinate(sim, body_name):
 
 def control_input():
     if not (np.array(sensor_data) > 0.0).any():
-        sim.data.ctrl[7] = sim.data.ctrl[7] + 0.005
-        sim.data.ctrl[8] = sim.data.ctrl[8] + 0.005
-        sim.data.ctrl[9] = sim.data.ctrl[9] + 0.005
+        sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] = sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] + 0.005
+        sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] = sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] + 0.005
+        sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] = sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] + 0.005
 
 #仅测试了link_3.0_tip 需要使用请对相应接口进行修改即可
 #pykdl库的安装
 def KDL_forward():
-    q_pos = sim.data.qpos
-    link_3_q = np.array(q_pos[13:17])
-    pose_calc = kdl_kin_1.forward(link_3_q)
+    # q_pos = sim.data.qpos
+    # link_3_q = np.array(q_pos[13:17])
+    q_pos_1 = np.array([sim.data.qpos[126], sim.data.qpos[127], sim.data.qpos[164], sim.data.qpos[201]])
+    # link_3_q = q_pos_1
+    pose_calc = kdl_kin_1.forward(q_pos_1)
     relative_pose = f.get_relative_posquat(sim, "palm_link", "link_3.0_tip")
     relative_pose_trans = f.posquat2trans(relative_pose)
 
@@ -95,28 +98,30 @@ def touch_visual(a, save_point_output):
     global max_size
     truth = f.get_relative_posquat(sim, "base_link", "cup")
 
-    save_point_use = np.array([[0,0,0,0,0,0,0]])
-    save_point_use = np.append(save_point_use, np.array([truth]),axis = 0)
+    save_point_use = np.array([[0, 0, 0, 0, 0, 0, 0]])
+    # save_point_use = np.append(save_point_use, np.array([truth]), axis=0)
+    print (a)
     for i in a:
         for k,l in enumerate(i):
+            #s_name is the taxel's name which can be found in UR5_tactile_allegro_hand.xml
             s_name = model._sensor_id2name[i[k]]
+            # print (s_name)
             sensor_pose = f.get_body_posquat(sim, s_name)
             relative_pose = f.get_relative_posquat(sim, "base_link", s_name)
-            save_point_use = np.append(save_point_use, np.array([relative_pose]),axis = 0)
-
+            save_point_use = np.append(save_point_use, np.array([relative_pose]), axis=0)
             rot_sensor = f.as_matrix(np.hstack((sensor_pose[4:], sensor_pose[3])))
             #用于控制方向，触觉传感器的方向问题
             # test_rot = np.array([[1, 0, 0],[0,0,1],[0,1,0]])
-            test_rot = np.array([[0, 0, 1],[0, 1, 0],[-1, 0, 0]])
+            test_rot = np.array([[0, 0, 1], [0, 1, 0], [-1, 0, 0]])
 
             # viewer.add_marker(pos=sensor_pose[:3], mat =test_rot, type=const.GEOM_ARROW, label="contact", size=np.array([0.001, 0.001, 0.1]), rgba=np.array([1.0, 0.0, 0.0, 1.0]))
-
     if save_point_use.shape[0] > max_size:
         save_point_output = save_point_use
         np.save("output.npy", save_point_output)
-        where_a = np.where(np.array(sensor_data) > 0.0)
+        # where_a = np.where(np.array(sensor_data) > 0.0)
+        # print(where_a)
 
-    max_size = max(save_point_use.shape[0],max_size)
+    max_size = max(save_point_use.shape[0], max_size)
     viewer.render()
 
 def rot_mat_2_vec(T_location, originVector):
@@ -146,9 +151,9 @@ def rot_mat_2_vec(T_location, originVector):
     # print(n_vector_invert)
 
     I = np.array(
-        [[1 ,  0 , 0],
-        [0 ,  1 , 0],
-        [0 ,  0 , 1]]
+        [[1,  0, 0],
+        [0,  1, 0],
+        [0,  0, 1]]
     )
     R_w2c = I + math.sin(sita)*n_vector_invert + n_vector_invert@(n_vector_invert)*(1-math.cos(sita))
     return R_w2c
@@ -164,60 +169,89 @@ def save_point_visual(pos):
     delta = 0.01
     count = 0
     for i in save_point:
-        if np.linalg.norm(pos[:3] - i[:3])>delta:
+        if np.linalg.norm(pos[:3] - i[:3]) > delta:
             count += 1
     if count == len(save_point):
         save_point.append(pos)
     print(len(save_point))
     test_rot_point = np.array([[1, 0, 0],[0,0,1],[0,1,0]])
     for i in save_point:
-        viewer.add_marker(pos=i[:3], mat =test_rot_point, type=const.GEOM_SPHERE, label="", size=np.array([0.005, 0.005, 0.005]), rgba=np.array([1.0, 0.0, 0.0, 1.0]))
+        viewer.add_marker(pos=i[:3], mat=test_rot_point, type=const.GEOM_SPHERE, label="", size=np.array([0.005, 0.005, 0.005]), rgba=np.array([1.0, 0.0, 0.0, 1.0]))
 
 #关节空间的位置闭合抓取
 def control_grasp_joint_control():
-    if not (np.array(sensor_data[0:72]) > 0.0).any():
+    if not (np.array(sensor_data[tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN:\
+            tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX]) > 0.0).any():
         flag = False
         if(flag == False):
             flag = move_ik_control()
         KDL_forward()
-        sim.data.ctrl[7] = sim.data.ctrl[7] + 0.005
-        sim.data.ctrl[8] = sim.data.ctrl[8] + 0.005
-        sim.data.ctrl[9] = sim.data.ctrl[9] + 0.005
+        sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] + 0.005
+        sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] + 0.005
+        sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] + 0.005
     else:
-        sim.data.ctrl[7] = sim.data.ctrl[7]
-        sim.data.ctrl[8] = sim.data.ctrl[8]
-        sim.data.ctrl[9] = sim.data.ctrl[9]
+        sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2]
+        sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3]
+        sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4]
 
-    if not (np.array(sensor_data[72:144]) > 0.0).any():
-        sim.data.ctrl[11] = sim.data.ctrl[11] + 0.006
-        sim.data.ctrl[12] = sim.data.ctrl[12] + 0.003
-        sim.data.ctrl[13] = sim.data.ctrl[13] + 0.003
+    if not (np.array(sensor_data[tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN:\
+            tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX]) > 0.0).any():
+        sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] + 0.006
+        sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_3] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_3] + 0.003
+        sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_4] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_4] + 0.003
     else:
-        sim.data.ctrl[11] = sim.data.ctrl[11]
-        sim.data.ctrl[12] = sim.data.ctrl[12]
-        sim.data.ctrl[13] = sim.data.ctrl[13]
+        sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2]
+        sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_3] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_3]
+        sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_4] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_4]
 
-    if not (np.array(sensor_data[144:216]) > 0.0).any():
-        sim.data.ctrl[15] = sim.data.ctrl[15] + 0.006
-        sim.data.ctrl[16] = sim.data.ctrl[16] + 0.003
-        sim.data.ctrl[17] = sim.data.ctrl[17] + 0.003
+    if not (np.array(sensor_data[tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN:\
+            tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX]) > 0.0).any():
+        sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_2] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_2] + 0.006
+        sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_3] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_3] + 0.003
+        sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_4] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_4] + 0.003
     else:
-        sim.data.ctrl[15] = sim.data.ctrl[15]
-        sim.data.ctrl[16] = sim.data.ctrl[16]
-        sim.data.ctrl[17] = sim.data.ctrl[17]
+        sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_2] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_2]
+        sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_3] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_3]
+        sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_4] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_4]
 
-    if not (np.array(sensor_data[216:288]) > 0.0).any():
-        sim.data.ctrl[18] = sim.data.ctrl[18] + 0.015   #0.01可以
+    if not (np.array(sensor_data[sensor_data[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN:\
+            tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX]]) > 0.0).any():
+        sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_1] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_1] + 0.015   #0.01可以
         # sim.data.ctrl[19] = sim.data.ctrl[19] + 0.002
-        sim.data.ctrl[20] = sim.data.ctrl[20] + 0.002
-        sim.data.ctrl[21] = sim.data.ctrl[21] + 0.002
+        sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] + 0.002
+        sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] + 0.002
     else:
-        sim.data.ctrl[18] = sim.data.ctrl[18]
-        sim.data.ctrl[19] = sim.data.ctrl[19]
-        sim.data.ctrl[20] = sim.data.ctrl[20]
-        sim.data.ctrl[21] = sim.data.ctrl[21]
+        sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_1] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_1]
+        sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_2] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_2]
+        sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3]
+        sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4]
 
-def matrix_6_6_get(param1,param2,param3,param4,param5,param6):
+def matrix_6_6_get(param1, param2, param3, param4, param5, param6):
     matrix_6_6 = np.array([[param1, 0, 0, 0, 0, 0],
                             [0, param2, 0, 0, 0, 0],
                             [0, 0, param3, 0, 0, 0],
@@ -234,7 +268,7 @@ def get_grasp_matrix_trans(contact_point_name, x_t_1):
     delta_p_c = np.array(contact_point_pos - object_position)
     cross_product = cross_product_func(delta_p_c)
     #grasp matrix 获取
-    zero = np.zeros((3,3))
+    zero = np.zeros((3, 3))
     grasp_matrix_up = np.hstack([R_i, zero])
     cross_product_R_i = np.matmul(R_i, cross_product)
     grasp_matrix_down = np.hstack([cross_product_R_i, R_i])
@@ -294,13 +328,21 @@ def two_finger_predict(contact_point_name_1, contact_point_name_2, normal_fcl_1,
     global x_t, x_t_1
     global q_pos_pre_1, q_pos_pre_2
     global Pt_1, count_time
+    global q_pos_1, q_pos_2
 
-    q_pos_1 = np.array([sim.data.qpos[126], sim.data.qpos[127], sim.data.qpos[164], sim.data.qpos[201]])
+    q_pos_1 = np.array([sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_1], \
+                        sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_2], \
+                        sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_3], \
+                        sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_4]])
     delta_Ut_1 = q_pos_1 - q_pos_pre_1
     q_pos_pre_1 = q_pos_1
 
     # 这里的q_Pos2有问题
-    q_pos_2 = np.array([sim.data.qpos[570], sim.data.qpos[571], sim.data.qpos[572], sim.data.qpos[573]])
+    # todo solved?
+    q_pos_2 = np.array([sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_1], \
+                        sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_2], \
+                        sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_3], \
+                        sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_4]])
     delta_Ut_2 = q_pos_2 - q_pos_pre_2
     q_pos_pre_2 = q_pos_2
 
@@ -336,12 +378,12 @@ def two_finger_predict(contact_point_name_1, contact_point_name_2, normal_fcl_1,
 
     #大拇指控制的問題 首先是调整大拇指 kp值的
     #Pt的更新
-    de_F = matrix_6_6_get(1,1,1,1,1,1)
+    de_F = matrix_6_6_get(1, 1, 1, 1, 1, 1)
     # two
     # V_t = matrix_6_6_get(0.00001,-0.000001,0.00001,0.0005,0.005,-0.0005)
     # V_t = matrix_6_6_get(-0.000001,-0.000001,0.000001,0.0005,0.005,-0.0005)
     # V_t = matrix_6_6_get(0.0,-0.0,0.0,0.0,0.0,-0.0)
-    V_t = matrix_6_6_get(0.00001,-0.000001,-0.000001,0.0025,-0.000002,-0.0005)
+    V_t = matrix_6_6_get(0.00001, -0.000001, -0.000001, 0.0025, -0.000002, -0.0005)
     temp_Pt = mul_three(de_F, Pt_1, de_F.transpose())
     Pt = temp_Pt + V_t
 
@@ -374,7 +416,10 @@ def one_finger_predict(contact_point_name_1, normal_fcl_1):
     global q_pos_pre_1
     global Pt_1, count_time
 
-    q_pos_1 = np.array([sim.data.qpos[126], sim.data.qpos[127], sim.data.qpos[164], sim.data.qpos[201]])
+    q_pos_1 = np.array([sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_1], \
+                        sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_2], \
+                        sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_3], \
+                        sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_4]])
     delta_Ut_1 = q_pos_1 - q_pos_pre_1
     q_pos_pre_1 = q_pos_1
 
@@ -398,9 +443,9 @@ def one_finger_predict(contact_point_name_1, normal_fcl_1):
 
     #大拇指控制的問題 首先是调整大拇指 kp值的
     #Pt的更新
-    de_F = matrix_6_6_get(1,1,1,1,1,1)
+    de_F = matrix_6_6_get(1, 1, 1, 1, 1, 1)
     # one
-    V_t = matrix_6_6_get(0.00001,-0.000001,-0.000001,0.0005,0.005,-0.0005)
+    V_t = matrix_6_6_get(0.00001, -0.000001, -0.000001, 0.0005, 0.005, -0.0005)
     # V_t = matrix_6_6_get(0.0,-0.0,0.0,0.0,0.0,-0.0)
     temp_Pt = mul_three(de_F, Pt_1, de_F.transpose())
     Pt = temp_Pt + V_t
@@ -437,19 +482,23 @@ def prediction_model(sim):
 #分为两种情况；
 # 1 首先只有一个手指接触的情况
 # 2 两个手指接触的情况
+
     if (np.array(sensor_data[0:71]) > 0.0).any():
         if first_contact == True:
             #x_t_1的更新
             x_t_1 = f.get_relative_posquat(sim, "palm_link", "cup")
-            delta_x = np.array([0.002,0.002,0.002,0,0,0])
+            delta_x = np.array([0.002, 0.002, 0.002, 0, 0, 0])
             x_t_1 = np.array([f.pos_quat2pos_XYZ_RPY(x_t_1)]) + delta_x
             x_t = x_t_1
             print("x_t_1:", x_t_1)
 
             #这里需要修改matrix_6_6_get
-            Pt_1 = matrix_6_6_get(0.00001,0.00001,0.00001,0.00001,0.00001,0.00001)
+            Pt_1 = matrix_6_6_get(0.00001, 0.00001, 0.00001, 0.00001, 0.00001, 0.00001)
 
-            q_pos_1 = np.array([sim.data.qpos[126], sim.data.qpos[127], sim.data.qpos[164], sim.data.qpos[201]])
+            q_pos_1 = np.array([sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_1], \
+                                sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_2], \
+                                sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_3], \
+                                sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_4]])
             q_pos_pre_1 = q_pos_1
 
             # 记录第一个接触点：
@@ -458,10 +507,14 @@ def prediction_model(sim):
                 s_name = model._sensor_id2name[i[0]]
                 contact_point_name_1 = s_name
             first_contact = False
-        x_t_update = np.zeros((1,6))
+        x_t_update = np.zeros((1, 6))
+
         if (np.array(sensor_data[432:503]) > 0.0).any():
             if second_contact == True:
-                q_pos_2 = np.array([sim.data.qpos[570], sim.data.qpos[571], sim.data.qpos[572], sim.data.qpos[573]])
+                q_pos_2 = np.array([sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_1], \
+                                    sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_2], \
+                                    sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_3], \
+                                    sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_4]])
                 q_pos_pre_2 = q_pos_2
 
                 print("second contact********************")
@@ -707,11 +760,25 @@ save_pose_GD_xyz = np.array([[0,0,0,0,0,0]])
 save_pose_x_t_rpy = np.array([[0,0,0]])
 save_pose_GD_rpy = np.array([[0,0,0]])
 save_count_time = np.array([0])
-q_pos_pre_1 = np.array([sim.data.qpos[126], sim.data.qpos[127], sim.data.qpos[164], sim.data.qpos[201]])
-q_pos_pre_2 = np.array([sim.data.qpos[570], sim.data.qpos[571], sim.data.qpos[572], sim.data.qpos[573]])
+q_pos_1 = np.array([sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_1], \
+                   sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_2], \
+                    sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_3], \
+                    sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_4]])
+q_pos_2 = np.array([sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_1], \
+                    sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_2], \
+                    sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_3], \
+                    sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_4]])
+q_pos_pre_1 = np.array([sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_1], \
+                   sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_2], \
+                    sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_3], \
+                    sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_4]])
+q_pos_pre_2 = np.array([sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_1], \
+                    sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_2], \
+                    sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_3], \
+                    sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_4]])
 
-normal_record_fcl = np.array([[0],[0],[0]]).transpose()
-normal_record_finger = np.array([[0],[0],[0]]).transpose()
+normal_record_fcl = np.array([[0], [0], [0]]).transpose()
+normal_record_finger = np.array([[0], [0], [0]]).transpose()
 
 #update_step:
 Pt_1 = 0.00001 * np.eye(6)
@@ -746,31 +813,44 @@ mesh_fingertip.endModel()
 while True:
     sensor_data = sim.data.sensordata
     show_coordinate(sim, "palm_link")
-    if not (np.array(sensor_data[0:72]) > 0.0).any():
+    if not (np.array(sensor_data[tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN:\
+            tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX]) > 0.0).any():
         # sim.data.ctrl[6] = sim.data.ctrl[6] + 0.005
-        sim.data.ctrl[7] = sim.data.ctrl[7] + 0.005
-        sim.data.ctrl[8] = sim.data.ctrl[8] + 0.005
-        sim.data.ctrl[9] = sim.data.ctrl[9] + 0.005
-        sim.data.ctrl[18] = sim.data.ctrl[18] + 0.008
+        sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] + 0.005
+        sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] + 0.005
+        sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] + 0.005
+        sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_1] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_1] + 0.008
 
         # sim.data.ctrl[19] = sim.data.ctrl[19] + 0.05
         # sim.data.ctrl[20] = sim.data.ctrl[20] + 0.01
         # sim.data.ctrl[21] = sim.data.ctrl[21] + 0.02
 
     else:
-        sim.data.ctrl[7] = sim.data.ctrl[7] + 0.0005
-        sim.data.ctrl[8] = sim.data.ctrl[8] + 0.0005
-        sim.data.ctrl[9] = sim.data.ctrl[9] + 0.0005
+        sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] + 0.005
+        sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] + 0.005
+        sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] + 0.005
 
+        # todo sensor_data id is also strange
         if not (np.array(sensor_data[432:503]) > 0.0).any():
             # sim.data.ctrl[19] = sim.data.ctrl[19] + 0.05
-            sim.data.ctrl[20] = sim.data.ctrl[20] + 0.05
-            sim.data.ctrl[21] = sim.data.ctrl[21] + 0.08
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] = \
+                sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] + 0.05
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] = \
+                sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] + 0.08
         else:
             # sim.data.ctrl[19] = sim.data.ctrl[19] + 0.0005
             # #1
-            sim.data.ctrl[20] = sim.data.ctrl[20] + 0.005
-            sim.data.ctrl[21] = sim.data.ctrl[21] + 0.01
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] = \
+                sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] + 0.005
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] = \
+                sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] + 0.01
 
     contact = sim.data.contact
 
@@ -781,15 +861,22 @@ while True:
     #碰撞检测，输出normal
     # print("Pt_1:", Pt_1)
 
-    for _ in range(50):
-        if (np.array(sensor_data) > 0.0).any():
+    if (np.array(sensor_data) > 0.0).any():
             a = np.where(np.array(sensor_data) > 0.0)
             show_coordinate(sim, "palm_link")
             touch_visual(a, save_point_output)
-
-        sim.step()
-    viewer.render()
-
-while True:
     sim.step()
     viewer.render()
+
+#     for _ in range(50):
+#         if (np.array(sensor_data) > 0.0).any():
+#             a = np.where(np.array(sensor_data) > 0.0)
+#             show_coordinate(sim, "palm_link")
+#             touch_visual(a, save_point_output)
+#
+#         sim.step()
+#     viewer.render()
+#
+# while True:
+#     sim.step()
+#     viewer.render()
