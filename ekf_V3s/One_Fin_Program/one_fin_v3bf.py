@@ -67,7 +67,7 @@ P_ori = 1000 * np.ones([22, 22])
 
 y_t_update = np.array([np.zeros(10)])
 
-# 仅定义link_3.0_tip的测试用其他关节请重新定义kdl_kin
+# kinematic chain and tree.
 robot = URDF.from_xml_file('../../UR5/allegro_hand_tactile_right.urdf')
 kdl_kin0 = KDLKinematics(robot, "palm_link", "link_3.0_tip")
 kdl_kin1 = KDLKinematics(robot, "palm_link", "link_7.0_tip")

@@ -94,18 +94,18 @@ def touch_visual(a, save_point_output):
     global max_size
     truth = f.get_relative_posquat(sim, "base_link", "cup")
 
-    save_point_use = np.array([[0,0,0,0,0,0,0]])
-    save_point_use = np.append(save_point_use, np.array([truth]),axis = 0)
+    save_point_use = np.array([[0, 0, 0, 0, 0, 0, 0]])
+    save_point_use = np.append(save_point_use, np.array([truth]), axis=0)
     for i in a:
         for k,l in enumerate(i):
             s_name = model._sensor_id2name[i[k]]
             sensor_pose = f.get_body_posquat(sim, s_name)
             relative_pose = f.get_relative_posquat(sim, "base_link", s_name)
-            save_point_use = np.append(save_point_use, np.array([relative_pose]),axis = 0)
+            save_point_use = np.append(save_point_use, np.array([relative_pose]), axis=0)
 
             rot_sensor = f.as_matrix(np.hstack((sensor_pose[4:], sensor_pose[3])))
             #用于控制方向，触觉传感器的方向问题
-            test_rot = np.array([[1, 0, 0],[0,0,1],[0,1,0]])
+            test_rot = np.array([[1, 0, 0],[0, 0, 1],[0, 1, 0]])
             viewer.add_marker(pos=sensor_pose[:3], mat =test_rot, type=const.GEOM_ARROW, label="contact", size=np.array([0.001, 0.001, 0.1]), rgba=np.array([1.0, 0.0, 0.0, 1.0]))
 
     if save_point_use.shape[0] > max_size:
@@ -476,9 +476,9 @@ while True:
 
     for _ in range(50):
         if (np.array(sensor_data) > 0.0).any():
-            a = np.where(np.array(sensor_data) > 0.0)
+            active_taxels = np.where(np.array(sensor_data) > 0.0)
             show_coordinate(sim, "palm_link")
-            touch_visual(a, save_point_output)
+            touch_visual(active_taxels, save_point_output)
 
         sim.step()
     viewer.render()
