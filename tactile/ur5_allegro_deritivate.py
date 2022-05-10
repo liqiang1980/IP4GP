@@ -483,7 +483,8 @@ def prediction_model(sim):
 # 1 首先只有一个手指接触的情况
 # 2 两个手指接触的情况
 
-    if (np.array(sensor_data[0:71]) > 0.0).any():
+    if (np.array(sensor_data[tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN:\
+                tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX]) > 0.0).any():
         if first_contact == True:
             #x_t_1的更新
             x_t_1 = f.get_relative_posquat(sim, "palm_link", "cup")
@@ -502,14 +503,18 @@ def prediction_model(sim):
             q_pos_pre_1 = q_pos_1
 
             # 记录第一个接触点：
-            a = np.where(np.array(sensor_data) > 0.0)
+            a = np.where(np.array(sensor_data[tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN:\
+                tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX]) > 0.0)
+            print("id of actived taxel in ff", np.array(sensor_data[tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN:\
+                tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX]))
             for i in a:
                 s_name = model._sensor_id2name[i[0]]
                 contact_point_name_1 = s_name
             first_contact = False
         x_t_update = np.zeros((1, 6))
 
-        if (np.array(sensor_data[432:503]) > 0.0).any():
+        if (np.array(sensor_data[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN:\
+                tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX]) > 0.0).any():
             if second_contact == True:
                 q_pos_2 = np.array([sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_1], \
                                     sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_2], \
@@ -519,7 +524,8 @@ def prediction_model(sim):
 
                 print("second contact********************")
                 # 记录第一个接触点：
-                a = np.where(np.array(sensor_data[432:503]) > 0.0)
+                a = np.where(np.array(sensor_data[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN:\
+                                                  tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX]) > 0.0)
                 for i in a:
                     s_name = model._sensor_id2name[i[0]]
                     contact_point_name_2 = s_name
@@ -752,13 +758,13 @@ x_t = np.array([0, 0, 0, 0, 0, 0])
 x_t_1 = np.array([0, 0, 0, 0, 0, 0])
 contact_point_name_1 = ""
 contact_point_name_2 = ""
-count_time  = 0
+count_time = 0
 
 #全局变量的初始化
-save_pose_x_t_xyz = np.array([[0,0,0,0,0,0]])
-save_pose_GD_xyz = np.array([[0,0,0,0,0,0]])
-save_pose_x_t_rpy = np.array([[0,0,0]])
-save_pose_GD_rpy = np.array([[0,0,0]])
+save_pose_x_t_xyz = np.array([[0, 0, 0, 0, 0, 0]])
+save_pose_GD_xyz = np.array([[0, 0, 0, 0, 0, 0]])
+save_pose_x_t_rpy = np.array([[0, 0, 0]])
+save_pose_GD_rpy = np.array([[0, 0, 0]])
 save_count_time = np.array([0])
 q_pos_1 = np.array([sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_1], \
                    sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_2], \
@@ -822,8 +828,7 @@ while True:
             sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] + 0.005
         sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] = \
             sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] + 0.005
-        sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_1] = \
-            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_1] + 0.008
+
 
         # sim.data.ctrl[19] = sim.data.ctrl[19] + 0.05
         # sim.data.ctrl[20] = sim.data.ctrl[20] + 0.01
@@ -837,21 +842,31 @@ while True:
         sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] = \
             sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] + 0.005
 
-        # todo sensor_data id is also strange
-        if not (np.array(sensor_data[432:503]) > 0.0).any():
-            # sim.data.ctrl[19] = sim.data.ctrl[19] + 0.05
-            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] = \
-                sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] + 0.05
-            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] = \
-                sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] + 0.08
-        else:
-            # sim.data.ctrl[19] = sim.data.ctrl[19] + 0.0005
-            # #1
-            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] = \
-                sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] + 0.005
-            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] = \
-                sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] + 0.01
+    # todo sensor_data id is also strange
+    if not (np.array(sensor_data[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN:\
+        tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX]) > 0.0).any():
+        sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_1] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_1] + 0.1
+        sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_2] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_2] + 0
+        sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] + 0.005
+        sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] + 0.005
+    else:
+        # sim.data.ctrl[19] = sim.data.ctrl[19] + 0.0005
+        # #1
+        sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] + 0.005
+        sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] = \
+        sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] + 0.01
 
+    print("joint angle is ?????????????????????????????????????????????????? ")
+    print(sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_1],\
+          sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_2],\
+          sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_3],\
+          sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_4]
+          )
     contact = sim.data.contact
 
     #前向prediction_model
