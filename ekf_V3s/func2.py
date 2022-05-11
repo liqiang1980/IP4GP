@@ -144,6 +144,7 @@ def get_normal(sim, model, c_points, trans_cup2palm):
     pos_contact_avg_cupZ = np.empty([1, 0])
     for i in c_points:
         c_point_name_zz = model._sensor_id2name[i]
+        #todo why here the cartesian mean is used, not in the contact position computation (pos_contact0)
         posquat_contact_cup_zz = f.get_relative_posquat(sim, "cup", c_point_name_zz)
         pos_contact_avg_cupX = np.append(pos_contact_avg_cupX, posquat_contact_cup_zz[0])
         pos_contact_avg_cupY = np.append(pos_contact_avg_cupY, posquat_contact_cup_zz[1])
@@ -167,14 +168,20 @@ def get_normal(sim, model, c_points, trans_cup2palm):
 def get_G(sim, c_point_name, pos_contact, y_t_update):
     # print("chuck:", pos_contact, y_t_update)
     S = f.get_S(pos_contact - y_t_update[:3])  # Get S(c_i - p), palm frame
+    #todo looks like this is related to the palm frame, right?
+    #todo, is there an contact frame related to a taxel?
+    #todo could you please comment the formula you are using for f.get_T();
     T_contact = f.get_T(sim, c_point_name)  # contact point in cup frame
     R_contact = T_contact[:3, :3]  # Get R of contact point
+    #todo name is the same with this function,
+    #todo could you please comment the formula you are using for f.get_G();
     G_contact = f.get_G(R_contact, S)
     return G_contact
 
 def get_c_point_name(model, c_points):  # get the median of all contact_nums, and translate to contact_name
     if len(c_points) % 2 == 0:  # even number of contact points
         c_points = np.hstack((-1, c_points))  # change to odd
+        #todo why the median of taxels are the contact point?
         c_point_name = model._sensor_id2name[int(np.median(c_points))]  # use median to get the contact_point name
         print(np.median(c_points))
     else:

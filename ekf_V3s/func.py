@@ -284,6 +284,7 @@ def pos_quat2pos_XYZ_RPY_wxyz(pos_quat):
     pos_XYZ_angle[-3:] = euler0
     return pos_XYZ_angle
 
+#function from quaterion to Euler angle
 def pos_quat2pos_XYZ_RPY_xyzw(pos_quat):
     # input must be w x y z
     quat = pos_quat[3:]

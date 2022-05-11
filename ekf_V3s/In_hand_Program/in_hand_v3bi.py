@@ -185,22 +185,25 @@ def ekf_predictor(sim, model, viewer, y_t_update):
 
         ################################################################################################################
         # <editor-fold desc=">>>>>get the contact names, normal, position, G and J (index finger)">
+        # todo I guess here you can use a unified function which different parameters to compute Grasp matrix etc.
         if (np.array(sim.data.sensordata[0:72]) > 0.0).any():
             a = np.where(sim.data.sensordata[0:72] > 0.0)  # The No. of tactile sensor (index finger)
             c_points0 = a[0]
             print("fin0")
+            #todo the pos_contact0 should be the mean value of all actived taxels.
             c_point_name0 = f2.get_c_point_name(model, c_points0)
-
             pos_contact0 = f.get_relative_posquat(sim, "palm_link", c_point_name0)[:3]  # get the position
 
             nor0, res0 = f2.get_normal(sim, model, c_points0, trans_cup2palm)  # get normal_in_cup
             nor_tmp[fin_num] = nor0  # save to tmp nor
             coe_tmp[fin_num] = res0  # save to tmp coe
 
+            #the G is the estimated matrix because the noised object pose
             G_contact0 = f2.get_G(sim, c_point_name0, pos_contact0, y_t_update)  # get G
             G_contact[fin_num] = G_contact0  # save to tmp G
 
-            u_t0 = np.array([sim.data.qvel[126], sim.data.qvel[127], sim.data.qvel[164], sim.data.qvel[201]])  # Get u_t
+            # Get joint angle velocity--u_t
+            u_t0 = np.array([sim.data.qvel[126], sim.data.qvel[127], sim.data.qvel[164], sim.data.qvel[201]])
             u_t_tmp[fin_num] = u_t0  # save to tmp u_t
 
             J0 = kdl_kin0.jacobian(u_t0)  # Get Jacobi J
@@ -310,10 +313,12 @@ def ekf_predictor(sim, model, viewer, y_t_update):
             nor_in_p[0 + i * 3: 3 + i * 3] = nor_tmp[i]
 
         G_pinv = np.linalg.pinv(G_big)  # Get G_pinv
+        #todo could you please comment the formula the computation, e.g. give the reference (to paper/book, pages, eq id)?
         prediction = np.matmul(np.matmul(G_pinv, J_finger_3), u_t * delta_t)  # Predict
 
         ###############################
         y_t = y_t_update + prediction
+        #todo what does revel here?
         y_t = np.ravel(y_t)
         ###############################
 
@@ -354,11 +359,13 @@ def ekf_posteriori(sim, model, viewer, z_t, h_t, G_big, y_t, F_part, fin_num, fi
     global P_ori, y_t_update, err_all
     global save_count_time, save_pose_y_t_xyz, save_pose_y_t_rpy, save_pose_GD_xyz, save_pose_GD_rpy, count_time
 
+    #todo add reference to equation paper/book pages, eq id
     #######################################    F    ###########################################
     F = np.eye(6 + 4 * fin_num)
     F[:6, 6:] = F_part
 
     #######################################    R    ###########################################
+    #todo where does it come?
     R_tmp = np.array([[2.37024061e-001, -3.06343629e-001, 6.14938815e-001, 1.17960413e-001,
                        3.05049539e-001, -1.68124732e-003],
                       [-3.06343629e-001, 6.93113033e-001, -9.19982570e-001, -3.85185662e-001,
@@ -459,8 +466,8 @@ def EKF():
 
 def in_hand():
     global err_all
+    #todo what is the file?
     err_all = np.loadtxt("./err_inHand_v3bi.txt")
-
     f2.pre_thumb(sim, viewer)  # Thumb root movement
     # Fast
     for ii in range(37):
@@ -468,12 +475,13 @@ def in_hand():
         f2.middle_finger(sim, 0.015, 0.00001)
         f2.little_thumb(sim, 0.015, 0.0001)
         EKF()
-    # Slow Down
+    # Slow Downt whether any array element along a given axis evaluates to True.
     for ij in range(30):
         f2.index_finger(sim, 0.0055, 0.004)
         f2.middle_finger(sim, 0.0036, 0.003)
         f2.little_thumb(sim, 0.0032, 0.0029)
         f2.thumb(sim, 0.003, 0.003)
+        #todo EKF() already did the rendering, why here the sim step and rendering still needed?
         for i in range(4):
             for _ in range(50):
                 sim.step()
