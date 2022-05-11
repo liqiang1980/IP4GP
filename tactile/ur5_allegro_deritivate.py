@@ -337,8 +337,6 @@ def two_finger_predict(contact_point_name_1, contact_point_name_2, normal_fcl_1,
     delta_Ut_1 = q_pos_1 - q_pos_pre_1
     q_pos_pre_1 = q_pos_1
 
-    # 这里的q_Pos2有问题
-    # todo solved?
     q_pos_2 = np.array([sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_1], \
                         sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_2], \
                         sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_3], \
@@ -482,7 +480,6 @@ def prediction_model(sim):
 #分为两种情况；
 # 1 首先只有一个手指接触的情况
 # 2 两个手指接触的情况
-
     if (np.array(sensor_data[tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN:\
                 tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX]) > 0.0).any():
         if first_contact == True:
@@ -616,7 +613,7 @@ def collision_part(pos_R_cup_global, pos_R_fingertip_global):
 
     t_cup_global = fcl.Transform(R_cup_global, pos_cup_global)
 
-    t_fingertip_global =  fcl.Transform(R_fingertip_global, pos_fingertip_global)
+    t_fingertip_global = fcl.Transform(R_fingertip_global, pos_fingertip_global)
 
     o_cup = fcl.CollisionObject(mesh_cup, t_cup_global)
     o_fingertip = fcl.CollisionObject(mesh_fingertip, t_fingertip_global)
@@ -642,9 +639,6 @@ def collision_test():
     cup_trans_global = f.posquat2trans(cup_pose_global)
 
     res1 = collision_part(cup_trans_global, link_3_tip_trans_global)
-    #这里应该是15，这里是一个问题。
-    # contact_fcl 和 前向部分都需要修改。
-    # 如何确认大拇指的位置。
     res2 = collision_part(cup_trans_global, link_15_tip_trans_global)
 
     if res1.is_collision:
@@ -792,8 +786,9 @@ Pt_1 = 0.00001 * np.eye(6)
 #normal:
 normal_fcl_1 = np.array([[0, 0, 0]]).transpose()
 normal_fcl_1 = np.array([[0, 0, 0]]).transpose()
+
 #fcl库加载cup 的 BVH模型
-obj_cup = fcl_python.OBJ( "cup_1.obj")
+obj_cup = fcl_python.OBJ("cup_1.obj")
 verts_cup = obj_cup.get_vertices()
 tris_cup = obj_cup.get_faces()
 # Create mesh geometry
@@ -805,7 +800,7 @@ mesh_cup.endModel()
 print("len_verts_cup:", len(verts_cup))
 
 #fcl库加载finger_tip 的 BVH模型
-obj_fingertip = fcl_python.OBJ( "fingertip_part.obj")
+obj_fingertip = fcl_python.OBJ("fingertip_part.obj")
 verts_fingertip = obj_fingertip.get_vertices()
 tris_fingertip = obj_fingertip.get_faces()
 print("len_verts_fingertip:", len(verts_fingertip))
@@ -823,26 +818,19 @@ while True:
             tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX]) > 0.0).any():
         # sim.data.ctrl[6] = sim.data.ctrl[6] + 0.005
         sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] = \
-            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] + 0.005
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] + 0.001
         sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] = \
-            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] + 0.005
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] + 0.001
         sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] = \
-            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] + 0.005
-
-
-        # sim.data.ctrl[19] = sim.data.ctrl[19] + 0.05
-        # sim.data.ctrl[20] = sim.data.ctrl[20] + 0.01
-        # sim.data.ctrl[21] = sim.data.ctrl[21] + 0.02
-
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] + 0.001
     else:
         sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] = \
-            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] + 0.005
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] + 0.001
         sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] = \
-            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] + 0.005
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] + 0.001
         sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] = \
-            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] + 0.005
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] + 0.001
 
-    # todo sensor_data id is also strange
     if not (np.array(sensor_data[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN:\
         tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX]) > 0.0).any():
         sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_1] = \
@@ -850,9 +838,9 @@ while True:
         sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_2] = \
             sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_2] + 0
         sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] = \
-            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] + 0.005
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] + 0.00
         sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] = \
-            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] + 0.005
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] + 0.00
     else:
         # sim.data.ctrl[19] = sim.data.ctrl[19] + 0.0005
         # #1
@@ -861,13 +849,7 @@ while True:
         sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] = \
         sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] + 0.01
 
-    print("joint angle is ?????????????????????????????????????????????????? ")
-    print(sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_1],\
-          sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_2],\
-          sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_3],\
-          sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_4]
-          )
-    contact = sim.data.contact
+    # contact = sim.data.contact
 
     #前向prediction_model
     collision_test()

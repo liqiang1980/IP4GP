@@ -18,7 +18,7 @@ import test_Plot_plus as plt_plus
 #
 #######################################
 #########################################   GLOBAL VARIABLES   #########################################################
-xml_path = "../../UR5/UR5_tactile_allegro_hand.xml"
+xml_path = "../../robots/UR5_tactile_allegro_hand.xml"
 model = load_model_from_path(xml_path)
 sim = MjSim(model)
 viewer = MjViewer(sim)
@@ -69,7 +69,7 @@ P_ori = 1000 * np.ones([22, 22])
 y_t_update = np.array([np.zeros(10)])
 
 # 仅定义link_3.0_tip的测试用其他关节请重新定义kdl_kin
-robot = URDF.from_xml_file('../../UR5/allegro_hand_tactile_right.urdf')
+robot = URDF.from_xml_file('../../robots/UR5_allegro_hand_right.urdf')
 kdl_kin0 = KDLKinematics(robot, "palm_link", "link_3.0_tip")
 kdl_kin1 = KDLKinematics(robot, "palm_link", "link_7.0_tip")
 kdl_kin2 = KDLKinematics(robot, "palm_link", "link_11.0_tip")

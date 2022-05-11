@@ -42,6 +42,13 @@ python3 ur5_allegro.py
 python3 plot_pose.py
 ```
 
+visualize the model in mujoco environment
+```bash
+cd ./.mujoco/mujoco200/bin
+./simulate
+```
+then pull the .xml (mujoco model) into the gui
+
 # attention for ROS user
 
 Please do not source ../devel/setup.bash

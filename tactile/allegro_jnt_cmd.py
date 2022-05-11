@@ -78,10 +78,11 @@ print("action start")
 while True:
     sensor_data = sim.data.sensordata
     print(finger_name, ' incremental vel are ', jnt1_vel, jnt2_vel, jnt3_vel, jnt4_vel)
-    q_pos = np.array([sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_1], \
-                      sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_2], \
-                      sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_3], \
-                      sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_4]])
+    # after the testing it seems that the joint limitation does not work
+    q_pos = np.array([sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_1], \
+                      sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_2], \
+                      sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_3], \
+                      sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_4]])
     print(q_pos[0], q_pos[1], q_pos[2], q_pos[3])
 
     if finger_name == 'TH':
