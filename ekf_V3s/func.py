@@ -21,10 +21,10 @@ import PyKDL as kdl
 
 # from PID import pid
 
-robot = URDF.from_xml_file('../../UR5/allegro_hand_tactile_right.urdf')
-kdl_tree = kdl_tree_from_urdf_model(robot)
-# kdl_kin = KDLKinematics(robot, "palm_link", "link_3.0_tip")
-kdl_chain = kdl_tree.getChain("palm_link", "link_3.0_tip")
+# robot = URDF.from_xml_file('../../UR5/allegro_hand_tactile_right.urdf')
+# kdl_tree = kdl_tree_from_urdf_model(robot)
+# # kdl_kin = KDLKinematics(robot, "palm_link", "link_3.0_tip")
+# kdl_chain = kdl_tree.getChain("palm_link", "link_3.0_tip")
 
 def get_geom_posquat(sim, name):
     rot = sim.data.get_geom_xmat(name)
@@ -319,13 +319,13 @@ def move_ik(sim, ee_tget_posquat, gripper_action=0.04, viewer=None):
     return (posquat_equal(ee_curr_posquat[:7], ee_tget_posquat[:7], threshold))
 
 
-def move_ik_finger(sim, ee_tget_posquat, gripper_action=0.04, viewer=None):
+def move_ik_finger(sim, kdl_kin, ee_tget_posquat, gripper_action=0.04, viewer=None):
     # ee_target is in world frame
     ee_curr_posquat = get_relative_posquat(sim, "palm_link", "link_3.0_tip")
     max_step = 1000
     no_step = 0
     threshold = 0.001
-    kdl_kin = KDLKinematics(robot, "palm_link", "link_3.0_tip")
+    # kdl_kin = KDLKinematics(robot, "palm_link", "link_3.0_tip")
     # ee_jac = jac_geom(sim, "link_3.0_tip")
     for i in range(max_step):
         if (posquat_equal(ee_curr_posquat[:7], ee_tget_posquat[:7], threshold)) :
@@ -352,13 +352,13 @@ def move_ik_finger(sim, ee_tget_posquat, gripper_action=0.04, viewer=None):
             return 0
     return (posquat_equal(ee_curr_posquat[:7], ee_tget_posquat[:7], threshold))
 
-def move_ik_kdl_finger_pinv(sim, ee_tget_posquat, gripper_action=0.04, viewer=None):
+def move_ik_kdl_finger_pinv(sim, kdl_kin, ee_tget_posquat, gripper_action=0.04, viewer=None):
     # ee_target is in world frame
     ee_curr_posquat = get_relative_posquat(sim, "palm_link", "link_3.0_tip")
     max_step = 1000
     no_step = 0
     threshold = 0.001
-    kdl_kin = KDLKinematics(robot, "palm_link", "link_3.0_tip")
+    # kdl_kin = KDLKinematics(robot, "palm_link", "link_3.0_tip")
     # ee_jac = jac_geom(sim, "link_3.0_tip")
     for i in range(max_step):
         if (posquat_equal(ee_curr_posquat[:7], ee_tget_posquat[:7], threshold)) :
@@ -396,7 +396,7 @@ def move_ik_kdl_finger_pinv(sim, ee_tget_posquat, gripper_action=0.04, viewer=No
             return 0
     return (posquat_equal(ee_curr_posquat[:7], ee_tget_posquat[:7], threshold))
 
-def move_ik_kdl_finger_wdls_middle(sim, ee_tget_posquat, gripper_action=0.04, viewer=None):
+def move_ik_kdl_finger_wdls_middle(sim, kdl_kin, ee_tget_posquat, gripper_action=0.04, viewer=None):
     # ee_target is in world frame
     # ee_curr_posquat = get_relative_posquat(sim, "palm_link", "link_3.0_tip")
     ee_curr_posquat = get_relative_posquat(sim, "palm_link", "link_7.0_tip")
@@ -404,7 +404,7 @@ def move_ik_kdl_finger_wdls_middle(sim, ee_tget_posquat, gripper_action=0.04, vi
     no_step = 0
     threshold = 0.001
     # kdl_kin = KDLKinematics(robot, "palm_link", "link_3.0_tip")
-    kdl_kin = KDLKinematics(robot, "palm_link", "link_7.0_tip")
+    # kdl_kin = KDLKinematics(robot, "palm_link", "link_7.0_tip")
     # ee_jac = jac_geom(sim, "link_3.0_tip")
     for i in range(max_step):
         if (posquat_equal(ee_curr_posquat[:7], ee_tget_posquat[:7], threshold)) :
@@ -458,14 +458,14 @@ def move_ik_kdl_finger_wdls_middle(sim, ee_tget_posquat, gripper_action=0.04, vi
             return 0
     return (posquat_equal(ee_curr_posquat[:7], ee_tget_posquat[:7], threshold))
 
-def move_ik_kdl_finger_wdls_king(sim, ee_tget_posquat, gripper_action=0.04, viewer=None):
+def move_ik_kdl_finger_wdls_king(sim, kdl_kin, ee_tget_posquat, gripper_action=0.04, viewer=None):
     # ee_target is in world frame
     ee_curr_posquat = get_relative_posquat(sim, "palm_link", "link_3.0_tip")
     # ee_curr_posquat = get_relative_posquat(sim, "palm_link", "link_7.0_tip")
     max_step = 1000
     no_step = 0
     threshold = 0.001
-    kdl_kin = KDLKinematics(robot, "palm_link", "link_3.0_tip")
+    # kdl_kin = KDLKinematics(robot, "palm_link", "link_3.0_tip")
     # kdl_kin = KDLKinematics(robot, "palm_link", "link_7.0_tip")
     # ee_jac = jac_geom(sim, "link_3.0_tip")
     for i in range(max_step):
