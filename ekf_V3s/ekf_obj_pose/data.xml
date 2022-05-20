@@ -37,6 +37,10 @@
                 <j4>8</j4>
             </init_posture>
         </finger>
-       
-        
+        <object>
+            <name>cup</name>
+            <noise_position>0.005</noise_position>
+            <noise_orientation>0.08</noise_orientation>
+        </object>
     </hand>
+

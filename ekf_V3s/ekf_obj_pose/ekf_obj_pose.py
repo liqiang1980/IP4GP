@@ -57,6 +57,15 @@ else:
         #hand_param[1][1]: is "ff" finger used for grasping
         #hand_param[1][2]["j1"]: init of j1 of "ff" finger
 
+        #parse object info
+        object_param = []
+        object_name = dom.getElementsByTagName('object')[0].getElementsByTagName('name')[0].firstChild.data
+        object_position_noise = dom.getElementsByTagName('object')[0].getElementsByTagName('noise_position')[0].firstChild.data
+        object_orientation_noise = dom.getElementsByTagName('object')[0].getElementsByTagName('noise_orientation')[0].firstChild.data
+        object_param.append(object_name)
+        object_param.append(object_position_noise)
+        object_param.append(object_orientation_noise)
+        print(object_param)
 
 ######################################
 # v3b: Gaussian noise add to h() to become z_t
@@ -69,7 +78,7 @@ model = load_model_from_path(xml_path)
 sim = MjSim(model)
 viewer = MjViewer(sim)
 
-pose_cup = f.get_body_posquat(sim, "cup")
+pose_cup = f.get_body_posquat(sim, object_param[0])
 trans_cup = f.posquat2trans(pose_cup)
 trans_pregrasp = np.array([[0, 0, 1, 0.1],  # cup参考系
                            [0, 1, 0, -0.23],
@@ -220,11 +229,14 @@ def ekf_predictor(sim, model, viewer, y_t_update):
     coe_tmp = np.zeros([4, 6])  # store coefficients, the number of coefficients is uncertain, this number between 1~4
 
     y_t_update = np.ravel(y_t_update)  # flatten
-    # print("yuuu:", y_t_update)
-    if (np.array(sim.data.sensordata[0:72]) > 0.0).any() \
-            or (np.array(sim.data.sensordata[144:216]) > 0.0).any() \
-            or (np.array(sim.data.sensordata[288:360]) > 0.0).any() \
-            or (np.array(sim.data.sensordata[432:504]) > 0.0).any():
+    if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN: \
+            tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX]) > 0.0).any() \
+            or (np.array(sim.data.sensordata[tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN:\
+            tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX]) > 0.0).any() \
+            or (np.array(sim.data.sensordata[tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN:\
+            tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX]) > 0.0).any() \
+            or (np.array(sim.data.sensordata[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN:\
+            tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX]) > 0.0).any():
         if not flag:  # get the state of cup in the first round
             init_e = np.hstack((np.random.uniform(-0.005, 0.005, (1, 3)), np.random.uniform(-0.08, 0.08, (1, 3))))  # +-5 mm, +-0.08 rad(4.5 deg)
             # init_e = np.array([-0.005, -0.005, -0.005, -0.08, -0.08, -0.08])
@@ -239,8 +251,10 @@ def ekf_predictor(sim, model, viewer, y_t_update):
         ################################################################################################################
         # <editor-fold desc=">>>>>get the contact names, normal, position, G and J (index finger)">
         # todo I guess here you can use a unified function which different parameters to compute Grasp matrix etc.
-        if (np.array(sim.data.sensordata[0:72]) > 0.0).any():
-            a = np.where(sim.data.sensordata[0:72] > 0.0)  # The No. of tactile sensor (index finger)
+        if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN: \
+            tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX]) > 0.0).any():
+            a = np.where(sim.data.sensordata[tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN: \
+            tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX] > 0.0)  # The No. of tactile sensor (index finger)
             c_points0 = a[0]
             print("fin0")
             #todo the pos_contact0 should be the mean value of all actived taxels.
@@ -256,7 +270,10 @@ def ekf_predictor(sim, model, viewer, y_t_update):
             G_contact[fin_num] = G_contact0  # save to tmp G
 
             # Get joint angle velocity--u_t
-            u_t0 = np.array([sim.data.qvel[126], sim.data.qvel[127], sim.data.qvel[164], sim.data.qvel[201]])
+            u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_1],\
+                             sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_2], \
+                             sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_3], \
+                             sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_4]])
             u_t_tmp[fin_num] = u_t0  # save to tmp u_t
 
             J0 = kdl_kin0.jacobian(u_t0)  # Get Jacobi J
@@ -267,8 +284,10 @@ def ekf_predictor(sim, model, viewer, y_t_update):
         # </editor-fold>
 
         # <editor-fold desc=">>>>>get the contact names, normal, position, G and J  (middle finger)">
-        if (np.array(sim.data.sensordata[144:216]) > 0.0).any():
-            a1 = np.where(sim.data.sensordata[144:216] > 0.0)  # The No. of tactile sensor (middle finger)
+        if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN: \
+            tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX]) > 0.0).any():
+            a1 = np.where(sim.data.sensordata[tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN: \
+            tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX] > 0.0)  # The No. of tactile sensor (middle finger)
             c_points1 = a1[0] + 144
             print("fin1")
             c_point_name1 = f2.get_c_point_name(model, c_points1)
@@ -293,8 +312,10 @@ def ekf_predictor(sim, model, viewer, y_t_update):
         # </editor-fold>
 
         # <editor-fold desc=">>>>>get the contact names, normal, position, G and J (little finger)">
-        if (np.array(sim.data.sensordata[288:360]) > 0.0).any():
-            a2 = np.where(sim.data.sensordata[288:360] > 0.0)  # The No. of tactile sensor (middle finger)
+        if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN: \
+            tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX]) > 0.0).any():
+            a2 = np.where(sim.data.sensordata[tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN: \
+            tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX] > 0.0)  # The No. of tactile sensor (middle finger)
             c_points2 = a2[0] + 288
             print("fin2")
             c_point_name2 = f2.get_c_point_name(model, c_points2)
@@ -319,8 +340,10 @@ def ekf_predictor(sim, model, viewer, y_t_update):
         # </editor-fold>
 
         # <editor-fold desc=">>>>>get the contact names, normal, position, G and J (thumb)">
-        if (np.array(sim.data.sensordata[432:504]) > 0.0).any():
-            a3 = np.where(sim.data.sensordata[432:504] > 0.0)  # The No. of tactile sensor (middle finger)
+        if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN: \
+            tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX]) > 0.0).any():
+            a3 = np.where(sim.data.sensordata[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN: \
+            tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX] > 0.0)  # The No. of tactile sensor (middle finger)
             c_points3 = a3[0] + 432
             print("fin3")
             c_point_name3 = f2.get_c_point_name(model, c_points3)
