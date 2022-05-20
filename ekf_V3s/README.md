@@ -64,6 +64,12 @@
   python3 in_hand_v3bf.py
   python3 in_hand_v3bi.py
   ```
+  
+- run fingers configurable object pose estimation
+ ```bash
+  cd ekf_obj_pose
+  python3 ekf_obj_pose.py data.xml
+  ```
 
 
 
