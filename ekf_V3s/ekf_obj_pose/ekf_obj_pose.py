@@ -50,6 +50,10 @@ else:
                 finger_param = [finger_name, is_used.firstChild.data, j_init_dic]
                 hand_param.append(finger_param)
         print(hand_param)
+        print(hand_param[1][1])
+        print(hand_param[2][1])
+        print(hand_param[3][1])
+        print(hand_param[4][1])
         #access to data in configure file
         #hand_param[0]: name of the hand
         #hand_param[1]: parameter of "ff" finger
@@ -211,7 +215,7 @@ def ekf_predictor(sim, model, viewer, y_t_update):
     global save_error_xyz, save_error_rpy, save_model
     global u_t, trans_cup2palm, conver_rate
 
-    print("*" * 30)
+    # print("*" * 30)
     ##############   refresh parameters  ###################
     delta_t = 0.1
     fin_num = 0  # number of triggered fingers
@@ -250,7 +254,8 @@ def ekf_predictor(sim, model, viewer, y_t_update):
 
         ################################################################################################################
         # <editor-fold desc=">>>>>get the contact names, normal, position, G and J (index finger)">
-        # todo I guess here you can use a unified function which different parameters to compute Grasp matrix etc.
+        # todo I guess here you can use a unified function which different parameters to
+        # compute Grasp matrix etc.
         if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN: \
             tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX]) > 0.0).any():
             a = np.where(sim.data.sensordata[tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN: \
@@ -389,7 +394,8 @@ def ekf_predictor(sim, model, viewer, y_t_update):
             nor_in_p[0 + i * 3: 3 + i * 3] = nor_tmp[i]
 
         G_pinv = np.linalg.pinv(G_big)  # Get G_pinv
-        #todo could you please comment the formula the computation, e.g. give the reference (to paper/book, pages, eq id)?
+        #todo could you please comment the formula the computation,
+        # e.g. give the reference (to paper/book, pages, eq id)?
         prediction = np.matmul(np.matmul(G_pinv, J_finger_3), u_t * delta_t)  # Predict
 
         ###############################
@@ -510,7 +516,7 @@ def EKF():
     if fin_num != Pmodel or np.isnan(np.sum(h_t)):
         # if fin_num ==0 or np.isnan(np.sum(h_t)) or (fin_tri[0] == 0 and fin_tri[1] == 1):
         y_t_update = y_t_ready
-        print("pass")
+        # print("pass")
         return 0
     ###################################################################################################
 
@@ -540,23 +546,30 @@ def EKF():
     viewer.render()
 
 
-def in_hand():
+def interacting(hand_param):
     global err_all
     #todo what is the file?
     err_all = np.loadtxt("./err_inHand_v3bi.txt")
     f2.pre_thumb(sim, viewer)  # Thumb root movement
     # Fast
     for ii in range(37):
-        f2.index_finger(sim, 0.015, 0.00001)
-        f2.middle_finger(sim, 0.015, 0.00001)
-        f2.little_thumb(sim, 0.015, 0.0001)
+        if hand_param[1][1] == '1':
+            f2.index_finger(sim, 0.015, 0.00001)
+        if hand_param[2][1] == '1':
+            f2.middle_finger(sim, 0.015, 0.00001)
+        if hand_param[3][1] == '1':
+            f2.little_thumb(sim, 0.015, 0.001)
         EKF()
     # Slow Downt whether any array element along a given axis evaluates to True.
     for ij in range(30):
-        f2.index_finger(sim, 0.0055, 0.004)
-        f2.middle_finger(sim, 0.0036, 0.003)
-        f2.little_thumb(sim, 0.0032, 0.0029)
-        f2.thumb(sim, 0.003, 0.003)
+        if hand_param[1][1] == '1':
+            f2.index_finger(sim, 0.0055, 0.004)
+        if hand_param[2][1] == '1':
+            f2.middle_finger(sim, 0.0036, 0.003)
+        if hand_param[3][1] == '1':
+            f2.little_thumb(sim, 0.0032, 0.0029)
+        if hand_param[4][1] == '1':
+            f2.thumb(sim, 0.003, 0.003)
         #todo EKF() already did the rendering, why here the sim step and rendering still needed?
         for i in range(4):
             for _ in range(50):
@@ -566,9 +579,12 @@ def in_hand():
     # Rotate
     for ij in range(30):
         # f2.index_finger(sim, 0.0055, 0.0038)
-        f2.middle_finger(sim, 0.0003, 0.003)
-        f2.little_thumb(sim, 0.0005, 0.005)
-        f2.thumb(sim, 0.003, 0.003)
+        if hand_param[2][1] == '1':
+            f2.middle_finger(sim, 0.0003, 0.003)
+        if hand_param[3][1] == '1':
+            f2.little_thumb(sim, 0.0005, 0.005)
+        if hand_param[4][1] == '1':
+            f2.thumb(sim, 0.003, 0.003)
         for i in range(4):
             for _ in range(50):
                 sim.step()
@@ -595,13 +611,14 @@ for i in range(4):
         sim.step()
     viewer.render()
 
-in_hand()
-print(np.hstack((save_pose_y_t_xyz, save_pose_y_t_rpy)))
+interacting(hand_param)
 
-save_tmp = np.load("save_date/iEKF_incremental.npy")
-np.save("save_date/iEKF_incremental.npy", np.vstack((save_tmp, np.hstack((save_pose_y_t_xyz, save_pose_y_t_rpy)))))
-print("Run times:", int(save_tmp.shape[0] / 45 + 1))
-print("over, shape:", save_tmp.shape)
-print("cHeCK GD:", save_pose_GD_xyz.shape)
+# print(np.hstack((save_pose_y_t_xyz, save_pose_y_t_rpy)))
+#
+# save_tmp = np.load("save_date/iEKF_incremental.npy")
+# np.save("save_date/iEKF_incremental.npy", np.vstack((save_tmp, np.hstack((save_pose_y_t_xyz, save_pose_y_t_rpy)))))
+# print("Run times:", int(save_tmp.shape[0] / 45 + 1))
+# print("over, shape:", save_tmp.shape)
+# print("cHeCK GD:", save_pose_GD_xyz.shape)
 #
 # np.save("save_date/iEKF_incremental.npy", np.hstack((save_pose_y_t_xyz, save_pose_y_t_rpy)))
