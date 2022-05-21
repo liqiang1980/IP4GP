@@ -85,10 +85,10 @@ def little_thumb(sim, input1, input2):
         sim.data.ctrl[17] = sim.data.ctrl[17] + input2
 
 def pre_thumb(sim, viewer):
-    for _ in range(20):
+    for _ in range(1000):
         sim.data.ctrl[18] = sim.data.ctrl[18] + 0.05
         sim.step()
-    viewer.render()
+        viewer.render()
 
 def thumb(sim, input1, input2):
     if not (np.array(sim.data.sensordata[432:504]) > 0.0).any():  # da拇指

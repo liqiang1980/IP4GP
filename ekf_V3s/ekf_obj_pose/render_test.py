@@ -180,7 +180,6 @@ err = np.zeros(6)
 
 def interacting(hand_param):
     global err_all
-
     f2.pre_thumb(sim, viewer)  # Thumb root movement
     # Fast
     for ii in range(37):
@@ -190,8 +189,8 @@ def interacting(hand_param):
             f2.middle_finger(sim, 0.015, 0.00001)
         if hand_param[3][1] == '1':
             f2.little_thumb(sim, 0.015, 0.001)
-    # Slow Downt whether any array element along a given axis evaluates to True.
-    for ij in range(30):
+    # Slow Down whether any array element along a given axis evaluates to True.
+    for ij in range(300):
         if hand_param[1][1] == '1':
             f2.index_finger(sim, 0.0055, 0.004)
         if hand_param[2][1] == '1':
@@ -200,25 +199,21 @@ def interacting(hand_param):
             f2.little_thumb(sim, 0.0032, 0.0029)
         if hand_param[4][1] == '1':
             f2.thumb(sim, 0.003, 0.003)
-        #todo EKF() already did the rendering, why here the sim step and rendering still needed?
-        for i in range(4):
-            for _ in range(5):
-                sim.step()
-            viewer.render()
+        sim.step()
+        viewer.render()
+
     # Rotate
-    for ij in range(30):
-        # f2.index_finger(sim, 0.0055, 0.0038)
+    for ij in range(300):
+        if hand_param[1][1] == '1':
+            f2.index_finger(sim, 0.0055, 0.0038)
         if hand_param[2][1] == '1':
             f2.middle_finger(sim, 0.0003, 0.003)
         if hand_param[3][1] == '1':
             f2.little_thumb(sim, 0.0005, 0.005)
         if hand_param[4][1] == '1':
             f2.thumb(sim, 0.003, 0.003)
-        for i in range(4):
-            for _ in range(5):
-                sim.step()
-            viewer.render()
-
+        sim.step()
+        viewer.render()
 
 
 ############################>>>>>>>>>>>>>>>    MAIN LOOP    <<<<<<<<<<<<<###############################################
