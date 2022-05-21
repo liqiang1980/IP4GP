@@ -516,7 +516,7 @@ def EKF():
     if fin_num != Pmodel or np.isnan(np.sum(h_t)):
         # if fin_num ==0 or np.isnan(np.sum(h_t)) or (fin_tri[0] == 0 and fin_tri[1] == 1):
         y_t_update = y_t_ready
-        # print("pass")
+        print("pass")
         return 0
     ###################################################################################################
 
@@ -539,11 +539,18 @@ def EKF():
     y_t_update = y_t_update[:6]  # Remove control variables
 
     # 步进、渲染、可视化
-    for _ in range(50):
-        if not np.all(sim.data.sensordata == 0):
-            touch_visual(np.where(np.array(sim.data.sensordata) > 0.0))
-        sim.step()
+    # for _ in range(5):
+    #     if not np.all(sim.data.sensordata == 0):
+    #         touch_visual(np.where(np.array(sim.data.sensordata) > 0.0))
+    #     sim.step()
+    # viewer.render()
+    if not np.all(sim.data.sensordata == 0):
+        touch_visual(np.where(np.array(sim.data.sensordata) > 0.0))
+
+    print('running steps')
+    sim.step()
     viewer.render()
+
 
 
 def interacting(hand_param):
@@ -552,44 +559,54 @@ def interacting(hand_param):
     err_all = np.loadtxt("./err_inHand_v3bi.txt")
     f2.pre_thumb(sim, viewer)  # Thumb root movement
     # Fast
-    for ii in range(37):
+    for ii in range(1000):
         if hand_param[1][1] == '1':
-            f2.index_finger(sim, 0.015, 0.00001)
+            f2.index_finger(sim, 0.0055, 0.00001)
         if hand_param[2][1] == '1':
-            f2.middle_finger(sim, 0.015, 0.00001)
+            f2.middle_finger(sim, 0.0016, 0.00001)
         if hand_param[3][1] == '1':
-            f2.little_thumb(sim, 0.015, 0.001)
-        EKF()
-    # Slow Downt whether any array element along a given axis evaluates to True.
-    for ij in range(30):
-        if hand_param[1][1] == '1':
-            f2.index_finger(sim, 0.0055, 0.004)
-        if hand_param[2][1] == '1':
-            f2.middle_finger(sim, 0.0036, 0.003)
-        if hand_param[3][1] == '1':
-            f2.little_thumb(sim, 0.0032, 0.0029)
+            f2.little_thumb(sim, 0.002, 0.00001)
         if hand_param[4][1] == '1':
-            f2.thumb(sim, 0.003, 0.003)
-        #todo EKF() already did the rendering, why here the sim step and rendering still needed?
-        for i in range(4):
-            for _ in range(50):
-                sim.step()
-            viewer.render()
+            f2.thumb(sim, 0.0003, 0.00001)
+        sim.step()
+        viewer.render()
         EKF()
-    # Rotate
-    for ij in range(30):
-        # f2.index_finger(sim, 0.0055, 0.0038)
-        if hand_param[2][1] == '1':
-            f2.middle_finger(sim, 0.0003, 0.003)
-        if hand_param[3][1] == '1':
-            f2.little_thumb(sim, 0.0005, 0.005)
-        if hand_param[4][1] == '1':
-            f2.thumb(sim, 0.003, 0.003)
-        for i in range(4):
-            for _ in range(50):
-                sim.step()
-            viewer.render()
-        EKF()
+    # # Slow Down whether any array element along a given axis evaluates to True.
+    # for ij in range(3000):
+    #     if hand_param[1][1] == '1':
+    #         f2.index_finger(sim, 0.0055, 0.004)
+    #         print('index is moving')
+    #     if hand_param[2][1] == '1':
+    #         f2.middle_finger(sim, 0.0036, 0.003)
+    #         print('middle is moving')
+    #     if hand_param[3][1] == '1':
+    #         print('ring finger is moving')
+    #         f2.little_thumb(sim, 0.0032, 0.0029)
+    #     if hand_param[4][1] == '1':
+    #         print('thumb is moving')
+    #         f2.thumb(sim, 0.003, 0.003)
+    #     #todo EKF() already did the rendering, why here the sim step and rendering still needed?
+    #     # for i in range(4):
+    #     #     for _ in range(5):
+    #     #         sim.step()
+    #     #     viewer.render()
+    #     # EKF()
+    # print('slow down finished')
+    # # Rotate
+    # for ij in range(3000):
+    #     if hand_param[1][1] == '1':
+    #         f2.index_finger(sim, 0.0055, 0.0038)
+    #     if hand_param[2][1] == '1':
+    #         f2.middle_finger(sim, 0.0003, 0.003)
+    #     if hand_param[3][1] == '1':
+    #         f2.little_thumb(sim, 0.0005, 0.005)
+    #     if hand_param[4][1] == '1':
+    #         f2.thumb(sim, 0.003, 0.003)
+    #     # for i in range(4):
+    #     #     for _ in range(5):
+    #     #         sim.step()
+    #     #     viewer.render()
+    #     # EKF()
 
     plt_plus.plot_error("save_i")
 
@@ -599,16 +616,15 @@ def interacting(hand_param):
 f2.robot_init(sim)
 f2.Camera_set(viewer, model)
 sim.model.eq_active[0] = True
-for i in range(50):
-    for _ in range(50):
-        sim.step()
+
+for i in range(500):
+    sim.step()
     viewer.render()
 
-for i in range(4):
-    sim.data.mocap_pos[0] = ctrl_wrist_pos  # mocap控制需要用世界参考系
-    sim.data.mocap_quat[0] = ctrl_wrist_quat  # mocap控制需要用世界参考系
-    for _ in range(50):
-        sim.step()
+sim.data.mocap_pos[0] = ctrl_wrist_pos  # mocap控制需要用世界参考系
+sim.data.mocap_quat[0] = ctrl_wrist_quat  # mocap控制需要用世界参考系
+for _ in range(50):
+    sim.step()
     viewer.render()
 
 interacting(hand_param)

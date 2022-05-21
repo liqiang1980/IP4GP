@@ -7,7 +7,7 @@ from mujoco_py import load_model_from_path, MjSim, MjViewer, const
 from pykdl_utils.kdl_kinematics import KDLKinematics
 from pykdl_utils.kdl_parser import kdl_tree_from_urdf_model
 from urdf_parser_py.urdf import URDF
-
+import tactile_allegro_mujo_const
 def Camera_set(viewer, model):
     viewer.cam.trackbodyid = 1
     viewer.cam.distance = model.stat.extent * 1.0
@@ -73,6 +73,17 @@ def middle_finger(sim, input1, input2):
         sim.data.ctrl[11] = sim.data.ctrl[11] + input2
         sim.data.ctrl[12] = sim.data.ctrl[12] + input2
         sim.data.ctrl[13] = sim.data.ctrl[13] + input2
+
+def middle_finger_vel(sim, input1, input2):
+    print(sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_1])
+    if not (np.array(sim.data.sensordata[144:216]) > 0.0).any():  # 中指
+        sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_1] = input1
+        sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_1] = input1
+        sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_1] = input1
+    else:
+        sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_1] = input2
+        sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_1] = input2
+        sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_1] = input2
 
 def little_thumb(sim, input1, input2):
     if not (np.array(sim.data.sensordata[288:360]) > 0.0).any():  # 小拇指
