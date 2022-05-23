@@ -71,6 +71,12 @@ else:
         object_param.append(object_orientation_noise)
         print(object_param)
 
+        # algorithm parameters
+        alg_param = []
+        is_data_stored = dom.getElementsByTagName('alg')[0].getElementsByTagName('store_data')[0].firstChild.data
+        alg_param.append(is_data_stored)
+        print(alg_param)
+
 ######################################
 # v3b: Gaussian noise add to h() to become z_t
 #
@@ -110,12 +116,13 @@ surface_x = np.empty([1, 0])
 surface_y = np.empty([1, 0])
 surface_z = np.empty([1, 0])
 count_time = 0  # 时间记录
-# nor_in_p = np.zeros(3)
-# G_big = np.zeros([6, 6])
-save_model = 0
+save_model = alg_param[0]
 P = np.eye(6)
 u_t = np.empty([1, 4])
-# fin_num = 0
+# number of contacted fingers
+fin_num = 0
+# Which fingers are triggered? Mark them with "1"
+fin_tri = np.zeros(4)
 trans_palm2cup = f.posquat2trans(f.get_relative_posquat(sim, "cup", "palm_link"))
 trans_cup2palm = f.posquat2trans(f.get_relative_posquat(sim, "palm_link", "cup"))
 z0 = np.zeros(3)
@@ -125,6 +132,14 @@ z3 = np.zeros(3)
 Pmodel = 1
 conver_rate = 40
 
+
+G_contact = np.zeros([4, 6, 6])  # store G, the number of G is uncertain, this number between 1~4
+J = np.zeros([4, 6, 4])  # store J, the number of J is uncertain, this number between 1~4
+u_t_tmp = np.zeros([4, 4])  # store u_t, the number of u_t is uncertain, this number between 1~4
+nor_tmp = np.zeros([4, 3])  # store normal, the number of normal is uncertain, this number between 1~4
+coe_tmp = np.zeros([4, 6])  # store coefficients, the number of coefficients is uncertain, this number between 1~4
+Grasping_matrix = np.zeros([6, 6])
+G_pinv = np.zeros([6, 6])
 # 以下为EKF后验过程的变量
 P_ori = 1000 * np.ones([22, 22])
 
@@ -207,181 +222,163 @@ def touch_visual(a):
     max_size = max(save_point_use.shape[0], max_size)
     viewer.render()
 
+def is_finger_contact(finger_name):
+    if finger_name == 'ff':
+        return (np.array(sim.data.sensordata[tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN: \
+            tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX]) > 0.0).any()
+    if finger_name == 'mf':
+        return (np.array(sim.data.sensordata[tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN: \
+            tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX]) > 0.0).any()
+    if finger_name == 'rf':
+        return (np.array(sim.data.sensordata[tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN: \
+            tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX]) > 0.0).any()
+    if finger_name == 'th':
+        return (np.array(sim.data.sensordata[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN: \
+            tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX]) > 0.0).any()
 
-def ekf_predictor(sim, model, viewer, y_t_update):
-    global flag, q_pos_pre, c_point_name, y_t, pos_contact_last, S1, y_t_pre, posquat_contact_pre
-    global trans_palm2cup, nor_in_p, G_big, q_pos_pre, P
+def get_contact_taxel_id(finger_name):
+    if finger_name == 'ff':
+        return np.where(sim.data.sensordata[tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN: \
+                                         tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX] > 0.0)
+    if finger_name == 'mf':
+        return np.where(sim.data.sensordata[tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN: \
+                                         tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX] > 0.0)
+    if finger_name == 'rf':
+        return np.where(sim.data.sensordata[tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN: \
+                                         tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX] > 0.0)
+    if finger_name == 'th':
+        return np.where(sim.data.sensordata[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN: \
+                                         tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX] > 0.0)
+def contact_compute(fingername):
+    global fin_num, G_contact, J, u_t_tmp, nor_tmp, coe_tmp, y_t_update
+    global trans_cup2palm
+    # todo I guess here you can use a unified function which different parameters to
+    # compute Grasp matrix etc.
+    if is_finger_contact(fingername):
+        # The No. of tactile sensor (index finger)
+        taxels_id = get_contact_taxel_id(fingername)
+        if fingername == 'ff':
+            c_points0 = taxels_id[0]
+            print("ff")
+        if fingername == 'mf':
+            c_points0 = taxels_id[0] + 144
+            print("mf")
+        if fingername == 'rf':
+            c_points0 = taxels_id[0] + 288
+            print("rf")
+        if fingername == 'th':
+            c_points0 = taxels_id[0] + 432
+            print("th")
+        # todo the pos_contact0 should be the mean value of all actived taxels.
+        c_point_name0 = f2.get_c_point_name(model, c_points0)
+        pos_contact0 = f.get_relative_posquat(sim, "palm_link", c_point_name0)[:3]  # get the position
+
+        nor0, res0 = f2.get_normal(sim, model, c_points0, trans_cup2palm)  # get normal_in_cup
+        nor_tmp[fin_num] = nor0  # save to tmp nor
+        coe_tmp[fin_num] = res0  # save to tmp coe
+
+        # the G is the estimated matrix because the noised object pose
+        G_contact[fin_num] = f2.get_G(sim, c_point_name0, pos_contact0, y_t_update)  # get G
+
+        # Get joint angle velocity--u_t
+        if fingername == 'ff':
+            u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_1], \
+                             sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_2], \
+                             sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_3], \
+                             sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_4]])
+            u_t_tmp[fin_num] = u_t0  # save to tmp u_t
+            # Get Jacobi J
+            # todo parameter for jac should be joints angle, right?
+            J[fin_num] = kdl_kin0.jacobian(u_t0)
+        if fingername == 'mf':
+            u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_1], \
+                             sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_2], \
+                             sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_3], \
+                             sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_4]])
+            u_t_tmp[fin_num] = u_t0  # save to tmp u_t
+            # Get Jacobi J
+            # todo parameter for jac should be joints angle, right?
+            J[fin_num] = kdl_kin1.jacobian(u_t0)
+        if fingername == 'rf':
+            u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_1], \
+                             sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_2], \
+                             sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_3], \
+                             sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_4]])
+            u_t_tmp[fin_num] = u_t0  # save to tmp u_t
+            # Get Jacobi J
+            # todo parameter for jac should be joints angle, right?
+            J[fin_num] = kdl_kin2.jacobian(u_t0)
+        if fingername == 'th':
+            u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_1], \
+                             sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_2], \
+                             sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_3], \
+                             sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_4]])
+            u_t_tmp[fin_num] = u_t0  # save to tmp u_t
+            # Get Jacobi J
+            # todo parameter for jac should be joints angle, right?
+            J[fin_num] = kdl_kin3.jacobian(u_t0)
+        fin_num += 1
+        fin_tri[0] = 1
+
+
+def ekf_predictor(sim, y_t_update):
+    global flag, q_pos_pre, c_point_name, y_t, pos_contact_last, S1, y_t_pre, posquat_contact_pre, Grasping_matrix
+    global trans_palm2cup, q_pos_pre, P
     global save_count_time, save_pose_y_t_xyz, save_pose_y_t_rpy, save_pose_GD_xyz, save_pose_GD_rpy, count_time
     global save_error_xyz, save_error_rpy, save_model
     global u_t, trans_cup2palm, conver_rate
+    global fin_num, fin_tri, J, u_t_tmp, nor_tmp, G_contact, G_pinv
 
     # print("*" * 30)
     ##############   refresh parameters  ###################
+    #todo why delta_t set 0.1
     delta_t = 0.1
-    fin_num = 0  # number of triggered fingers
-    fin_tri = np.zeros(4)  # Which fingers are triggered? Mark them with "1"
+    # number of triggered fingers
+    fin_num = 0
+    # Which fingers are triggered? Mark them with "1"
+    fin_tri = np.zeros(4)
 
-    G_pinv = np.zeros([6, 6])
-    G_big = np.zeros([6, 6])
-    J_finger_3 = np.zeros([6, 4])
+    # #grasping matrix of fingers
+    # G_pinv = np.zeros([6, 6])
+
+    #Jacobian matrix of fingers
+    J_fingers = np.zeros([6, 4])
     nor_in_p = np.zeros(3)
 
-    G_contact = np.zeros([4, 6, 6])  # store G, the number of G is uncertain, this number between 1~4
-    J = np.zeros([4, 6, 4])  # store J, the number of J is uncertain, this number between 1~4
-    u_t_tmp = np.zeros([4, 4])  # store u_t, the number of u_t is uncertain, this number between 1~4
-    nor_tmp = np.zeros([4, 3])  # store normal, the number of normal is uncertain, this number between 1~4
-    coe_tmp = np.zeros([4, 6])  # store coefficients, the number of coefficients is uncertain, this number between 1~4
-
     y_t_update = np.ravel(y_t_update)  # flatten
-    if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN: \
-            tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX]) > 0.0).any() \
-            or (np.array(sim.data.sensordata[tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN:\
-            tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX]) > 0.0).any() \
-            or (np.array(sim.data.sensordata[tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN:\
-            tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX]) > 0.0).any() \
-            or (np.array(sim.data.sensordata[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN:\
-            tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX]) > 0.0).any():
+    if (is_finger_contact(hand_param[1][0]) == True ) \
+            or (is_finger_contact(hand_param[2][0]) == True ) \
+            or (is_finger_contact(hand_param[3][0]) == True ) \
+            or (is_finger_contact(hand_param[4][0]) == True ):
         if not flag:  # get the state of cup in the first round
-            init_e = np.hstack((np.random.uniform(-0.005, 0.005, (1, 3)), np.random.uniform(-0.08, 0.08, (1, 3))))  # +-5 mm, +-0.08 rad(4.5 deg)
-            # init_e = np.array([-0.005, -0.005, -0.005, -0.08, -0.08, -0.08])
-            # init_e = np.array([0.005, 0.005, 0.005, 0.08, 0.08, 0.08])
-            # init_e = np.array([-0.0012456, 0.00474746, -0.00015647, -0.06027362, 0.02768316, -0.01743691])
+            # noise +-5 mm, +-0.08 rad(4.5 deg)
+            print(object_param[1])
+            init_e = np.hstack((np.random.uniform((-1) * float(object_param[1]), float(object_param[1]), \
+                                                  (1, 3)), \
+                                np.random.uniform(-1*float(object_param[2]), float(object_param[2]), (1, 3))))
             y_t_update = f.get_relative_posquat(sim, "palm_link", "cup")  # x y z w
             y_t_update = np.array([f.pos_quat2pos_XYZ_RPY_xyzw(y_t_update)])
             y_t_update += init_e
             flag = True
         y_t_update = np.ravel(y_t_update)
 
-        ################################################################################################################
-        # <editor-fold desc=">>>>>get the contact names, normal, position, G and J (index finger)">
-        # todo I guess here you can use a unified function which different parameters to
-        # compute Grasp matrix etc.
-        if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN: \
-            tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX]) > 0.0).any():
-            a = np.where(sim.data.sensordata[tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN: \
-            tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX] > 0.0)  # The No. of tactile sensor (index finger)
-            c_points0 = a[0]
-            print("fin0")
-            #todo the pos_contact0 should be the mean value of all actived taxels.
-            c_point_name0 = f2.get_c_point_name(model, c_points0)
-            pos_contact0 = f.get_relative_posquat(sim, "palm_link", c_point_name0)[:3]  # get the position
+        contact_compute(hand_param[1][0])
+        contact_compute(hand_param[2][0])
+        contact_compute(hand_param[3][0])
+        contact_compute(hand_param[4][0])
 
-            nor0, res0 = f2.get_normal(sim, model, c_points0, trans_cup2palm)  # get normal_in_cup
-            nor_tmp[fin_num] = nor0  # save to tmp nor
-            coe_tmp[fin_num] = res0  # save to tmp coe
-
-            #the G is the estimated matrix because the noised object pose
-            G_contact0 = f2.get_G(sim, c_point_name0, pos_contact0, y_t_update)  # get G
-            G_contact[fin_num] = G_contact0  # save to tmp G
-
-            # Get joint angle velocity--u_t
-            u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_1],\
-                             sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_2], \
-                             sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_3], \
-                             sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_4]])
-            u_t_tmp[fin_num] = u_t0  # save to tmp u_t
-
-            J0 = kdl_kin0.jacobian(u_t0)  # Get Jacobi J
-            J[fin_num] = J0  # save to tmp J
-
-            fin_num += 1
-            fin_tri[0] = 1
-        # </editor-fold>
-
-        # <editor-fold desc=">>>>>get the contact names, normal, position, G and J  (middle finger)">
-        if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN: \
-            tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX]) > 0.0).any():
-            a1 = np.where(sim.data.sensordata[tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN: \
-            tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX] > 0.0)  # The No. of tactile sensor (middle finger)
-            c_points1 = a1[0] + 144
-            print("fin1")
-            c_point_name1 = f2.get_c_point_name(model, c_points1)
-
-            pos_contact1 = f.get_relative_posquat(sim, "palm_link", c_point_name1)[:3]  # get the position
-
-            nor1, res1 = f2.get_normal(sim, model, c_points1, trans_cup2palm)  # get normal_in_cup
-            nor_tmp[fin_num] = nor1  # save to tmp nor
-            coe_tmp[fin_num] = res1  # save to tmp coe
-
-            G_contact1 = f2.get_G(sim, c_point_name1, pos_contact1, y_t_update)  # get G
-            G_contact[fin_num] = G_contact1  # save to tmp G
-
-            u_t1 = np.array([sim.data.qvel[274], sim.data.qvel[275], sim.data.qvel[312], sim.data.qvel[349]])  # Get u_t
-            u_t_tmp[fin_num] = u_t1  # save to tmp u_t
-
-            J1 = kdl_kin1.jacobian(u_t1)  # Get Jacobi J
-            J[fin_num] = J1  # save to tmp J
-
-            fin_num += 1
-            fin_tri[1] = 1
-        # </editor-fold>
-
-        # <editor-fold desc=">>>>>get the contact names, normal, position, G and J (little finger)">
-        if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN: \
-            tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX]) > 0.0).any():
-            a2 = np.where(sim.data.sensordata[tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN: \
-            tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX] > 0.0)  # The No. of tactile sensor (middle finger)
-            c_points2 = a2[0] + 288
-            print("fin2")
-            c_point_name2 = f2.get_c_point_name(model, c_points2)
-
-            pos_contact2 = f.get_relative_posquat(sim, "palm_link", c_point_name2)[:3]  # get the position
-
-            nor2, res2 = f2.get_normal(sim, model, c_points2, trans_cup2palm)  # get normal_in_cup
-            nor_tmp[fin_num] = nor2  # save to tmp nor
-            coe_tmp[fin_num] = res2  # save to tmp coe
-
-            G_contact2 = f2.get_G(sim, c_point_name2, pos_contact2, y_t_update)  # get G
-            G_contact[fin_num] = G_contact2  # save to tmp G
-
-            u_t2 = np.array([sim.data.qvel[422], sim.data.qvel[423], sim.data.qvel[460], sim.data.qvel[497]])  # Get u_t
-            u_t_tmp[fin_num] = u_t2  # save to tmp u_t
-
-            J2 = kdl_kin2.jacobian(u_t2)  # Get Jacobi J
-            J[fin_num] = J2  # save to tmp J
-
-            fin_num += 1
-            fin_tri[2] = 1
-        # </editor-fold>
-
-        # <editor-fold desc=">>>>>get the contact names, normal, position, G and J (thumb)">
-        if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN: \
-            tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX]) > 0.0).any():
-            a3 = np.where(sim.data.sensordata[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN: \
-            tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX] > 0.0)  # The No. of tactile sensor (middle finger)
-            c_points3 = a3[0] + 432
-            print("fin3")
-            c_point_name3 = f2.get_c_point_name(model, c_points3)
-
-            pos_contact3 = f.get_relative_posquat(sim, "palm_link", c_point_name3)[:3]  # get the position
-
-            nor3, res3 = f2.get_normal(sim, model, c_points3, trans_cup2palm)  # get normal_in_cup
-            nor_tmp[fin_num] = nor3  # save to tmp nor
-            coe_tmp[fin_num] = res3  # save to tmp coe
-
-            G_contact3 = f2.get_G(sim, c_point_name3, pos_contact3, y_t_update)  # get G
-            G_contact[fin_num] = G_contact3  # save to tmp G
-
-            u_t3 = np.array([sim.data.qvel[570], sim.data.qvel[571], sim.data.qvel[572], sim.data.qvel[573]])  # Get u_t
-            u_t_tmp[fin_num] = u_t3  # save to tmp u_t
-
-            J3 = kdl_kin3.jacobian(u_t3)  # Get Jacobi J
-            J[fin_num] = J3  # save to tmp J
-
-            fin_num += 1
-            fin_tri[3] = 1
-        # </editor-fold>
         ################################################################################################################
         ########## Splice Big G ##########
-        G_big = np.zeros([6 * fin_num, 6])  # dim: 6n * 6
+        Grasping_matrix = np.zeros([6 * fin_num, 6])  # dim: 6n * 6
+        print(Grasping_matrix)
         for i in range(fin_num):
-            G_big[0 + i * 6: 6 + i * 6, :] = G_contact[i]
-        # print("CHek:", G_big)
+            Grasping_matrix[0 + i * 6: 6 + i * 6, :] = G_contact[i]
+        # print("CHek:", Grasping_matrix)
 
         ############### Splice Big J #################
-        J_finger_3 = np.zeros([6 * fin_num, 4 * fin_num])
+        J_fingers = np.zeros([6 * fin_num, 4 * fin_num])
         for i in range(fin_num):
-            J_finger_3[0 + i * 6: 6 + i * 6, 0 + i * 4: 4 + i * 4] = J[i]
+            J_fingers[0 + i * 6: 6 + i * 6, 0 + i * 4: 4 + i * 4] = J[i]
 
         ############# Splice Big u_t #################
         u_t = np.zeros(4 * fin_num)
@@ -393,10 +390,11 @@ def ekf_predictor(sim, model, viewer, y_t_update):
         for i in range(fin_num):
             nor_in_p[0 + i * 3: 3 + i * 3] = nor_tmp[i]
 
-        G_pinv = np.linalg.pinv(G_big)  # Get G_pinv
+        G_pinv = np.linalg.pinv(Grasping_matrix)  # Get G_pinv
         #todo could you please comment the formula the computation,
         # e.g. give the reference (to paper/book, pages, eq id)?
-        prediction = np.matmul(np.matmul(G_pinv, J_finger_3), u_t * delta_t)  # Predict
+        #todo u_t*delta_t should be replaced by delta_theta
+        prediction = np.matmul(np.matmul(G_pinv, J_fingers), u_t * delta_t)  # Predict
 
         ###############################
         y_t = y_t_update + prediction
@@ -434,10 +432,10 @@ def ekf_predictor(sim, model, viewer, y_t_update):
             np.save("save_i/save_error_xyz.npy", save_error_xyz)
             np.save("save_i/save_error_rpy.npy", save_error_rpy)
 
-    return nor_in_p, G_big, y_t, u_t, np.matmul(G_pinv, J_finger_3) * delta_t, fin_num, fin_tri, coe_tmp, err
+    return nor_in_p, Grasping_matrix, y_t, u_t, np.matmul(G_pinv, J_fingers) * delta_t, coe_tmp, err
 
 
-def ekf_posteriori(sim, model, viewer, z_t, h_t, G_big, y_t, F_part, fin_num, fin_tri, coe, err):
+def ekf_posteriori(sim, model, viewer, z_t, h_t, Grasping_matrix, y_t, F_part, coe, err):
     global P_ori, y_t_update, err_all
     global save_count_time, save_pose_y_t_xyz, save_pose_y_t_rpy, save_pose_GD_xyz, save_pose_GD_rpy, count_time
 
@@ -470,7 +468,7 @@ def ekf_posteriori(sim, model, viewer, z_t, h_t, G_big, y_t, F_part, fin_num, fi
 
     #######################################    H    ###########################################
     H_t = np.zeros([3 * fin_num, 6 + 4 * fin_num])
-    H_t_tmp2 = np.linalg.pinv(G_big[:3].T)
+    H_t_tmp2 = np.linalg.pinv(Grasping_matrix[:3].T)
     for i in range(fin_num):
         H_t_cup = np.array([[2 * coe[i][0], coe[i][1], 0],
                             [coe[i][1], 2 * coe[i][2], 0],
@@ -501,14 +499,12 @@ def ekf_posteriori(sim, model, viewer, z_t, h_t, G_big, y_t, F_part, fin_num, fi
 
 
 def EKF():
-    global y_t_update, save_model, trans_cup2palm, Pmodel, err_all
-    # save_model = 0
-    save_model = 1
-
+    global y_t_update, save_model, trans_cup2palm, Pmodel, err_all, fin_num
+    #used for ground truth
     trans_cup2palm = f.posquat2trans(f.get_relative_posquat(sim, "palm_link", "cup"))  # update T_cup2palm
 
     # Forward Predictor
-    h_t, G_contact, y_t_ready, u_t, F_part, fin_num, fin_tri, coe, err = ekf_predictor(sim, model, viewer, y_t_update)
+    h_t, grasping_matrix, y_t_ready, u_t, F_part, coe, err = ekf_predictor(sim, y_t_update)
     #######################   Frame Loss: contact loss or get nan_normal   ############################
     if fin_num == 2:
         Pmodel = 2
@@ -534,24 +530,9 @@ def EKF():
     err_all = np.vstack((err_all, err))
     ######<<<<<<<<<<< Switch fEKF / iEKF <<<<<<<<<<#########
     # y_t_update = y_t
-    y_t_update = ekf_posteriori(sim, model, viewer, z_t, h_t, G_contact, y_t, F_part, fin_num, fin_tri, coe, err)
+    y_t_update = ekf_posteriori(sim, model, viewer, z_t, h_t, grasping_matrix, y_t, F_part, coe, err)
     ######>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>#########
     y_t_update = y_t_update[:6]  # Remove control variables
-
-    # 步进、渲染、可视化
-    # for _ in range(5):
-    #     if not np.all(sim.data.sensordata == 0):
-    #         touch_visual(np.where(np.array(sim.data.sensordata) > 0.0))
-    #     sim.step()
-    # viewer.render()
-    if not np.all(sim.data.sensordata == 0):
-        touch_visual(np.where(np.array(sim.data.sensordata) > 0.0))
-
-    print('running steps')
-    sim.step()
-    viewer.render()
-
-
 
 def interacting(hand_param):
     global err_all
@@ -568,46 +549,12 @@ def interacting(hand_param):
             f2.little_thumb(sim, 0.002, 0.00001)
         if hand_param[4][1] == '1':
             f2.thumb(sim, 0.0003, 0.00001)
+        EKF()
+        if not np.all(sim.data.sensordata == 0):
+            touch_visual(np.where(np.array(sim.data.sensordata) > 0.0))
+        print('running steps')
         sim.step()
         viewer.render()
-        EKF()
-    # # Slow Down whether any array element along a given axis evaluates to True.
-    # for ij in range(3000):
-    #     if hand_param[1][1] == '1':
-    #         f2.index_finger(sim, 0.0055, 0.004)
-    #         print('index is moving')
-    #     if hand_param[2][1] == '1':
-    #         f2.middle_finger(sim, 0.0036, 0.003)
-    #         print('middle is moving')
-    #     if hand_param[3][1] == '1':
-    #         print('ring finger is moving')
-    #         f2.little_thumb(sim, 0.0032, 0.0029)
-    #     if hand_param[4][1] == '1':
-    #         print('thumb is moving')
-    #         f2.thumb(sim, 0.003, 0.003)
-    #     #todo EKF() already did the rendering, why here the sim step and rendering still needed?
-    #     # for i in range(4):
-    #     #     for _ in range(5):
-    #     #         sim.step()
-    #     #     viewer.render()
-    #     # EKF()
-    # print('slow down finished')
-    # # Rotate
-    # for ij in range(3000):
-    #     if hand_param[1][1] == '1':
-    #         f2.index_finger(sim, 0.0055, 0.0038)
-    #     if hand_param[2][1] == '1':
-    #         f2.middle_finger(sim, 0.0003, 0.003)
-    #     if hand_param[3][1] == '1':
-    #         f2.little_thumb(sim, 0.0005, 0.005)
-    #     if hand_param[4][1] == '1':
-    #         f2.thumb(sim, 0.003, 0.003)
-    #     # for i in range(4):
-    #     #     for _ in range(5):
-    #     #         sim.step()
-    #     #     viewer.render()
-    #     # EKF()
-
     plt_plus.plot_error("save_i")
 
 

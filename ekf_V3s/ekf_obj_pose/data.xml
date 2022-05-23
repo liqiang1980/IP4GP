@@ -42,5 +42,8 @@
             <noise_position>0.005</noise_position>
             <noise_orientation>0.08</noise_orientation>
         </object>
+    <alg>
+        <store_data>1</store_data>
+    </alg>>
     </hand>
 
