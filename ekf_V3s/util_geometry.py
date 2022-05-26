@@ -3,6 +3,9 @@ from scipy.spatial.transform import Rotation
 import math
 from mujoco_py import functions
 import PyKDL as kdl
+import tactile_perception as tacperception
+import tactile_allegro_mujo_const
+import robot_control as robcontrol
 
 
 def calculate_cov(mat):
@@ -666,14 +669,14 @@ def joint_kdl_to_list(q):
         return None
     return [q[i] for i in range(q.rows())]
 
-def contact_compute(fingername):
-    global fin_num, G_contact, J, u_t_tmp, nor_tmp, coe_tmp, y_t_update
+def contact_compute(sim, model, fingername, fin_num, fin_tri):
     global trans_cup2palm
     # todo I guess here you can use a unified function which different parameters to
     # compute Grasp matrix etc.
-    if is_finger_contact(fingername):
+    print(fingername)
+    if tacperception.is_finger_contact(sim, fingername):
         # The No. of tactile sensor (index finger)
-        taxels_id = get_contact_taxel_id(fingername)
+        taxels_id = tacperception.get_contact_taxel_id(sim, fingername)
         if fingername == 'ff':
             c_points0 = taxels_id[0]
             print("ff")
@@ -687,17 +690,19 @@ def contact_compute(fingername):
             c_points0 = taxels_id[0] + 432
             print("th")
         # todo the pos_contact0 should be the mean value of all actived taxels.
-        c_point_name0 = f2.get_c_point_name(model, c_points0)
-        pos_contact0 = f.get_relative_posquat(sim, "palm_link", c_point_name0)[:3]  # get the position
+        c_point_name0 = tacperception.get_c_point_name(model, c_points0)
+        pos_contact0 = get_relative_posquat(sim, "palm_link", c_point_name0)[:3]  # get the position
 
-        nor0, res0 = f2.get_normal(sim, model, c_points0, trans_cup2palm)  # get normal_in_cup
+        nor0, res0 = tacperception.get_normal(sim, model, c_points0, trans_cup2palm)  # get normal_in_cup
         nor_tmp[fin_num] = nor0  # save to tmp nor
         coe_tmp[fin_num] = res0  # save to tmp coe
 
         # the G is the estimated matrix because the noised object pose
-        G_contact[fin_num] = f2.get_G(sim, c_point_name0, pos_contact0, y_t_update)  # get G
+        G_contact[fin_num] = get_G(sim, c_point_name0, pos_contact0, y_t_update)  # get G
 
         # Get joint angle velocity--u_t
+        kdl_kin0, kdl_kin1, kdl_kin2, kdl_kin3, kdl_tree = \
+            robcontrol.config_robot()
         if fingername == 'ff':
             u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_1], \
                              sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_2], \
@@ -735,4 +740,5 @@ def contact_compute(fingername):
             # todo parameter for jac should be joints angle, right?
             J[fin_num] = kdl_kin3.jacobian(u_t0)
         fin_num += 1
-        fin_tri[0] = 1
+        fin_tri[fin_num] = 1
+        return fin_num, fin_tri, G_contact[fin_num], J[fin_num], u_t_tmp[fin_num], nor_tmp[fin_num]

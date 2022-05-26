@@ -17,10 +17,10 @@ hand_param, object_param, alg_param = config_param.pass_arg()
 model, sim, viewer = mu_env.init_mujoco()
 ctrl_wrist_pos, ctrl_wrist_quat = \
     mu_env.init_robot_object_mujoco(sim, object_param)
-kdl_kin, kdl_kin1, kdl_kin2, kdl_kin3, kdl_tree = \
-    robcontrol.config_robot()
 mu_env.config_fcl("cup_1.obj", "fingertip_part.obj")
 grasping_ekf = ekf.EKF()
+grasping_ekf.set_contact_flag(False)
+grasping_ekf.set_store_flag(alg_param[0])
 
 robcontrol.robot_init(sim)
 mu_env.Camera_set(viewer, model)
@@ -36,7 +36,8 @@ for _ in range(50):
     sim.step()
     viewer.render()
 
-robcontrol.interaction(sim, model, viewer, hand_param, grasping_ekf)
+robcontrol.interaction(sim, model, viewer, \
+                       hand_param, object_param, alg_param, grasping_ekf)
 
 
 
