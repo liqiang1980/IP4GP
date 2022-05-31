@@ -69,4 +69,39 @@ def get_c_point_name(model, c_points):  # get the median of all contact_nums, an
 
     return c_point_name
 
+def get_avg_c_point(sim, model, c_points, fingername):  # get the median of all contact_nums, and translate to contact_name
+    len(c_points)
+    print(c_points)
+    actived_tmp_position = np.zeros((3, len(c_points)))
+    taxel_position = np.zeros((3, 72))
+    active_taxel_name = []
+    dev_taxel_value = []
+    for i in range(len(c_points)):
+        active_taxel_name.append(model._sensor_id2name[c_points[i]])
+        print(active_taxel_name[i])
+        actived_tmp_position[:, i] = ug.get_relative_posquat(sim, "palm_link", active_taxel_name[i])[:3]
+    avg_pressure = actived_tmp_position.mean(1)
 
+    if fingername == 'ff':
+        min_taxel_id = tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN
+        max_taxel_id = tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX
+    if fingername == 'mf':
+        min_taxel_id = tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN
+        max_taxel_id = tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX
+    if fingername == 'rf':
+        min_taxel_id = tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN
+        max_taxel_id = tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX
+    if fingername == 'th':
+        min_taxel_id = tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN
+        max_taxel_id = tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX
+
+    for i in range(min_taxel_id, max_taxel_id):
+        # taxel_array_name.append()
+        print(model._sensor_id2name[i])
+        taxel_position[:, i - min_taxel_id] = ug.get_relative_posquat(sim, "palm_link", model._sensor_id2name[i])[:3]
+        dev_taxel_value.append(np.linalg.norm(taxel_position[:, i - min_taxel_id] - avg_pressure))
+
+    min_value = min(dev_taxel_value)
+    print(dev_taxel_value.index(min_value))
+    c_point_name = model._sensor_id2name[dev_taxel_value.index(min_value) + min_taxel_id]
+    return c_point_name

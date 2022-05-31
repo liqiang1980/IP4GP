@@ -21,9 +21,11 @@ class EKF:
         #grasping matrix of fingers
         self.G_pinv = np.zeros([6, 6])
         # Jacobian matrix of fingers
-        self.J_fingers = np.zeros([6, 4])
+        self.J = np.zeros([4, 6, 4])
         self.nor_in_p = np.zeros(3)
         self.G_contact = np.zeros([4, 6, 6])
+        self.u_t_tmp = np.zeros([4, 4])
+        self.nor_tmp = np.zeros([4, 3])
         self.count_time = 0
         self.save_count_time = []
         self.save_pose_y_t_xyz = []
@@ -39,29 +41,34 @@ class EKF:
     def set_contact_flag(self, flag):
         self.flag = flag
 
-    def state_predictor(self, sim, model, hand_param, object_param, y_t_update):
+    def state_predictor(self, sim, model, hand_param, object_param, y_t_update, fin_num, fin_tri):
         print('state prediction')
         y_t_update = np.ravel(y_t_update)  # flatten
-        self.fin_num, self.fin_tri, self.G_contact[self.fin_num], self.J[self.fin_num], self.u_t_tmp[self.fin_num], self.nor_tmp[self.fin_num] \
-            = ug.contact_compute(sim, model, hand_param[1][0], self.fin_num, self.fin_tri)
-        self.fin_num, self.fin_tri, self.G_contact[self.fin_num], self.J[self.fin_num], self.u_t_tmp[self.fin_num], self.nor_tmp[self.fin_num] \
-            = ug.contact_compute(sim, model, hand_param[2][0], self.fin_num, self.fin_tri)
-        self.fin_num, self.fin_tri, self.G_contact[self.fin_num], self.J[self.fin_num], self.u_t_tmp[self.fin_num], self.nor_tmp[self.fin_num] \
-            = ug.contact_compute(sim, model, hand_param[3][0],self.fin_num, self.fin_tri )
-        self.fin_num, self.fin_tri, self.G_contact[self.fin_num], self.J[self.fin_num], self.u_t_tmp[self.fin_num], self.nor_tmp[self.fin_num] \
-            = ug.contact_compute(sim, model, hand_param[4][0], self.fin_num, self.fin_tri)
+        contact_finger_id = np.nonzero(fin_tri)[0]
+        self.fin_num = fin_num
+        self.fin_tri = fin_tri
+        for i in range(fin_num):
+            self.G_contact[i, :, :], self.J[i, :, :], self.u_t_tmp[i, :], self.nor_tmp[i, :] = ug.contact_compute(sim, model, hand_param[contact_finger_id[i] + 1][0], y_t_update)
+        # self.fin_num, self.fin_tri, self.G_contact[self.fin_num], self.J[self.fin_num], self.u_t_tmp[self.fin_num], self.nor_tmp[self.fin_num] \
+        #     = ug.contact_compute(sim, model, hand_param[1][0], self.fin_num, self.fin_tri)
+        # self.fin_num, self.fin_tri, self.G_contact[self.fin_num], self.J[self.fin_num], self.u_t_tmp[self.fin_num], self.nor_tmp[self.fin_num] \
+        #     = ug.contact_compute(sim, model, hand_param[2][0], self.fin_num, self.fin_tri)
+        # self.fin_num, self.fin_tri, self.G_contact[self.fin_num], self.J[self.fin_num], self.u_t_tmp[self.fin_num], self.nor_tmp[self.fin_num] \
+        #     = ug.contact_compute(sim, model, hand_param[3][0],self.fin_num, self.fin_tri )
+        # self.fin_num, self.fin_tri, self.G_contact[self.fin_num], self.J[self.fin_num], self.u_t_tmp[self.fin_num], self.nor_tmp[self.fin_num] \
+        #     = ug.contact_compute(sim, model, hand_param[4][0], self.fin_num, self.fin_tri)
 
         ########## Splice Big G ##########
         self.Grasping_matrix = np.zeros([6 * self.fin_num, 6])  # dim: 6n * 6
         print(self.Grasping_matrix)
         for i in range(self.fin_num):
-            self.Grasping_matrix[0 + i * 6: 6 + i * 6, :] = self.G_contact[i]
+            self.Grasping_matrix[0 + i * 6: 6 + i * 6, :] = self.G_contact[i, :, :]
         # print("CHek:", Grasping_matrix)
 
         ############### Splice Big J #################
         self.J_fingers = np.zeros([6 * self.fin_num, 4 * self.fin_num])
         for i in range(self.fin_num):
-            self.J_fingers[0 + i * 6: 6 + i * 6, 0 + i * 4: 4 + i * 4] = self.J[i]
+            self.J_fingers[0 + i * 6: 6 + i * 6, 0 + i * 4: 4 + i * 4] = self.J[i, :, :]
 
         ############# Splice Big u_t #################
         self.u_t = np.zeros(4 * self.fin_num)
@@ -117,7 +124,8 @@ class EKF:
           # return nor_in_p, Grasping_matrix, y_t, u_t, np.matmul(G_pinv, J_fingers) * delta_t, coe_tmp, err
         return y_t
 
-    def observation_computation(self, y_bar):
+    def observation_computation(self, y_bar, fin_num):
+        return np.random.uniform(-0.1, 0.1, 3 * fin_num)
         print('measurement equation computation')
 
     def ekf_posteriori(self, sim, model, viewer, z_t, h_t):
@@ -127,7 +135,7 @@ class EKF:
         #
         # # todo add reference to equation paper/book pages, eq id
         # #######################################    F    ###########################################
-        # F = np.eye(6 + 4 * fin_num)
+        # F = np.eye(6 + 4 * self.fin_num)
         # F[:6, 6:] = F_part
         #
         # #######################################    R    ###########################################
@@ -146,16 +154,17 @@ class EKF:
         #                    -7.21019125e-002, 5.31751383e-001]])
         # R_ori = np.zeros([12, 12])
         # R_ori[:6, :6] = R_tmp
-        # R = R_ori[:3 * fin_num, :3 * fin_num]
+        # R = R_ori[:3 * self.fin_num, :3 * self.fin_num]
         #
         # #######################################    Q    ###########################################
         # Q_ori = sQR.get_Qt()
-        # Q = Q_ori[:6 + 4 * fin_num, :6 + 4 * fin_num]
+        # Q = Q_ori[:6 + 4 * self.fin_num, :6 + 4 * self.fin_num]
         #
         # #######################################    H    ###########################################
-        # H_t = np.zeros([3 * fin_num, 6 + 4 * fin_num])
-        # H_t_tmp2 = np.linalg.pinv(Grasping_matrix[:3].T)
-        # for i in range(fin_num):
+        # H_t = np.zeros([3 * self.fin_num, 6 + 4 * self.fin_num])
+        # H_t_tmp2 = np.linalg.pinv(self.Grasping_matrix[:3].T)
+        # trans_cup2palm = ug.posquat2trans(ug.get_relative_posquat(sim, "palm_link", "cup"))  # update T_cup2palm
+        # for i in range(self.fin_num):
         #   H_t_cup = np.array([[2 * coe[i][0], coe[i][1], 0],
         #                       [coe[i][1], 2 * coe[i][2], 0],
         #                       [0, 0, 0]])
@@ -163,7 +172,7 @@ class EKF:
         #   H_t[0 + 3 * i: 3 + 3 * i, :6] = np.matmul(H_t_tmp1, H_t_tmp2)
         #
         # #######################################    P    ###########################################
-        # P_tmp = P_ori[:6 + 4 * fin_num, :6 + 4 * fin_num]
+        # P_tmp = P_ori[:6 + 4 * self.fin_num, :6 + 4 * self.fin_num]
         # P_pre = np.matmul(np.matmul(F, P_tmp), F.T) + Q  # P:{6+4n}*{6+4n}  Q:{6+4n}*{6+4n}
         # ############################################################################################
         #
@@ -171,14 +180,20 @@ class EKF:
         # ###################################    Estimate    ########################################
         # K_t = ug.mul_three(P_pre, H_t.T, np.linalg.pinv(ug.mul_three(H_t, P_pre, H_t.T) + R))  # K:{6+4n}*3n
         # print("K_t", K_t.shape)
-        # P_t = np.matmul((np.eye(6 + 4 * fin_num) - np.matmul(K_t, H_t)), P_pre)  # P_t in current round
-        # P_ori[:6 + 4 * fin_num, :6 + 4 * fin_num] = P_t  # update to P_original
+        # P_t = np.matmul((np.eye(6 + 4 * self.fin_num) - np.matmul(K_t, H_t)), P_pre)  # P_t in current round
+        # P_ori[:6 + 4 * self.fin_num, :6 + 4 * self.fin_num] = P_t  # update to P_original
         # y_t = np.ravel(y_t)  # flatten
         # err = err_all[0]
         # err_all = err_all[1:]
         # err = np.ravel(err)
         #
         # # y_t_update = y_t + np.matmul(K_t, error.T).T
-        # y_t_update = y_t + np.hstack((err, np.zeros(4 * fin_num)))
-        #
+        # y_t_update = y_t + np.hstack((err, np.zeros(4 * self.fin_num)))
         # return y_t_update
+        x_state = ug.get_relative_posquat(sim, "palm_link", "cup")
+        x_state = np.array([ug.pos_quat2pos_XYZ_RPY_xyzw(x_state)])
+
+        #clear fin_num fin_tri
+        self.fin_num = 0
+        self.fin_tri = np.zeros(4)
+        return x_state

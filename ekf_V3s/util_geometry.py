@@ -669,8 +669,7 @@ def joint_kdl_to_list(q):
         return None
     return [q[i] for i in range(q.rows())]
 
-def contact_compute(sim, model, fingername, fin_num, fin_tri):
-    global trans_cup2palm
+def contact_compute(sim, model, fingername, y_t_update):
     # todo I guess here you can use a unified function which different parameters to
     # compute Grasp matrix etc.
     print(fingername)
@@ -690,15 +689,16 @@ def contact_compute(sim, model, fingername, fin_num, fin_tri):
             c_points0 = taxels_id[0] + 432
             print("th")
         # todo the pos_contact0 should be the mean value of all actived taxels.
-        c_point_name0 = tacperception.get_c_point_name(model, c_points0)
+        c_point_name0 = tacperception.get_avg_c_point(sim, model, c_points0, fingername)
         pos_contact0 = get_relative_posquat(sim, "palm_link", c_point_name0)[:3]  # get the position
 
+        trans_cup2palm = posquat2trans(get_relative_posquat(sim, "palm_link", "cup"))  # update T_cup2palm
         nor0, res0 = tacperception.get_normal(sim, model, c_points0, trans_cup2palm)  # get normal_in_cup
-        nor_tmp[fin_num] = nor0  # save to tmp nor
-        coe_tmp[fin_num] = res0  # save to tmp coe
+        # nor_tmp[contact_finger_id] = nor0  # save to tmp nor
+        # coe_tmp[contact_finger_id] = res0  # save to tmp coe
 
         # the G is the estimated matrix because the noised object pose
-        G_contact[fin_num] = get_G(sim, c_point_name0, pos_contact0, y_t_update)  # get G
+        G_contact = get_G_contact(sim, c_point_name0, pos_contact0, y_t_update)  # get G
 
         # Get joint angle velocity--u_t
         kdl_kin0, kdl_kin1, kdl_kin2, kdl_kin3, kdl_tree = \
@@ -708,37 +708,52 @@ def contact_compute(sim, model, fingername, fin_num, fin_tri):
                              sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_2], \
                              sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_3], \
                              sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_4]])
-            u_t_tmp[fin_num] = u_t0  # save to tmp u_t
+            cur_jnt = np.array([sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_1], \
+                             sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_2], \
+                             sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_3], \
+                             sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_4]])
+            # u_t_tmp[contact_finger_id] = u_t0  # save to tmp u_t
             # Get Jacobi J
             # todo parameter for jac should be joints angle, right?
-            J[fin_num] = kdl_kin0.jacobian(u_t0)
+            Jac = kdl_kin0.jacobian(cur_jnt)
         if fingername == 'mf':
             u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_1], \
                              sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_2], \
                              sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_3], \
                              sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_4]])
-            u_t_tmp[fin_num] = u_t0  # save to tmp u_t
+            cur_jnt = np.array([sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_1], \
+                             sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_2], \
+                             sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_3], \
+                             sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_4]])
+            # u_t_tmp[contact_finger_id] = u_t0  # save to tmp u_t
             # Get Jacobi J
             # todo parameter for jac should be joints angle, right?
-            J[fin_num] = kdl_kin1.jacobian(u_t0)
+            Jac = kdl_kin1.jacobian(cur_jnt)
         if fingername == 'rf':
             u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_1], \
                              sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_2], \
                              sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_3], \
                              sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_4]])
-            u_t_tmp[fin_num] = u_t0  # save to tmp u_t
+            cur_jnt = np.array([sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_1], \
+                             sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_2], \
+                             sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_3], \
+                             sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_4]])
+            # u_t_tmp[contact_finger_id] = u_t0  # save to tmp u_t
             # Get Jacobi J
             # todo parameter for jac should be joints angle, right?
-            J[fin_num] = kdl_kin2.jacobian(u_t0)
+            Jac = kdl_kin2.jacobian(cur_jnt)
         if fingername == 'th':
             u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_1], \
                              sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_2], \
                              sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_3], \
                              sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_4]])
-            u_t_tmp[fin_num] = u_t0  # save to tmp u_t
+            cur_jnt = np.array([sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_1], \
+                             sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_2], \
+                             sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_3], \
+                             sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_4]])
+
+            # u_t_tmp[contact_finger_id] = u_t0  # save to tmp u_t
             # Get Jacobi J
             # todo parameter for jac should be joints angle, right?
-            J[fin_num] = kdl_kin3.jacobian(u_t0)
-        fin_num += 1
-        fin_tri[fin_num] = 1
-        return fin_num, fin_tri, G_contact[fin_num], J[fin_num], u_t_tmp[fin_num], nor_tmp[fin_num]
+            Jac = kdl_kin3.jacobian(cur_jnt)
+        return G_contact, Jac, u_t0, nor0
