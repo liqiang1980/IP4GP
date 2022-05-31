@@ -1,0 +1,701 @@
+Time 0 :['touch_0_1_12' 'touch_0_2_12' 'touch_0_3_12' 'touch_0_4_12'
+ 'touch_0_5_12' 'touch_0_6_12' 'touch_0_1_11' 'touch_0_2_11'
+ 'touch_0_3_11' 'touch_0_4_11' 'touch_0_5_11' 'touch_0_6_11'
+ 'touch_0_1_10' 'touch_0_2_10' 'touch_0_3_10' 'touch_0_4_10'
+ 'touch_0_5_10' 'touch_0_6_10' 'touch_0_1_9' 'touch_0_2_9' 'touch_0_3_9'
+ 'touch_0_4_9' 'touch_0_6_9' 'touch_0_1_8' 'touch_0_2_8' 'touch_0_3_8'
+ 'touch_0_4_8' 'touch_0_5_8' 'touch_0_6_8' 'touch_0_1_7' 'touch_0_2_7'
+ 'touch_0_3_7' 'touch_0_4_7' 'touch_0_5_7' 'touch_0_6_7' 'touch_0_1_6'
+ 'touch_0_2_6' 'touch_0_3_6' 'touch_0_4_6' 'touch_0_5_6' 'touch_0_6_6'
+ 'touch_0_1_5' 'touch_0_2_5' 'touch_0_3_5' 'touch_0_4_5' 'touch_0_5_5'
+ 'touch_0_6_5' 'touch_0_1_4' 'touch_0_2_4' 'touch_0_3_4' 'touch_0_4_4'
+ 'touch_0_5_4' 'touch_0_6_4' 'touch_0_1_3' 'touch_0_2_3' 'touch_0_3_3'
+ 'touch_0_4_3' 'touch_0_5_3' 'touch_0_6_3' 'touch_0_1_2' 'touch_0_2_2'
+ 'touch_0_3_2' 'touch_0_4_2' 'touch_0_5_2' 'touch_0_6_2' 'touch_0_1_1'
+ 'touch_0_2_1' 'touch_0_3_1' 'touch_0_4_1' 'touch_0_5_1' 'touch_0_6_1'
+ 'touch_1_1_1' 'touch_1_1_2' 'touch_1_1_3' 'touch_1_1_4' 'touch_1_1_5'
+ 'touch_1_1_6' 'touch_1_2_1' 'touch_1_2_2' 'touch_1_2_3' 'touch_1_2_4'
+ 'touch_1_2_5' 'touch_1_2_6' 'touch_1_3_1' 'touch_1_3_2' 'touch_1_3_3'
+ 'touch_1_3_4' 'touch_1_3_5' 'touch_1_3_6' 'touch_1_4_1' 'touch_1_4_2'
+ 'touch_1_4_3' 'touch_1_4_4' 'touch_1_4_5' 'touch_1_4_6' 'touch_1_5_1'
+ 'touch_1_5_2' 'touch_1_5_3' 'touch_1_5_4' 'touch_1_5_5' 'touch_1_5_6'
+ 'touch_1_6_1' 'touch_1_6_2' 'touch_1_6_3' 'touch_1_6_4' 'touch_1_6_5'
+ 'touch_1_6_6' 'touch_2_1_1' 'touch_2_1_2' 'touch_2_1_3' 'touch_2_1_4'
+ 'touch_2_1_5' 'touch_2_1_6' 'touch_2_2_1' 'touch_2_2_2' 'touch_2_2_3'
+ 'touch_2_2_4' 'touch_2_2_5' 'touch_2_2_6' 'touch_2_3_2' 'touch_2_3_3'
+ 'touch_2_3_5' 'touch_2_4_1' 'touch_2_4_3' 'touch_2_4_4' 'touch_2_4_5'
+ 'touch_2_4_6' 'touch_2_5_1' 'touch_2_5_2' 'touch_2_5_3' 'touch_2_5_4'
+ 'touch_2_5_5' 'touch_2_5_6' 'touch_2_6_1' 'touch_2_6_2' 'touch_2_6_3'
+ 'touch_2_6_4' 'touch_2_6_5' 'touch_2_6_6' 'touch_7_1_12' 'touch_7_2_12'
+ 'touch_7_3_12' 'touch_7_4_12' 'touch_7_5_12' 'touch_7_6_12'
+ 'touch_7_1_11' 'touch_7_2_11' 'touch_7_3_11' 'touch_7_4_11'
+ 'touch_7_5_11' 'touch_7_6_11' 'touch_7_1_10' 'touch_7_2_10'
+ 'touch_7_4_10' 'touch_7_5_10' 'touch_7_6_10' 'touch_7_1_9' 'touch_7_2_9'
+ 'touch_7_3_9' 'touch_7_4_9' 'touch_7_5_9' 'touch_7_6_9' 'touch_7_1_8'
+ 'touch_7_2_8' 'touch_7_3_8' 'touch_7_4_8' 'touch_7_5_8' 'touch_7_6_8'
+ 'touch_7_1_7' 'touch_7_2_7' 'touch_7_3_7' 'touch_7_4_7' 'touch_7_5_7'
+ 'touch_7_6_7' 'touch_7_1_6' 'touch_7_2_6' 'touch_7_3_6' 'touch_7_4_6'
+ 'touch_7_5_6' 'touch_7_6_6' 'touch_7_1_5' 'touch_7_2_5' 'touch_7_3_5'
+ 'touch_7_4_5' 'touch_7_5_5' 'touch_7_6_5' 'touch_7_1_4' 'touch_7_2_4'
+ 'touch_7_3_4' 'touch_7_4_4' 'touch_7_5_4' 'touch_7_6_4' 'touch_7_1_3'
+ 'touch_7_2_3' 'touch_7_3_3' 'touch_7_4_3' 'touch_7_5_3' 'touch_7_6_3'
+ 'touch_7_1_2' 'touch_7_2_2' 'touch_7_3_2' 'touch_7_4_2' 'touch_7_5_2'
+ 'touch_7_6_2' 'touch_7_1_1' 'touch_7_2_1' 'touch_7_3_1' 'touch_7_4_1'
+ 'touch_7_5_1' 'touch_7_6_1' 'touch_8_1_1' 'touch_8_1_2' 'touch_8_1_3'
+ 'touch_8_1_4' 'touch_8_1_5' 'touch_8_1_6' 'touch_8_2_1' 'touch_8_2_2'
+ 'touch_8_2_3' 'touch_8_2_4' 'touch_8_2_5' 'touch_8_2_6' 'touch_8_3_1'
+ 'touch_8_3_2' 'touch_8_3_3' 'touch_8_3_4' 'touch_8_3_5' 'touch_8_3_6'
+ 'touch_8_4_1' 'touch_8_4_2' 'touch_8_4_3' 'touch_8_4_4' 'touch_8_4_5'
+ 'touch_8_4_6' 'touch_8_5_1' 'touch_8_5_2' 'touch_8_5_3' 'touch_8_5_4'
+ 'touch_8_5_5' 'touch_8_5_6' 'touch_8_6_1' 'touch_8_6_2' 'touch_8_6_3'
+ 'touch_8_6_4' 'touch_8_6_5' 'touch_8_6_6' 'touch_9_1_1' 'touch_9_1_2'
+ 'touch_9_1_3' 'touch_9_1_4' 'touch_9_1_5' 'touch_9_1_6' 'touch_9_2_1'
+ 'touch_9_2_2' 'touch_9_2_3' 'touch_9_2_4' 'touch_9_2_5' 'touch_9_2_6'
+ 'touch_9_3_1' 'touch_9_3_2' 'touch_9_3_3' 'touch_9_3_4' 'touch_9_3_5'
+ 'touch_9_3_6' 'touch_9_4_1' 'touch_9_4_2' 'touch_9_4_3' 'touch_9_4_4'
+ 'touch_9_4_5' 'touch_9_4_6' 'touch_9_5_1' 'touch_9_5_2' 'touch_9_5_3'
+ 'touch_9_5_4' 'touch_9_5_5' 'touch_9_5_6' 'touch_9_6_1' 'touch_9_6_2'
+ 'touch_9_6_3' 'touch_9_6_4' 'touch_9_6_5' 'touch_9_6_6' 'touch_11_1_12'
+ 'touch_11_2_12' 'touch_11_3_12' 'touch_11_4_12' 'touch_11_5_12'
+ 'touch_11_6_12' 'touch_11_1_11' 'touch_11_2_11' 'touch_11_3_11'
+ 'touch_11_4_11' 'touch_11_5_11' 'touch_11_6_11' 'touch_11_1_10'
+ 'touch_11_2_10' 'touch_11_3_10' 'touch_11_4_10' 'touch_11_5_10'
+ 'touch_11_6_10' 'touch_11_1_9' 'touch_11_2_9' 'touch_11_3_9'
+ 'touch_11_4_9' 'touch_11_5_9' 'touch_11_6_9' 'touch_11_1_8'
+ 'touch_11_2_8' 'touch_11_3_8' 'touch_11_4_8' 'touch_11_5_8'
+ 'touch_11_6_8' 'touch_11_1_7' 'touch_11_2_7' 'touch_11_3_7'
+ 'touch_11_4_7' 'touch_11_5_7' 'touch_11_6_7' 'touch_11_1_6'
+ 'touch_11_2_6' 'touch_11_3_6' 'touch_11_4_6' 'touch_11_5_6'
+ 'touch_11_6_6' 'touch_11_1_5' 'touch_11_2_5' 'touch_11_3_5'
+ 'touch_11_4_5' 'touch_11_5_5' 'touch_11_6_5' 'touch_11_1_4'
+ 'touch_11_2_4' 'touch_11_3_4' 'touch_11_4_4' 'touch_11_5_4'
+ 'touch_11_6_4' 'touch_11_1_3' 'touch_11_2_3' 'touch_11_3_3'
+ 'touch_11_4_3' 'touch_11_5_3' 'touch_11_6_3' 'touch_11_1_2'
+ 'touch_11_2_2' 'touch_11_3_2' 'touch_11_4_2' 'touch_11_5_2'
+ 'touch_11_6_2' 'touch_11_1_1' 'touch_11_2_1' 'touch_11_3_1'
+ 'touch_11_4_1' 'touch_11_5_1' 'touch_11_6_1' 'touch_12_1_1'
+ 'touch_12_1_2' 'touch_12_1_3' 'touch_12_1_4' 'touch_12_1_5'
+ 'touch_12_1_6' 'touch_12_2_1' 'touch_12_2_2' 'touch_12_2_3'
+ 'touch_12_2_4' 'touch_12_2_5' 'touch_12_2_6' 'touch_12_3_1'
+ 'touch_12_3_2' 'touch_12_3_3' 'touch_12_3_4' 'touch_12_3_5'
+ 'touch_12_3_6' 'touch_12_4_1' 'touch_12_4_2' 'touch_12_4_3'
+ 'touch_12_4_4' 'touch_12_4_5' 'touch_12_4_6' 'touch_12_5_1'
+ 'touch_12_5_2' 'touch_12_5_3' 'touch_12_5_4' 'touch_12_5_5'
+ 'touch_12_5_6' 'touch_12_6_1' 'touch_12_6_2' 'touch_12_6_3'
+ 'touch_12_6_4' 'touch_12_6_5' 'touch_12_6_6' 'touch_13_1_1'
+ 'touch_13_1_2' 'touch_13_1_3' 'touch_13_1_4' 'touch_13_1_6'
+ 'touch_13_2_1' 'touch_13_2_2' 'touch_13_2_3' 'touch_13_2_4'
+ 'touch_13_2_5' 'touch_13_3_1' 'touch_13_3_3' 'touch_13_3_4'
+ 'touch_13_3_5' 'touch_13_3_6' 'touch_13_4_1' 'touch_13_4_2'
+ 'touch_13_4_3' 'touch_13_4_4' 'touch_13_4_5' 'touch_13_4_6'
+ 'touch_13_5_1' 'touch_13_5_2' 'touch_13_5_3' 'touch_13_5_4'
+ 'touch_13_5_5' 'touch_13_5_6' 'touch_13_6_1' 'touch_13_6_2'
+ 'touch_13_6_3' 'touch_13_6_4' 'touch_13_6_5' 'touch_13_6_6'
+ 'touch_15_1_12' 'touch_15_2_12' 'touch_15_3_12' 'touch_15_4_12'
+ 'touch_15_5_12' 'touch_15_6_12' 'touch_15_1_11' 'touch_15_2_11'
+ 'touch_15_3_11' 'touch_15_4_11' 'touch_15_5_11' 'touch_15_6_11'
+ 'touch_15_1_10' 'touch_15_2_10' 'touch_15_3_10' 'touch_15_4_10'
+ 'touch_15_5_10' 'touch_15_6_10' 'touch_15_1_9' 'touch_15_2_9'
+ 'touch_15_3_9' 'touch_15_4_9' 'touch_15_5_9' 'touch_15_6_9'
+ 'touch_15_1_8' 'touch_15_2_8' 'touch_15_3_8' 'touch_15_4_8'
+ 'touch_15_5_8' 'touch_15_6_8' 'touch_15_1_7' 'touch_15_2_7'
+ 'touch_15_3_7' 'touch_15_4_7' 'touch_15_5_7' 'touch_15_6_7'
+ 'touch_15_1_6' 'touch_15_2_6' 'touch_15_3_6' 'touch_15_4_6'
+ 'touch_15_5_6' 'touch_15_6_6' 'touch_15_1_5' 'touch_15_2_5'
+ 'touch_15_3_5' 'touch_15_4_5' 'touch_15_5_5' 'touch_15_1_4'
+ 'touch_15_2_4' 'touch_15_3_4' 'touch_15_4_4' 'touch_15_5_4'
+ 'touch_15_6_4' 'touch_15_1_3' 'touch_15_2_3' 'touch_15_3_3'
+ 'touch_15_4_3' 'touch_15_5_3' 'touch_15_6_3' 'touch_15_1_2'
+ 'touch_15_2_2' 'touch_15_3_2' 'touch_15_4_2' 'touch_15_5_2'
+ 'touch_15_1_1' 'touch_15_2_1' 'touch_15_3_1' 'touch_15_4_1'
+ 'touch_15_5_1' 'touch_15_6_1' 'touch_16_1_1' 'touch_16_1_2'
+ 'touch_16_1_3' 'touch_16_1_4' 'touch_16_1_5' 'touch_16_1_6'
+ 'touch_16_2_1' 'touch_16_2_2' 'touch_16_2_3' 'touch_16_2_4'
+ 'touch_16_2_5' 'touch_16_2_6' 'touch_16_3_1' 'touch_16_3_2'
+ 'touch_16_3_3' 'touch_16_3_4' 'touch_16_3_5' 'touch_16_3_6'
+ 'touch_16_4_2' 'touch_16_4_3' 'touch_16_4_4' 'touch_16_4_5'
+ 'touch_16_4_6' 'touch_16_5_1' 'touch_16_5_2' 'touch_16_5_3'
+ 'touch_16_5_4' 'touch_16_5_5' 'touch_16_5_6' 'touch_16_6_1'
+ 'touch_16_6_2' 'touch_16_6_3' 'touch_16_6_4' 'touch_16_6_5'
+ 'touch_16_6_6']
+Time 1 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 2 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 3 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 4 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 5 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 6 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 7 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 8 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 9 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 10 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 11 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 12 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 13 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 14 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 15 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 16 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 17 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 18 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 19 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 20 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 21 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 22 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 23 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 24 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 25 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 26 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 27 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 28 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 29 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 30 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 31 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 32 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 33 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 34 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 35 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 36 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 37 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 38 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 39 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 40 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 41 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 42 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 43 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 44 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 45 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 46 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 47 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 48 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 49 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 50 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 51 :['touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 52 :['touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 53 :['touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 54 :['touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 55 :['touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 56 :['touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 57 :['touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 58 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 59 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 60 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 61 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 62 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 63 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 64 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 65 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 66 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 67 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 68 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 69 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 70 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 71 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 72 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 73 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 74 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 75 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 76 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 77 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 78 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 79 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 80 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 81 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 82 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 83 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 84 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 85 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 86 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 87 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 88 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 89 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 90 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 91 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 92 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 93 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 94 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 95 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 96 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 97 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 98 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 99 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 100 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 101 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 102 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 103 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 104 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 105 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 106 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 107 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 108 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 109 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 110 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 111 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 112 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 113 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 114 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 115 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 116 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 117 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 118 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 119 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 120 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 121 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 122 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 123 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 124 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 125 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 126 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 127 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 128 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 129 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 130 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 131 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 132 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 133 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 134 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 135 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 136 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 137 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 138 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 139 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 140 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 141 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 142 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 143 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 144 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 145 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 146 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 147 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 148 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 149 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 150 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 151 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 152 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 153 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 154 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 155 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 156 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 157 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 158 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 159 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 160 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 161 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 162 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 163 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 164 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 165 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 166 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 167 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 168 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 169 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 170 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6'
+ 'touch_16_1_1']
+Time 171 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6'
+ 'touch_16_1_1']
+Time 172 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6'
+ 'touch_16_1_1']
+Time 173 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6'
+ 'touch_16_1_1']
+Time 174 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6'
+ 'touch_16_1_1']
+Time 175 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 176 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 177 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 178 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 179 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 180 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 181 :['touch_0_5_8' 'touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1'
+ 'touch_13_1_1' 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 182 :['touch_0_5_8' 'touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1'
+ 'touch_13_1_1' 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 183 :['touch_0_5_8' 'touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1'
+ 'touch_13_1_1' 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 184 :['touch_0_5_8' 'touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1'
+ 'touch_13_1_1' 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 185 :['touch_0_5_8' 'touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1'
+ 'touch_13_1_1' 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 186 :['touch_0_5_8' 'touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1'
+ 'touch_13_1_1' 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 187 :['touch_0_5_8' 'touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1'
+ 'touch_13_1_1' 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 188 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 189 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 190 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 191 :['touch_0_5_8' 'touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1'
+ 'touch_13_1_1' 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 192 :['touch_0_5_8' 'touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1'
+ 'touch_13_1_1' 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 193 :['touch_0_5_8' 'touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1'
+ 'touch_13_1_1' 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 194 :['touch_0_5_8' 'touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1'
+ 'touch_13_1_1' 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 195 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 196 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 197 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 198 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 199 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 200 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 201 :['touch_0_5_8' 'touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1'
+ 'touch_13_1_1' 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 202 :['touch_0_5_8' 'touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1'
+ 'touch_13_1_1' 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 203 :['touch_0_5_8' 'touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1'
+ 'touch_13_1_1' 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 204 :['touch_0_5_8' 'touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1'
+ 'touch_13_1_1' 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 205 :['touch_0_5_8' 'touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1'
+ 'touch_13_1_1' 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 206 :['touch_0_5_8' 'touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1'
+ 'touch_13_1_1' 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 207 :['touch_0_5_8' 'touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1'
+ 'touch_13_1_1' 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 208 :['touch_0_5_8' 'touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1'
+ 'touch_13_1_1' 'touch_15_2_12' 'touch_15_2_11' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 209 :['touch_0_5_9' 'touch_0_5_8' 'touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1'
+ 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_12' 'touch_15_2_11'
+ 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 210 :['touch_0_5_9' 'touch_0_5_8' 'touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1'
+ 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_11' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 211 :['touch_0_5_9' 'touch_0_5_8' 'touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1'
+ 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_11' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 212 :['touch_0_5_9' 'touch_0_5_8' 'touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1'
+ 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_11' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 213 :['touch_0_5_10' 'touch_0_5_9' 'touch_0_5_8' 'touch_0_5_7' 'touch_0_5_6'
+ 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_11' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 214 :['touch_0_5_10' 'touch_0_5_9' 'touch_0_5_8' 'touch_0_5_7' 'touch_0_5_6'
+ 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1' 'touch_15_2_11' 'touch_15_2_9'
+ 'touch_15_2_8' 'touch_15_2_6' 'touch_16_1_1']
+Time 215 :['touch_0_5_9' 'touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1'
+ 'touch_13_1_1' 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 216 :['touch_0_5_9' 'touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1'
+ 'touch_13_1_1' 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1']
+Time 217 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6'
+ 'touch_16_1_1']
+Time 218 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6'
+ 'touch_16_1_1']
+Time 219 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6'
+ 'touch_16_1_1']
+Time 220 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6'
+ 'touch_16_1_1' 'touch_16_2_1']
+Time 221 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6'
+ 'touch_16_1_1' 'touch_16_2_1']
+Time 222 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6'
+ 'touch_16_1_1' 'touch_16_2_1']
+Time 223 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6'
+ 'touch_16_1_1' 'touch_16_2_1' 'touch_16_3_1']
+Time 224 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6'
+ 'touch_16_1_1' 'touch_16_2_1']
+Time 225 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6'
+ 'touch_16_1_1' 'touch_16_2_1']
+Time 226 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6'
+ 'touch_16_1_1' 'touch_16_2_1']
+Time 227 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6'
+ 'touch_16_1_1' 'touch_16_2_1']
+Time 228 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_9' 'touch_15_2_8' 'touch_15_2_6'
+ 'touch_16_1_1' 'touch_16_2_1']
+Time 229 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_10' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1' 'touch_16_2_1']
+Time 230 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_10' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1' 'touch_16_2_1']
+Time 231 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_10' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1' 'touch_16_2_1']
+Time 232 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_10' 'touch_15_2_8' 'touch_15_2_6'
+ 'touch_16_1_1' 'touch_16_2_1']
+Time 233 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_10' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1' 'touch_16_2_1']
+Time 234 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_10' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1' 'touch_16_2_1']
+Time 235 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_10' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1' 'touch_16_2_1']
+Time 236 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_10' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1' 'touch_16_2_1']
+Time 237 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_10' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1' 'touch_16_2_1']
+Time 238 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_10' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1' 'touch_16_2_1']
+Time 239 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_10' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1' 'touch_16_2_1']
+Time 240 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_10' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1' 'touch_16_2_1']
+Time 241 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_10' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1' 'touch_16_2_1']
+Time 242 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_10' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1' 'touch_16_2_1']
+Time 243 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_10' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1' 'touch_16_2_1']
+Time 244 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_10' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1' 'touch_16_2_1']
+Time 245 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_10' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1' 'touch_16_2_1']
+Time 246 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_10' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1' 'touch_16_2_1']
+Time 247 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_10' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1' 'touch_16_2_1']
+Time 248 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_10' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1' 'touch_16_2_1']
+Time 249 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_10' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1' 'touch_16_2_1']
+Time 250 :['touch_0_5_7' 'touch_0_5_6' 'touch_2_1_1' 'touch_9_1_1' 'touch_13_1_1'
+ 'touch_15_2_11' 'touch_15_2_10' 'touch_15_2_9' 'touch_15_2_8'
+ 'touch_15_2_6' 'touch_16_1_1' 'touch_16_2_1']
