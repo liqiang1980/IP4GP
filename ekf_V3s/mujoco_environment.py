@@ -24,11 +24,13 @@ def init_mujoco():
 def init_robot_object_mujoco(sim, object_param):
     pose_cup = ug.get_body_posquat(sim, object_param[0])
     trans_cup = ug.posquat2trans(pose_cup)
-    trans_pregrasp = np.array([[0, 0, 1, 0.1],  # cup参考系
+    # pregrasping related pose ref:cup
+    trans_pregrasp = np.array([[0, 0, 1, 0.1],
                                [0, 1, 0, -0.23],
                                [-1, 0, 0, 0.07],
                                [0, 0, 0, 1]])
-    posequat = ug.get_prepose_posequat(trans_cup, trans_pregrasp)  # 转为世界参考系
+    # ref: palm
+    posequat = ug.get_prepose_posequat(trans_cup, trans_pregrasp)
 
     ctrl_wrist_pos = posequat[:3]
     ctrl_wrist_quat = posequat[3:]

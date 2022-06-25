@@ -58,13 +58,13 @@ def delta_pose2next_pose(d_pose, pose_0):
     return pose_t
 
 
-def get_G_contact(sim, c_point_name, pos_contact, y_t_update):
-    # print("chuck:", pos_contact, y_t_update)
-    S = get_S(pos_contact - y_t_update[:3])  # Get S(c_i - p), palm frame
-    # todo looks like this is related to the palm frame, right?
-    # todo, is there an contact frame related to a taxel?
+def get_G_contact(pos_contact, x_state):
+    #   pose_contact is the pose of actived taxel which comes from the ground truth
+    #   x_state is the current estmated object's pose
+    S = get_S(pos_contact[:3] - x_state[:3])  # Get S(c_i - p), palm frame
     # todo could you please comment the formula you are using for f.get_T();
-    T_contact = get_T(sim, c_point_name)  # contact point in cup frame
+    T_contact = posquat2trans(pos_contact)
+    # T_contact = get_T(sim, c_point_name)  # contact point in cup frame
     R_contact = T_contact[:3, :3]  # Get R of contact point
     # todo name is the same with this function,
     # todo could you please comment the formula you are using for f.get_G();
@@ -94,26 +94,24 @@ def get_body_posquat(sim, name):
     return posquat
 
 
-def get_relative_posquat_geom(sim, frame, obj):
-    posquat_frame = get_geom_posquat(sim, frame)
-    # trans_frame = posquat2trans(sim, posquat_frame)
-    trans_frame = posquat2trans(posquat_frame)
-    posquat_object = get_body_posquat(sim, obj)
-    trans_object = posquat2trans(posquat_object)
-    frameHobj = np.matmul(np.linalg.inv(trans_frame), trans_object)
-    return trans2posquat(frameHobj)
+def get_relative_posquat_geom(sim, src, tgt):
+    posquat_src = get_geom_posquat(sim, src)
+    trans_src = posquat2trans(posquat_src)
+    posquat_tgt = get_body_posquat(sim, tgt)
+    trans_tgt = posquat2trans(posquat_tgt)
+    srcHtgt = np.matmul(np.linalg.inv(trans_src), trans_tgt)
+    return trans2posquat(srcHtgt)
 
 
 # 获得相对的位置姿态的四元数
 # outputs: position, rotation:w x y z
-def get_relative_posquat(sim, frame, obj):
-    posquat_frame = get_body_posquat(sim, frame)
-    # trans_frame = posquat2trans(sim, posquat_frame)
-    trans_frame = posquat2trans(posquat_frame)
-    posquat_object = get_body_posquat(sim, obj)
-    trans_object = posquat2trans(posquat_object)
-    frameHobj = np.matmul(np.linalg.inv(trans_frame), trans_object)
-    return trans2posquat(frameHobj)
+def get_relative_posquat(sim, src, tgt):
+    posquat_src = get_body_posquat(sim, src)
+    trans_src = posquat2trans(posquat_src)
+    posquat_tgt = get_body_posquat(sim, tgt)
+    trans_tgt = posquat2trans(posquat_tgt)
+    srcHtgt = np.matmul(np.linalg.inv(trans_src), trans_tgt)
+    return trans2posquat(srcHtgt)
 
 
 def get_prepose_posequat(wHo, oHg):
@@ -135,17 +133,10 @@ def jac_geom(sim, geom_name):
 # 转换成四元数
 def trans2posquat(tform):
     pos = (tform[0:3, 3]).transpose()
-    # a = R.identity(3)
-    # R.from_rotvec()
-    # r = R.from_matrix(tform[0:3, 0:3])
-    # quat = r.as_quat()
-    # quat = np.hstack((quat[3], quat[0:3]))
-    # print('--------------')
-    # print(quat)
     quat = from_matrix(tform[0:3, 0:3])
     quat = np.hstack((quat[3], quat[0:3]))
-    # print(quat)
-    return np.hstack((pos, quat))  # position rotation:w x y z
+    # position rotation:w x y z
+    return np.hstack((pos, quat))
 
 
 def conj_quat(quat):
@@ -313,13 +304,13 @@ def as_matrix(quat):
 
 # author: ycj
 # update:lqg
-def quat2euler_XYZ(Rq):
+def quat2euler_xyz(Rq):
     r = Rotation.from_quat(Rq)
     euler0 = r.as_euler('xyz', degrees=True)
     return euler0
 
 
-# def pos_quat2pos_XYZ_RPY(pos_quat):
+# def pos_quat2pos_xyz_rpy(pos_quat):
 #     # input must be w x y z
 #     #mujoco的四元数需要调换位置最前面的放在最后面
 #     #欧拉角转四元数的函数有问题 弧度和角度之间的转换
@@ -327,36 +318,51 @@ def quat2euler_XYZ(Rq):
 #     quat = np.hstack((pos_quat[4:], pos_quat[3]))
 #     # quat = np.hstack((pos_quat[1:], pos_quat[0]))
 #     r = R.from_quat(quat)
-#     euler0 = r.as_rotvec()
-#     pos_XYZ_angle = np.zeros(6, dtype = np.double)
-#     pos_XYZ_angle[0:3] = pos_quat[0:3]
-#     pos_XYZ_angle[-3:] = euler0
-#     # pos_XYZ_angle[-3:] = euler0 * 57.2958
-#     # pos_euler_XYZ = np.hstack([pos_quat[0:3], euler0])
-#     return pos_XYZ_angle
+#     euler0 = r.as_euler('xyz')
+#     pos_xyz_angle = np.zeros(6, dtype = np.double)
+#     pos_xyz_angle[0:3] = pos_quat[0:3]
+#     pos_xyz_angle[-3:] = euler0
+#     # pos_xyz_angle[-3:] = euler0 * 57.2958
+#     # pos_euler_xyz = np.hstack([pos_quat[0:3], euler0])
+#     return pos_xyz_angle
 
 
-def pos_quat2pos_XYZ_RPY_wxyz(pos_quat):
+def pos_quat2pos_xyz_rpy_wxyz(pos_quat):
     # input must be w x y z
     quat = np.hstack((pos_quat[4:], pos_quat[3]))
     r = Rotation.from_quat(quat)
-    euler0 = r.as_rotvec()
-    pos_XYZ_angle = np.zeros(6, dtype=np.double)
-    pos_XYZ_angle[0:3] = pos_quat[0:3]
-    pos_XYZ_angle[-3:] = euler0
-    return pos_XYZ_angle
+    euler0 = r.as_euler('xyz')
+    pos_xyz_angle = np.zeros(6, dtype=np.double)
+    pos_xyz_angle[0:3] = pos_quat[0:3]
+    pos_xyz_angle[-3:] = euler0
+    return pos_xyz_angle
 
 
 # function from quaterion to Euler angle
-def pos_quat2pos_XYZ_RPY_xyzw(pos_quat):
+def pos_quat2pos_xyz_rpy_xyzw(pos_quat):
     # input must be w x y z
     quat = pos_quat[3:]
     r = Rotation.from_quat(quat)
-    euler0 = r.as_rotvec()
-    pos_XYZ_angle = np.zeros(6, dtype=np.double)
-    pos_XYZ_angle[0:3] = pos_quat[0:3]
-    pos_XYZ_angle[-3:] = euler0
-    return pos_XYZ_angle
+    euler0 = r.as_euler('xyz')
+    pos_xyz_angle = np.zeros(6, dtype=np.double)
+    pos_xyz_angle[0:3] = pos_quat[0:3]
+    pos_xyz_angle[-3:] = euler0
+    return pos_xyz_angle
+
+# function from quaterion to Euler angle
+def pos_quat2axis_angle(pos_quat):
+    # input must be w x y z
+    quat = pos_quat[3:]
+    r = Rotation.from_quat(quat)
+    axis_angle = r.as_rotvec()
+    pos_xyz_axis_angle = np.zeros(6, dtype=np.double)
+    pos_xyz_axis_angle[0:3] = pos_quat[0:3]
+    pos_xyz_axis_angle[-3:] = axis_angle
+    return pos_xyz_axis_angle
+
+def pos_euler_xyz_2_matrix(euler):
+    rot = Rotation.from_euler('xyz', euler)
+    return rot.as_matrix()
 
 
 def move_ik(sim, ee_tget_posquat, gripper_action=0.04):
@@ -580,12 +586,19 @@ def move_ik_kdl_finger_wdls_king(sim, kdl_kin, ee_tget_posquat, viewer=None):
 
 
 def get_T(sim, body_name):  # 获取palm参考系下的T矩阵（trans矩阵）
-    T_contact = posquat2trans(get_relative_posquat(sim, "palm_link", body_name))  # Get T of contact point
+    # Get T of contact point
+    T_contact = posquat2trans(get_relative_posquat(sim, "palm_link", body_name))
+    return T_contact
+
+def get_relative_T(sim, body_src, body_tgt):  # 获取palm参考系下的T矩阵（trans矩阵）
+    # Get T of contact point
+    T_contact = posquat2trans(get_relative_posquat(sim, body_src, body_tgt))
     return T_contact
 
 
 def get_T_cup(sim, body_name):  # 获取cup参考系下的T矩阵（trans矩阵）
-    T_contact = posquat2trans(get_relative_posquat(sim, "cup", body_name))  # Get T of contact point
+    # Get T of contact point
+    T_contact = posquat2trans(get_relative_posquat(sim, "cup", body_name))
     return T_contact
 
 
@@ -669,91 +682,60 @@ def joint_kdl_to_list(q):
         return None
     return [q[i] for i in range(q.rows())]
 
-def contact_compute(sim, model, fingername, y_t_update):
-    # todo I guess here you can use a unified function which different parameters to
-    # compute Grasp matrix etc.
-    print(fingername)
-    if tacperception.is_finger_contact(sim, fingername):
-        # The No. of tactile sensor (index finger)
-        taxels_id = tacperception.get_contact_taxel_id(sim, fingername)
-        if fingername == 'ff':
-            c_points0 = taxels_id[0]
-            print("ff")
-        if fingername == 'mf':
-            c_points0 = taxels_id[0] + 144
-            print("mf")
-        if fingername == 'rf':
-            c_points0 = taxels_id[0] + 288
-            print("rf")
-        if fingername == 'th':
-            c_points0 = taxels_id[0] + 432
-            print("th")
-        # todo the pos_contact0 should be the mean value of all actived taxels.
-        c_point_name0 = tacperception.get_avg_c_point(sim, model, c_points0, fingername)
-        pos_contact0 = get_relative_posquat(sim, "palm_link", c_point_name0)[:3]  # get the position
+def contact_compute(sim, model, fingername, tacperception, x_state):
+    pos_contact = tacperception.get_contact_taxel_position(sim, \
+                       model, fingername, "palm_link")
+    #    the G_contact is partial grasping matrix because the noised object pose, refer to:
+    #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
+    #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
+    G_contact = get_G_contact(pos_contact, x_state)
+    G_contact_transpose = G_contact.transpose()
 
-        trans_cup2palm = posquat2trans(get_relative_posquat(sim, "palm_link", "cup"))  # update T_cup2palm
-        nor0, res0 = tacperception.get_normal(sim, model, c_points0, trans_cup2palm)  # get normal_in_cup
-        # nor_tmp[contact_finger_id] = nor0  # save to tmp nor
-        # coe_tmp[contact_finger_id] = res0  # save to tmp coe
-
-        # the G is the estimated matrix because the noised object pose
-        G_contact = get_G_contact(sim, c_point_name0, pos_contact0, y_t_update)  # get G
-
-        # Get joint angle velocity--u_t
-        kdl_kin0, kdl_kin1, kdl_kin2, kdl_kin3, kdl_tree = \
+    # body jocobian matrix and velocity
+    kdl_kin0, kdl_kin1, kdl_kin2, kdl_kin3, kdl_tree = \
             robcontrol.config_robot()
-        if fingername == 'ff':
-            u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_1], \
+    if fingername == 'ff':
+        u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_1], \
                              sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_2], \
                              sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_3], \
                              sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_4]])
-            cur_jnt = np.array([sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_1], \
+        cur_jnt = np.array([sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_1], \
                              sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_2], \
                              sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_3], \
                              sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_4]])
-            # u_t_tmp[contact_finger_id] = u_t0  # save to tmp u_t
-            # Get Jacobi J
-            # todo parameter for jac should be joints angle, right?
-            Jac = kdl_kin0.jacobian(cur_jnt)
-        if fingername == 'mf':
-            u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_1], \
+        # Get Jacobi J
+        Jac = kdl_kin0.jacobian(cur_jnt)
+    if fingername == 'mf':
+        u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_1], \
                              sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_2], \
                              sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_3], \
                              sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_4]])
-            cur_jnt = np.array([sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_1], \
+        cur_jnt = np.array([sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_1], \
                              sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_2], \
                              sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_3], \
                              sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_4]])
-            # u_t_tmp[contact_finger_id] = u_t0  # save to tmp u_t
-            # Get Jacobi J
-            # todo parameter for jac should be joints angle, right?
-            Jac = kdl_kin1.jacobian(cur_jnt)
-        if fingername == 'rf':
-            u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_1], \
+        # Get Jacobi J
+        Jac = kdl_kin1.jacobian(cur_jnt)
+    if fingername == 'rf':
+        u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_1], \
                              sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_2], \
                              sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_3], \
                              sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_4]])
-            cur_jnt = np.array([sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_1], \
+        cur_jnt = np.array([sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_1], \
                              sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_2], \
                              sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_3], \
                              sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_4]])
-            # u_t_tmp[contact_finger_id] = u_t0  # save to tmp u_t
-            # Get Jacobi J
-            # todo parameter for jac should be joints angle, right?
-            Jac = kdl_kin2.jacobian(cur_jnt)
-        if fingername == 'th':
-            u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_1], \
+        # Get Jacobi J
+        Jac = kdl_kin2.jacobian(cur_jnt)
+    if fingername == 'th':
+        u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_1], \
                              sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_2], \
                              sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_3], \
                              sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_4]])
-            cur_jnt = np.array([sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_1], \
+        cur_jnt = np.array([sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_1], \
                              sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_2], \
                              sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_3], \
                              sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_4]])
-
-            # u_t_tmp[contact_finger_id] = u_t0  # save to tmp u_t
-            # Get Jacobi J
-            # todo parameter for jac should be joints angle, right?
-            Jac = kdl_kin3.jacobian(cur_jnt)
-        return G_contact, Jac, u_t0, nor0
+        # Get Jacobi J
+        Jac = kdl_kin3.jacobian(cur_jnt)
+    return G_contact_transpose, Jac, u_t0

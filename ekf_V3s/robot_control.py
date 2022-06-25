@@ -4,44 +4,59 @@ from pykdl_utils.kdl_kinematics import KDLKinematics
 from pykdl_utils.kdl_parser import kdl_tree_from_urdf_model
 from urdf_parser_py.urdf import URDF
 import viz
-import tactile_perception as tacperception
+# import tactile_perception as tacperception
 import util_geometry as ug
 
 
 def robot_init(sim):
-    sim.data.ctrl[0] = 0.8
-    sim.data.ctrl[1] = -0.78
-    sim.data.ctrl[2] = 1.13
-    sim.data.ctrl[3] = -1.
-    sim.data.ctrl[4] = 0
-    sim.data.ctrl[5] = -0.3
+    sim.data.ctrl[tactile_allegro_mujo_const.UR_CTRL_1] = 0.8
+    sim.data.ctrl[tactile_allegro_mujo_const.UR_CTRL_2] = -0.78
+    sim.data.ctrl[tactile_allegro_mujo_const.UR_CTRL_3] = 1.13
+    sim.data.ctrl[tactile_allegro_mujo_const.UR_CTRL_4] = -1.
+    sim.data.ctrl[tactile_allegro_mujo_const.UR_CTRL_5] = 0
+    sim.data.ctrl[tactile_allegro_mujo_const.UR_CTRL_6] = -0.3
 
 
 def index_finger(sim, input1, input2):
-    if not (np.array(sim.data.sensordata[0:72]) > 0.0).any():  # 食指
-        sim.data.ctrl[7] = sim.data.ctrl[7] + input1
-        sim.data.ctrl[8] = sim.data.ctrl[8] + input1
-        sim.data.ctrl[9] = sim.data.ctrl[9] + input1
+    if not (np.array(sim.data.sensordata[tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN:\
+            tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX]) > 0.0).any():
+        sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] + input1
+        sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] + input1
+        sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] + input1
     else:
-        sim.data.ctrl[7] = sim.data.ctrl[7] + input2
-        sim.data.ctrl[8] = sim.data.ctrl[8] + input2
-        sim.data.ctrl[9] = sim.data.ctrl[9] + input2
+        sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] + input2
+        sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] + input2
+        sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] + input2
 
 
 def middle_finger(sim, input1, input2):
-    if not (np.array(sim.data.sensordata[144:216]) > 0.0).any():  # 中指
-        sim.data.ctrl[11] = sim.data.ctrl[11] + input1
-        sim.data.ctrl[12] = sim.data.ctrl[12] + input1
-        sim.data.ctrl[13] = sim.data.ctrl[13] + input1
+    if not (np.array(sim.data.sensordata[tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN:\
+            tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX]) > 0.0).any():  # 中指
+        sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] + input1
+        sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_3] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_3] + input1
+        sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_4] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_4] + input1
     else:
-        sim.data.ctrl[11] = sim.data.ctrl[11] + input2
-        sim.data.ctrl[12] = sim.data.ctrl[12] + input2
-        sim.data.ctrl[13] = sim.data.ctrl[13] + input2
+        sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] + input2
+        sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_3] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_3] + input2
+        sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_4] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_4] + input2
 
 
 def middle_finger_vel(sim, input1, input2):
     print(sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_1])
-    if not (np.array(sim.data.sensordata[144:216]) > 0.0).any():  # 中指
+    if not (np.array(sim.data.sensordata[tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN:\
+            tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX]) > 0.0).any():  # 中指
         sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_1] = input1
         sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_1] = input1
         sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_1] = input1
@@ -52,32 +67,47 @@ def middle_finger_vel(sim, input1, input2):
 
 
 def ring_finger(sim, input1, input2):
-    if not (np.array(sim.data.sensordata[288:360]) > 0.0).any():  # 小拇指
-        sim.data.ctrl[15] = sim.data.ctrl[15] + input1
-        sim.data.ctrl[16] = sim.data.ctrl[16] + input1
-        sim.data.ctrl[17] = sim.data.ctrl[17] + input1
+    if not (np.array(sim.data.sensordata[tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN:\
+            tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX]) > 0.0).any():  # 小拇指
+        sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_2] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_2] + input1
+        sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_3] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_3] + input1
+        sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_4] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_4] + input1
     else:
-        sim.data.ctrl[15] = sim.data.ctrl[15] + input2
-        sim.data.ctrl[16] = sim.data.ctrl[16] + input2
-        sim.data.ctrl[17] = sim.data.ctrl[17] + input2
+        sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_2] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_2] + input2
+        sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_3] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_3] + input2
+        sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_4] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_4] + input2
 
 
 def pre_thumb(sim, viewer):
     for _ in range(1000):
-        sim.data.ctrl[18] = sim.data.ctrl[18] + 0.05
+        sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_1] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_1] + 0.05
         sim.step()
         viewer.render()
 
 
 def thumb(sim, input1, input2):
-    if not (np.array(sim.data.sensordata[432:504]) > 0.0).any():  # da拇指
-        sim.data.ctrl[19] = sim.data.ctrl[19] + input1
-        sim.data.ctrl[20] = sim.data.ctrl[20] + input1
-        sim.data.ctrl[21] = sim.data.ctrl[21] + input1 * 5
+    if not (np.array(sim.data.sensordata[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN:\
+            tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX]) > 0.0).any():  # da拇指
+        sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_2] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_2] + input1
+        sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] + input1
+        sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] + input1 * 5
     else:
-        sim.data.ctrl[19] = sim.data.ctrl[19] + input2
-        sim.data.ctrl[20] = sim.data.ctrl[20] + input2
-        sim.data.ctrl[21] = sim.data.ctrl[21] + input2 * 5
+        sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_2] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_2] + input2
+        sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] + input2
+        sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] = \
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] + input2 * 5
 
 
 def config_robot():
@@ -94,18 +124,37 @@ def config_robot():
     kdl_tree = kdl_tree_from_urdf_model(robot)
     return kdl_kin0, kdl_kin1, kdl_kin2, kdl_kin3, kdl_tree
 
+def augmented_state(sim, model, hand_param, \
+                tacperception,x_state):
+    if tacperception.is_finger_contact(sim, hand_param[1][0]) == True:
+        c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[1][0])
+        pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.00, size=(1, 3))
+        x_state = np.append(x_state, [pos_contact0])
+    if tacperception.is_finger_contact(sim, hand_param[2][0]) == True:
+        c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[2][0])
+        pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.00, size=(1, 3))
+        x_state = np.append(x_state, [pos_contact0])
+    if tacperception.is_finger_contact(sim, hand_param[3][0]) == True:
+        c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[3][0])
+        pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.00, size=(1, 3))
+        x_state = np.append(x_state, [pos_contact0])
+    if tacperception.is_finger_contact(sim, hand_param[4][0]) == True:
+        c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[4][0])
+        pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.00, size=(1, 3))
+        x_state = np.append(x_state, [pos_contact0])
+    return x_state
 
 def interaction(sim, model, viewer, hand_param, object_param, alg_param, \
-                ekf_grasping):
+                ekf_grasping, tacperception):
     global contact_flag
     # number of triggered fingers
-    fin_num = 0
-    # Which fingers are triggered? Mark them with "1"
-    fin_tri = np.zeros(4)
+    tacperception.fin_num = 0
+    # The fingers which are triggered are Marked them with "1"
+    tacperception.fin_tri = np.zeros(4)
 
-    err_all = np.loadtxt("./err_inHand_v3bi.txt")
-    pre_thumb(sim, viewer)  # Thumb root movement
-    # Fast
+    # Thumb root movement
+    pre_thumb(sim, viewer)
+    # other fingers start moving with the different velocity (contact/without contact)
     for ii in range(1000):
         if hand_param[1][1] == '1':
             index_finger(sim, 0.0055, 0.00001)
@@ -120,62 +169,65 @@ def interaction(sim, model, viewer, hand_param, object_param, alg_param, \
                 or (tacperception.is_finger_contact(sim, hand_param[2][0]) == True) \
                 or (tacperception.is_finger_contact(sim, hand_param[3][0]) == True) \
                 or (tacperception.is_finger_contact(sim, hand_param[4][0]) == True):
+            if tacperception.is_finger_contact(sim, hand_param[1][0]) == True:
+                tacperception.fin_num += 1
+                tacperception.fin_tri[0] = 1
+            if tacperception.is_finger_contact(sim, hand_param[2][0]) == True:
+                tacperception.fin_num += 1
+                tacperception.fin_tri[1] = 1
+            if tacperception.is_finger_contact(sim, hand_param[3][0]) == True:
+                tacperception.fin_num += 1
+                tacperception.fin_tri[2] = 1
+            if tacperception.is_finger_contact(sim, hand_param[4][0]) == True:
+                tacperception.fin_num += 1
+                tacperception.fin_tri[3] = 1
+            print('fin num and id are')
+            print(tacperception.fin_num)
+            print(tacperception.fin_tri)
             # detect the first contact and initialize y_t_update with noise
-            if not contact_flag:  # get the state of cup in the first round
-                # noise +-5 mm, +-0.08 rad(4.5 deg)
-                # prepare object pose and relevent noise
+            if not contact_flag:
+                # initialize the co-variance matrix of state estimation
+                P_state_cov = 0.01 * np.identity(6 + tacperception.fin_num * 3)
+                # noise +-5 mm, +-0.002 (axis angle vector)
+                # prepare object pose and relevant noise
                 init_e = np.hstack((np.random.uniform((-1) * float(object_param[1]), float(object_param[1]),\
                                                     (1, 3)),\
                                 np.random.uniform(-1 * float(object_param[2]), float(object_param[2]), (1, 3))))
 
                 x_state = ug.get_relative_posquat(sim, "palm_link", "cup")
-                x_state = np.array([ug.pos_quat2pos_XYZ_RPY_xyzw(x_state)])
+                # attention, here orientation we use the axis angle representation.
+                x_state = np.array([ug.pos_quat2axis_angle(x_state)])
                 x_state += init_e
-
-                # compute the contact position on the object surface described in the object frame
-
                 contact_flag = True
+            # argumented state with the contact position on the object surface described in the object frame
+            x_state = augmented_state(sim, model, hand_param, tacperception, x_state)
             x_state = np.ravel(x_state)
-
-            if tacperception.is_finger_contact(sim, hand_param[1][0]) == True:
-                fin_num += 1
-                fin_tri[0] = 1
-            if tacperception.is_finger_contact(sim, hand_param[2][0]) == True:
-                fin_num += 1
-                fin_tri[1] = 1
-            if tacperception.is_finger_contact(sim, hand_param[3][0]) == True:
-                fin_num += 1
-                fin_tri[2] = 1
-            if tacperception.is_finger_contact(sim, hand_param[4][0]) == True:
-                fin_num += 1
-                fin_tri[3] = 1
-
             # Prediction step in EKF
-            x_bar = ekf_grasping.state_predictor(sim, model, hand_param, object_param, x_state, fin_num, fin_tri)
-            # y_bar: predicted object pose
-            x_bar = np.ravel(x_bar)
-            # # joints' velocity
-            # u_t = np.ravel(u_t)
-            # # combined vector
-            # x_t = np.hstack((x_bar, u_t))  # splice to 6+4n
-            print("!!!!!!!!y_t:", x_bar)
+            x_bar, P_state_cov = ekf_grasping.state_predictor(sim, model, hand_param, object_param, \
+                                                 x_state, tacperception, P_state_cov)
 
-            h_t = ekf_grasping.observation_computation(x_bar, fin_num)
+            h_t_position, h_t_nv, = ekf_grasping.observe_computation(x_bar, tacperception)
 
+            z_t_position, z_t_nv = ekf_grasping.measure_fb(sim, model, hand_param, object_param, \
+                                                       x_bar, tacperception)
+
+            z_t = np.concatenate((z_t_position, z_t_nv), axis=None)
+            h_t = np.concatenate((h_t_position, h_t_nv), axis=None)
             # FCL give out z_t
             # z_t = collision_test(fin_tri)
             # h_t: observing value from measurement equation
-            z_t = h_t + np.random.uniform(-0.1, 0.1, 3 * fin_num)
-            z_t = ug.normalization(z_t)
+            # z_t = h_t + np.random.uniform(-0.1, 0.1, 3 * tacperception.fin_num)
+            # z_t = ug.normalization(z_t)
             # print("new z_t:", z_t)
 
             # err_all = np.vstack((err_all, err))
             # posterior estimation
-            x_update = ekf_grasping.ekf_posteriori(sim, model, viewer, z_t, h_t)
-            # x_state = x_update[:6]  # Remove control variables
-            x_state = x_update  # Remove control variables
-            fin_num = 0
-            fin_tri = np.zeros(4)
+            x_update, P_state_cov_update = ekf_grasping.ekf_posteriori(sim, model, viewer, x_bar, z_t, h_t, P_state_cov, tacperception)
+            #first try: only update the object's pose
+            x_state = x_update[:6]
+            P_state_cov = P_state_cov_update[:6, :6]
+            tacperception.fin_num = 0
+            tacperception.fin_tri = np.zeros(4)
 
         if not np.all(sim.data.sensordata == 0):
             viz.touch_visual(sim, model, viewer, np.where(np.array(sim.data.sensordata) > 0.0))
