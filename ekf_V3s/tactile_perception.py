@@ -13,20 +13,44 @@ class cls_tactile_perception:
         self.fin_tri = np.zeros(4)
         # tuple variable to tell (contact_finger_name, reference_frame, contacted_pose)
         self.tuple_fin_ref_pose = ()
+        self.is_ff_contact = False
+        self.is_mf_contact = False
+        self.is_rf_contact = False
+        self.is_th_contact = False
 
     def is_finger_contact(self, sim, finger_name):
         if finger_name == 'ff':
-            return (np.array(sim.data.sensordata[tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN: \
-                tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX]) > 0.0).any()
+            if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN: \
+                    tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX]) > 0.0).any() == True:
+                self.is_ff_contact = True
+                return True
+            else:
+                self.is_ff_contact = False
+                return False
         if finger_name == 'mf':
-            return (np.array(sim.data.sensordata[tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN: \
-                tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX]) > 0.0).any()
+            if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN: \
+                    tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX]) > 0.0).any() == True:
+                self.is_mf_contact = True
+                return True
+            else:
+                self.is_mf_contact = False
+                return False
         if finger_name == 'rf':
-            return (np.array(sim.data.sensordata[tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN: \
-                tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX]) > 0.0).any()
+            if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN: \
+                    tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX]) > 0.0).any() == True:
+                self.is_rf_contact = True
+                return True
+            else:
+                self.is_rf_contact = False
+                return False
         if finger_name == 'th':
-            return (np.array(sim.data.sensordata[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN: \
-                tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX]) > 0.0).any()
+            if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN: \
+                    tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX]) > 0.0).any() == True:
+                self.is_th_contact = True
+                return True
+            else:
+                self.is_th_contact = False
+                return False
 
     def get_contact_taxel_id(self, sim, finger_name):
         if finger_name == 'ff':

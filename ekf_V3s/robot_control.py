@@ -130,18 +130,29 @@ def augmented_state(sim, model, hand_param, \
         c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[1][0])
         pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.00, size=(1, 3))
         x_state = np.append(x_state, [pos_contact0])
+    else:
+        x_state = np.append(x_state, [0, 0, 0])
+
     if tacperception.is_finger_contact(sim, hand_param[2][0]) == True:
         c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[2][0])
         pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.00, size=(1, 3))
         x_state = np.append(x_state, [pos_contact0])
+    else:
+        x_state = np.append(x_state, [0, 0, 0])
+
     if tacperception.is_finger_contact(sim, hand_param[3][0]) == True:
         c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[3][0])
         pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.00, size=(1, 3))
         x_state = np.append(x_state, [pos_contact0])
+    else:
+        x_state = np.append(x_state, [0, 0, 0])
+
     if tacperception.is_finger_contact(sim, hand_param[4][0]) == True:
         c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[4][0])
         pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.00, size=(1, 3))
         x_state = np.append(x_state, [pos_contact0])
+    else:
+        x_state = np.append(x_state, [0, 0, 0])
     return x_state
 
 def interaction(sim, model, viewer, hand_param, object_param, alg_param, \
@@ -169,25 +180,22 @@ def interaction(sim, model, viewer, hand_param, object_param, alg_param, \
                 or (tacperception.is_finger_contact(sim, hand_param[2][0]) == True) \
                 or (tacperception.is_finger_contact(sim, hand_param[3][0]) == True) \
                 or (tacperception.is_finger_contact(sim, hand_param[4][0]) == True):
-            if tacperception.is_finger_contact(sim, hand_param[1][0]) == True:
+            if tacperception.is_ff_contact == True:
                 tacperception.fin_num += 1
                 tacperception.fin_tri[0] = 1
-            if tacperception.is_finger_contact(sim, hand_param[2][0]) == True:
+            if tacperception.is_mf_contact == True:
                 tacperception.fin_num += 1
                 tacperception.fin_tri[1] = 1
-            if tacperception.is_finger_contact(sim, hand_param[3][0]) == True:
+            if tacperception.is_rf_contact == True:
                 tacperception.fin_num += 1
                 tacperception.fin_tri[2] = 1
-            if tacperception.is_finger_contact(sim, hand_param[4][0]) == True:
+            if tacperception.is_th_contact == True:
                 tacperception.fin_num += 1
                 tacperception.fin_tri[3] = 1
-            print('fin num and id are')
-            print(tacperception.fin_num)
-            print(tacperception.fin_tri)
             # detect the first contact and initialize y_t_update with noise
             if not contact_flag:
                 # initialize the co-variance matrix of state estimation
-                P_state_cov = 0.01 * np.identity(6 + tacperception.fin_num * 3)
+                P_state_cov = 0.01 * np.identity(6 + 4 * 3)
                 # noise +-5 mm, +-0.002 (axis angle vector)
                 # prepare object pose and relevant noise
                 init_e = np.hstack((np.random.uniform((-1) * float(object_param[1]), float(object_param[1]),\
@@ -198,9 +206,10 @@ def interaction(sim, model, viewer, hand_param, object_param, alg_param, \
                 # attention, here orientation we use the axis angle representation.
                 x_state = np.array([ug.pos_quat2axis_angle(x_state)])
                 x_state += init_e
+                # argumented state with the contact position on the object surface described in the object frame
+                x_state = augmented_state(sim, model, hand_param, tacperception, x_state)
                 contact_flag = True
-            # argumented state with the contact position on the object surface described in the object frame
-            x_state = augmented_state(sim, model, hand_param, tacperception, x_state)
+
             x_state = np.ravel(x_state)
             # Prediction step in EKF
             x_bar, P_state_cov = ekf_grasping.state_predictor(sim, model, hand_param, object_param, \
@@ -222,10 +231,10 @@ def interaction(sim, model, viewer, hand_param, object_param, alg_param, \
 
             # err_all = np.vstack((err_all, err))
             # posterior estimation
-            x_update, P_state_cov_update = ekf_grasping.ekf_posteriori(sim, model, viewer, x_bar, z_t, h_t, P_state_cov, tacperception)
-            #first try: only update the object's pose
-            x_state = x_update[:6]
-            P_state_cov = P_state_cov_update[:6, :6]
+            x_update, P_state_cov = ekf_grasping.ekf_posteriori(sim, model, viewer, x_bar, z_t, h_t, P_state_cov, tacperception)
+            # #first try: only update the object's pose
+            # x_state = x_update[:6]
+            # P_state_cov = P_state_cov_update[:6, :6]
             tacperception.fin_num = 0
             tacperception.fin_tri = np.zeros(4)
 
