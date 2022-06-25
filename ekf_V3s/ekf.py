@@ -5,7 +5,6 @@ import object_geometry as og
 import viz
 import storeQR as sQR
 
-
 # the concept of ekf algorithm can refer to one simplified example in
 # https://automaticaddison.com/extended-kalman-filter-ekf-with-python-code-example/
 

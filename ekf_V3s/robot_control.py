@@ -222,24 +222,13 @@ def interaction(sim, model, viewer, hand_param, object_param, alg_param, \
 
             z_t = np.concatenate((z_t_position, z_t_nv), axis=None)
             h_t = np.concatenate((h_t_position, h_t_nv), axis=None)
-            # FCL give out z_t
-            # z_t = collision_test(fin_tri)
-            # h_t: observing value from measurement equation
-            # z_t = h_t + np.random.uniform(-0.1, 0.1, 3 * tacperception.fin_num)
-            # z_t = ug.normalization(z_t)
-            # print("new z_t:", z_t)
-
-            # err_all = np.vstack((err_all, err))
             # posterior estimation
             x_update, P_state_cov = ekf_grasping.ekf_posteriori(sim, model, viewer, x_bar, z_t, h_t, P_state_cov, tacperception)
-            # #first try: only update the object's pose
-            # x_state = x_update[:6]
-            # P_state_cov = P_state_cov_update[:6, :6]
             tacperception.fin_num = 0
             tacperception.fin_tri = np.zeros(4)
 
-        if not np.all(sim.data.sensordata == 0):
-            viz.touch_visual(sim, model, viewer, np.where(np.array(sim.data.sensordata) > 0.0))
+        # if not np.all(sim.data.sensordata == 0):
+        #     viz.touch_visual(sim, model, viewer, np.where(np.array(sim.data.sensordata) > 0.0))
         sim.step()
         viewer.render()
 
