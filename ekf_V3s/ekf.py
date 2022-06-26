@@ -48,15 +48,13 @@ class EKF:
         Q_state_noise_cov = 0.001 * np.identity(6 + 4 * 3)
 
         x_state = np.ravel(x_state)
-        # if tacperception.fin_num == 2:
-        #     print(np.nonzero(tacperception.fin_tri))
-        # contact_finger_id = np.nonzero(tacperception.fin_tri)[0]
         self.fin_num = tacperception.fin_num
         self.fin_tri = tacperception.fin_tri
         for i in range(4):
             self.G_contact[i, :, :], self.J[i, :, :], self.u_t_tmp[i, :]\
                 = ug.contact_compute(sim, model, hand_param[i + 1][0], tacperception, x_state)
-        ########## Splice Big G ##########
+
+        ########## form Grasping matrix from contact information ##########
         # dim: 6n * 6, n is the number of fingers
         self.Grasping_matrix = np.zeros([6 * 4, 6])
         # print(self.Grasping_matrix)
@@ -64,23 +62,22 @@ class EKF:
             self.Grasping_matrix[0 + i * 6: 6 + i * 6, :] = self.G_contact[i, :, :]
         # print("CHek:", self.Grasping_matrix)
 
-        ############### Splice Big J #################
+        ############### Form hand Jacobian matrix from contact information #################
         self.J_fingers = np.zeros([6 * 4, 4 * 4])
         for i in range(4):
             self.J_fingers[0 + i * 6: 6 + i * 6, 0 + i * 4: 4 + i * 4] = self.J[i, :, :]
 
-        ############# Splice Big u_t #################
+        ############# form action - u_t #################
         self.u_t = np.zeros(4 * 4)
         for i in range(4):
             self.u_t[0 + i * 4: 4 + i * 4] = self.u_t_tmp[i]
 
         G_pinv = np.linalg.pinv(self.Grasping_matrix)  # Get G_pinv
         prediction = np.matmul(np.matmul(G_pinv, self.J_fingers), self.u_t)
-        #currently it is cheating that we only give the accurate contact position relevant to
-        #the object frame
+
         prediction = np.append(prediction, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-        x_bar = x_state + prediction * \
-                np.random.uniform(-0.001, 0.001, (1, 6 + 4 * 3))
+        x_bar = x_state + prediction + \
+                np.random.normal(0, 0.001, (1, 6 + 4 * 3))
         x_bar = np.ravel(x_bar)
 
         P_state_cov = Transfer_Fun_Matrix * P_state_cov * \
@@ -94,18 +91,17 @@ class EKF:
         contact_nv = []
         self.fin_num = tacperception.fin_num
         self.fin_tri = tacperception.fin_tri
-
+        obj_position = x_bar[:3]
+        rot = ug.pos_euler_xyz_2_matrix(x_bar[3:6])
         for i in range(4):
-            obj_position = x_bar[:3]
-            ct_relative_obj = x_bar[6:9]
-            rot = ug.pos_euler_xyz_2_matrix(x_bar[3:6])
+            ct_relative_obj = x_bar[6:24]
             if tacperception.fin_tri[i] == 1:
-                contact_position.append(obj_position + np.matmul(rot, np.array((ct_relative_obj))))
-                #############################  Get normal of contact point on the cup
-                # ########################################
-                nor_contact_in_cup, res = og.surface_cup(obj_position[0], obj_position[1],
-                                    obj_position[2])
-                contact_nv.append(nor_contact_in_cup / np.linalg.norm(nor_contact_in_cup))
+                contact_position.append(obj_position + np.matmul(rot, np.array((x_bar[6 + i * 3:6 + (i + 1) * 3]))))
+                ##########Get normal of contact point on the cup
+                nor_contact_in_cup, res = og.surface_cup(x_bar[6 + i * 3], x_bar[6 + i * 3 + 1],
+                                    x_bar[6 + i * 3 + 2])
+                nor_contact_in_world = np.matmul(rot, nor_contact_in_cup)
+                contact_nv.append(nor_contact_in_world / np.linalg.norm(nor_contact_in_world))
             else:
                 contact_position.append([0, 0, 0])
                 contact_nv.append([0, 0, 0])

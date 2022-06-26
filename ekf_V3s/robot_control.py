@@ -206,7 +206,7 @@ def interaction(sim, model, viewer, hand_param, object_param, alg_param, \
                 # attention, here orientation we use the axis angle representation.
                 x_state = np.array([ug.pos_quat2axis_angle(x_state)])
                 x_state += init_e
-                # argumented state with the contact position on the object surface described in the object frame
+                # augmented state with the contact position on the object surface described in the object frame
                 x_state = augmented_state(sim, model, hand_param, tacperception, x_state)
                 contact_flag = True
 
