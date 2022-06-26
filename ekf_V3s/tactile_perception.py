@@ -199,6 +199,7 @@ class cls_tactile_perception:
         self.tuple_fin_ref_pose = tuple(tmp_list)
         return pos_contact
 
+
     # get normal vector direction
     def get_contact_taxel_nv(self, sim, model, fingername, ref_frame):
         c_point_name = self.get_contact_taxel_name(sim, model, fingername)

@@ -117,10 +117,12 @@ class EKF:
         self.fin_tri = tacperception.fin_tri
         for i in range(4):
             if tacperception.fin_tri[i] == 1:
-                contact_position.append(tacperception.tuple_fin_ref_pose[3][:3] + np.random.uniform(-0.002, 0.002, 3))
+                contact_position.append((tacperception.get_contact_taxel_position(sim, model, \
+                                                                     hand_param[i + 1][0], "palm_link"))[:3] \
+                                        + np.random.normal(0, 0.001, 3))
                 contact_nv.append(tacperception.get_contact_taxel_nv(sim, model, \
                                                            hand_param[i + 1][0], "palm_link") \
-                          + np.random.uniform(-0.01, 0.01, 3))
+                          + np.random.normal(0, 0.001, 3))
             else:
                 contact_position.append([0, 0, 0])
                 contact_nv.append([0, 0, 0])
