@@ -135,8 +135,10 @@ class EKF:
         J_h = np.zeros([6 * 4, 6 + 4 * 3])
         # the covariance of measurement noise
         R_noi = np.random.normal(0, 0.01, size=(6 * 4, 6 * 4))
-        K_t =  np.matmul(np.matmul(P_state_cov, J_h.transpose()), np.linalg.pinv(np.matmul(np.matmul(J_h, P_state_cov), J_h.transpose()) + R_noi))
-
+        # K_t =  np.matmul(np.matmul(P_state_cov, J_h.transpose()), \
+        #                  np.linalg.pinv(np.matmul(np.matmul(J_h, P_state_cov), J_h.transpose()) + R_noi))
+        K_t = P_state_cov @ J_h.transpose() @ \
+              np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi)
         x_hat = x_bar + np.matmul(K_t, (z_t - h_t))
         P_state_cov = (np.zeros([6 + 4 * 3, 6 + 4 * 3]) \
                        - K_t @ J_h ) @ P_state_cov
