@@ -4,6 +4,7 @@ import util_geometry as ug
 import object_geometry as og
 import viz
 import storeQR as sQR
+import time
 
 # the concept of ekf algorithm can refer to one simplified example in
 # https://automaticaddison.com/extended-kalman-filter-ekf-with-python-code-example/
@@ -50,9 +51,15 @@ class EKF:
         x_state = np.ravel(x_state)
         self.fin_num = tacperception.fin_num
         self.fin_tri = tacperception.fin_tri
+
+        # start = time.time()
+
         for i in range(4):
             self.G_contact[i, :, :], self.J[i, :, :], self.u_t_tmp[i, :]\
                 = ug.contact_compute(sim, model, hand_param[i + 1][0], tacperception, x_state)
+
+        # end = time.time()
+        # print("The time of execution of above program is :", end-start)
 
         ########## form Grasping matrix from contact information ##########
         # dim: 6n * 6, n is the number of fingers

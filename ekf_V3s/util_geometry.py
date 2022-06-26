@@ -687,6 +687,7 @@ def contact_compute(sim, model, fingername, tacperception, x_state):
     kdl_kin0, kdl_kin1, kdl_kin2, kdl_kin3, kdl_tree = \
             robcontrol.config_robot()
     G_contact_transpose = np.zeros([6, 6])
+
     if fingername == 'ff':
         u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_1], \
                              sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_2], \
@@ -696,6 +697,7 @@ def contact_compute(sim, model, fingername, tacperception, x_state):
                              sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_2], \
                              sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_3], \
                              sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_4]])
+
         # Get Jacobi J
         Jac = kdl_kin0.jacobian(cur_jnt)
         if tacperception.is_ff_contact == True:
@@ -718,9 +720,9 @@ def contact_compute(sim, model, fingername, tacperception, x_state):
                              sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_2], \
                              sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_3], \
                              sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_4]])
+
         # Get Jacobi J
         Jac = kdl_kin1.jacobian(cur_jnt)
-
         if tacperception.is_mf_contact == True:
             pos_contact = tacperception.get_contact_taxel_position(sim, \
                                                                    model, fingername, "palm_link")
@@ -731,6 +733,7 @@ def contact_compute(sim, model, fingername, tacperception, x_state):
             G_contact_transpose = G_contact.transpose()
         else:
             G_contact_transpose = np.zeros([6, 6])
+
 
     if fingername == 'rf':
         u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_1], \
@@ -744,6 +747,7 @@ def contact_compute(sim, model, fingername, tacperception, x_state):
         # Get Jacobi J
         Jac = kdl_kin2.jacobian(cur_jnt)
 
+
         if tacperception.is_rf_contact == True:
             pos_contact = tacperception.get_contact_taxel_position(sim, \
                                                                    model, fingername, "palm_link")
@@ -754,6 +758,7 @@ def contact_compute(sim, model, fingername, tacperception, x_state):
             G_contact_transpose = G_contact.transpose()
         else:
             G_contact_transpose = np.zeros([6, 6])
+
 
     if fingername == 'th':
         u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_1], \
@@ -777,5 +782,6 @@ def contact_compute(sim, model, fingername, tacperception, x_state):
             G_contact_transpose = G_contact.transpose()
         else:
             G_contact_transpose = np.zeros([6, 6])
+
 
     return G_contact_transpose, Jac, u_t0

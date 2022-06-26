@@ -6,6 +6,7 @@ from urdf_parser_py.urdf import URDF
 import viz
 # import tactile_perception as tacperception
 import util_geometry as ug
+import time
 
 
 def robot_init(sim):
@@ -176,10 +177,13 @@ def interaction(sim, model, viewer, hand_param, object_param, alg_param, \
         if hand_param[4][1] == '1':
             thumb(sim, 0.0003, 0.00001)
 
-        if (tacperception.is_finger_contact(sim, hand_param[1][0]) == True) \
-                or (tacperception.is_finger_contact(sim, hand_param[2][0]) == True) \
-                or (tacperception.is_finger_contact(sim, hand_param[3][0]) == True) \
-                or (tacperception.is_finger_contact(sim, hand_param[4][0]) == True):
+        start = time.time()
+        flag_ff = tacperception.is_finger_contact(sim, hand_param[1][0])
+        flag_mf = tacperception.is_finger_contact(sim, hand_param[2][0])
+        flag_rf = tacperception.is_finger_contact(sim, hand_param[3][0])
+        flag_th = tacperception.is_finger_contact(sim, hand_param[4][0])
+
+        if ((flag_ff == True) or (flag_mf == True) or (flag_rf == True) or (flag_th == True)):
             if tacperception.is_ff_contact == True:
                 tacperception.fin_num += 1
                 tacperception.fin_tri[0] = 1
@@ -192,6 +196,7 @@ def interaction(sim, model, viewer, hand_param, object_param, alg_param, \
             if tacperception.is_th_contact == True:
                 tacperception.fin_num += 1
                 tacperception.fin_tri[3] = 1
+
             # detect the first contact and initialize y_t_update with noise
             if not contact_flag:
                 # initialize the co-variance matrix of state estimation
@@ -214,20 +219,23 @@ def interaction(sim, model, viewer, hand_param, object_param, alg_param, \
             # Prediction step in EKF
             x_bar, P_state_cov = ekf_grasping.state_predictor(sim, model, hand_param, object_param, \
                                                  x_state, tacperception, P_state_cov)
-
-            h_t_position, h_t_nv, = ekf_grasping.observe_computation(x_bar, tacperception)
-
-            z_t_position, z_t_nv = ekf_grasping.measure_fb(sim, model, hand_param, object_param, \
-                                                       x_bar, tacperception)
-
-            z_t = np.concatenate((z_t_position, z_t_nv), axis=None)
-            h_t = np.concatenate((h_t_position, h_t_nv), axis=None)
-            # posterior estimation
-            x_update, P_state_cov = ekf_grasping.ekf_posteriori(sim, model, viewer, x_bar, z_t, h_t, P_state_cov, tacperception)
+            #
+            # h_t_position, h_t_nv, = ekf_grasping.observe_computation(x_bar, tacperception)
+            #
+            # z_t_position, z_t_nv = ekf_grasping.measure_fb(sim, model, hand_param, object_param, \
+            #                                            x_bar, tacperception)
+            #
+            # z_t = np.concatenate((z_t_position, z_t_nv), axis=None)
+            # h_t = np.concatenate((h_t_position, h_t_nv), axis=None)
+            # # posterior estimation
+            # x_state, P_state_cov = ekf_grasping.ekf_posteriori(sim, model, viewer, x_bar, z_t, h_t, \
+            #                                                    P_state_cov, tacperception)
             tacperception.fin_num = 0
             tacperception.fin_tri = np.zeros(4)
+        end = time.time()
+        print('time cost in one loop ', end-start)
 
-        # if not np.all(sim.data.sensordata == 0):
+            # if not np.all(sim.data.sensordata == 0):
         #     viz.touch_visual(sim, model, viewer, np.where(np.array(sim.data.sensordata) > 0.0))
         sim.step()
         viewer.render()
