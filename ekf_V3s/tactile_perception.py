@@ -5,7 +5,6 @@ import object_geometry as og
 import time
 
 class cls_tactile_perception:
-
     def __init__(self):
         c_point_name = []
         # contact finger number
@@ -98,12 +97,24 @@ class cls_tactile_perception:
 
         if fingername == 'ff':
             c_points = taxels_id[0]
+            print(">>c_points:", c_points)
+            if len(c_points) == 0:
+                return 'link_3.0_tip_tactile'
         if fingername == 'mf':
             c_points = taxels_id[0] + 144
+            print(">>c_points:", c_points)
+            if len(c_points) == 0:
+                return 'link_7.0_tip_tactile'
         if fingername == 'rf':
             c_points = taxels_id[0] + 288
+            print(">>c_points:", c_points)
+            if len(c_points) == 0:
+                return 'link_11.0_tip_tactile'
         if fingername == 'th':
             c_points = taxels_id[0] + 432
+            print(">>c_points:", c_points)
+            if len(c_points) == 0:
+                return 'link_15.0_tip_tactile'
 
         actived_tmp_position = np.zeros((3, len(c_points)))
         taxel_position = np.zeros((3, 72))

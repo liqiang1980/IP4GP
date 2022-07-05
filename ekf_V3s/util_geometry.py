@@ -6,6 +6,8 @@ import PyKDL as kdl
 import tactile_perception as tacperception
 import tactile_allegro_mujo_const
 import robot_control as robcontrol
+import sympy as sy
+from math import sin, cos, sqrt
 
 
 def calculate_cov(mat):
@@ -65,7 +67,8 @@ def get_G_contact(pos_contact, x_state):
     # todo could you please comment the formula you are using for f.get_T();
     T_contact = posquat2trans(pos_contact)
     # T_contact = get_T(sim, c_point_name)  # contact point in cup frame
-    R_contact = T_contact[:3, :3]  # Get R of contact point
+    # R_contact = T_contact[:3, :3]  # Get R of contact point
+    R_contact = np.mat(np.eye(3))  # Get R of contact point
     # todo name is the same with this function,
     # todo could you please comment the formula you are using for f.get_G();
     G_contact = get_G(R_contact, S)
@@ -364,6 +367,9 @@ def pos_euler_xyz_2_matrix(euler):
     rot = Rotation.from_euler('xyz', euler)
     return rot.as_matrix()
 
+def rotvec_2_Matrix(rotvec):
+    rot = Rotation.from_rotvec(rotvec=rotvec).as_matrix()
+    return rot
 
 def move_ik(sim, ee_tget_posquat, gripper_action=0.04):
     # ee_target is in world frame
@@ -624,7 +630,7 @@ def get_G(R_contact, S):
     G_upper = np.hstack((R_contact, np.zeros((3, 3))))
     G_lower = np.hstack((np.matmul(S, R_contact), R_contact))
     G_contact = np.vstack((G_upper, G_lower))  # Get grasp matrix G of contact point
-    # print("CHeckG_contact:", )
+    print("  >>Check G:", G_contact)
     return G_contact
 
 
@@ -684,11 +690,11 @@ def joint_kdl_to_list(q):
 
 def contact_compute(sim, model, fingername, tacperception, x_state):
     # body jocobian matrix and velocity
-    kdl_kin0, kdl_kin1, kdl_kin2, kdl_kin3, kdl_tree = \
-            robcontrol.config_robot()
-    G_contact_transpose = np.zeros([6, 6])
+    G_contact = np.zeros([6, 6])
 
     if fingername == 'ff':
+        taxel_name0 = tacperception.get_contact_taxel_name(sim, model, 'ff')
+        kdl_kin0 = robcontrol.config_robot(taxel_name0)
         u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_1], \
                              sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_2], \
                              sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_3], \
@@ -707,11 +713,13 @@ def contact_compute(sim, model, fingername, tacperception, x_state):
             #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
             #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
             G_contact = get_G_contact(pos_contact, x_state)
-            G_contact_transpose = G_contact.transpose()
+            # G_contact = G_contact.transpose()
         else:
-            G_contact_transpose = np.zeros([6, 6])
+            G_contact = np.zeros([6, 6])
 
     if fingername == 'mf':
+        taxel_name1 = tacperception.get_contact_taxel_name(sim, model, 'mf')
+        kdl_kin1 = robcontrol.config_robot(taxel_name1)
         u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_1], \
                              sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_2], \
                              sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_3], \
@@ -730,12 +738,14 @@ def contact_compute(sim, model, fingername, tacperception, x_state):
             #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
             #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
             G_contact = get_G_contact(pos_contact, x_state)
-            G_contact_transpose = G_contact.transpose()
+            # G_contact = G_contact.transpose()
         else:
-            G_contact_transpose = np.zeros([6, 6])
+            G_contact = np.zeros([6, 6])
 
 
     if fingername == 'rf':
+        taxel_name2 = tacperception.get_contact_taxel_name(sim, model, 'rf')
+        kdl_kin2 = robcontrol.config_robot(taxel_name2)
         u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_1], \
                              sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_2], \
                              sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_3], \
@@ -755,12 +765,14 @@ def contact_compute(sim, model, fingername, tacperception, x_state):
             #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
             #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
             G_contact = get_G_contact(pos_contact, x_state)
-            G_contact_transpose = G_contact.transpose()
+            # G_contact = G_contact.transpose()
         else:
-            G_contact_transpose = np.zeros([6, 6])
+            G_contact = np.zeros([6, 6])
 
 
     if fingername == 'th':
+        taxel_name3 = tacperception.get_contact_taxel_name(sim, model, 'th')
+        kdl_kin3 = robcontrol.config_robot(taxel_name3)
         u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_1], \
                              sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_2], \
                              sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_3], \
@@ -779,9 +791,557 @@ def contact_compute(sim, model, fingername, tacperception, x_state):
             #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
             #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
             G_contact = get_G_contact(pos_contact, x_state)
-            G_contact_transpose = G_contact.transpose()
+            # G_contact = G_contact.transpose()
         else:
-            G_contact_transpose = np.zeros([6, 6])
+            G_contact = np.zeros([6, 6])
 
 
-    return G_contact_transpose, Jac, u_t0
+    return G_contact, Jac, u_t0
+
+
+def H_calculator(W1, W2, W3, pos_CO_x, pos_CO_y, pos_CO_z):
+    """
+    Calculate a 3*6 H matrix
+    """
+    print("  W1, W2, W3, pos_CO_x, pos_CO_y, pos_CO_z", W1, W2, W3, pos_CO_x, pos_CO_y, pos_CO_z)
+    H = sy.Matrix([
+        [1, 0, 0, pos_CO_x * (
+                W1 * (-W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+                math.sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
+                                1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
+                                2 * W1 * W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W1 * W3 ** 2 / (
+                                    W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2)) + pos_CO_y * (
+                     -2 * W1 ** 2 * W2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 ** 2 * W2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - W1 * W3 * cos(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 * W3 * sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 * (
+                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2)) + pos_CO_z * (
+                     -2 * W1 ** 2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 ** 2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * W2 * cos(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 * W2 * sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 * (
+                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (W1 ** 2 + W2 ** 2 + W3 ** 2)),
+         pos_CO_x * (W2 * (-W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
+                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
+                                 2 * W2 ** 3 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W2 * W3 ** 2 / (
+                                     W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W2 / (
+                                             W1 ** 2 + W2 ** 2 + W3 ** 2))) + pos_CO_y * (
+                     -2 * W1 * W2 ** 2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 ** 2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * (
+                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 * W3 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2)) + pos_CO_z * (
+                     -2 * W1 * W2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 ** 2 * cos(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 ** 2 * sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)), pos_CO_x * (
+                     W3 * (-W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
+                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
+                                 2 * W2 ** 2 * W3 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W3 ** 3 / (
+                                     W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W3 / (
+                                             W1 ** 2 + W2 ** 2 + W3 ** 2))) + pos_CO_y * (
+                     -2 * W1 * W2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - W3 ** 2 * cos(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W3 ** 2 * sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) + pos_CO_z * (
+                     -2 * W1 * W3 ** 2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W3 ** 2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * (
+                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 * W3 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2))],
+        [0, 1, 0, pos_CO_x * (-2 * W1 ** 2 * W2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                    W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 ** 2 * W2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                          W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * W3 * cos(
+            sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 * W3 * sin(
+            sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 * (
+                                          1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                          W1 ** 2 + W2 ** 2 + W3 ** 2)) + pos_CO_y * (
+                     W1 * (-W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
+                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
+                                 2 * W1 ** 3 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W1 * W3 ** 2 / (
+                                     W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W1 / (
+                                             W1 ** 2 + W2 ** 2 + W3 ** 2))) + pos_CO_z * (
+                     -W1 ** 2 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 ** 2 * sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W1 * W2 * W3 * (
+                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)), pos_CO_x * (
+                     -2 * W1 * W2 ** 2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 ** 2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * (
+                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 * W3 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2)) + pos_CO_y * (
+                     W2 * (-W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
+                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
+                                 2 * W1 ** 2 * W2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W2 * W3 ** 2 / (
+                                     W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2)) + pos_CO_z * (
+                     -W1 * W2 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 * W2 * sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W2 ** 2 * W3 * (
+                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W2 ** 2 * W3 * sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 * (
+                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (W1 ** 2 + W2 ** 2 + W3 ** 2)),
+         pos_CO_x * (-2 * W1 * W2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                     W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 ** 2 * cos(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 * sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) + pos_CO_y * (
+                     W3 * (-W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
+                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
+                                 2 * W1 ** 2 * W3 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W3 ** 3 / (
+                                     W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W3 / (
+                                             W1 ** 2 + W2 ** 2 + W3 ** 2))) + pos_CO_z * (
+                     -W1 * W3 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 * W3 * sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W2 * W3 ** 2 * (
+                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W2 * W3 ** 2 * sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 * (
+                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (W1 ** 2 + W2 ** 2 + W3 ** 2))],
+        [0, 0, 1, pos_CO_x * (-2 * W1 ** 2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                    W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 ** 2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                          W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - W1 * W2 * cos(
+            sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 * W2 * sin(
+            sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 * (
+                                          1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                          W1 ** 2 + W2 ** 2 + W3 ** 2)) + pos_CO_y * (
+                     W1 ** 2 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 ** 2 * sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W1 * W2 * W3 * (
+                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) + pos_CO_z * (
+                     W1 * (-W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
+                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
+                                 2 * W1 ** 3 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W1 * W2 ** 2 / (
+                                     W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W1 / (W1 ** 2 + W2 ** 2 + W3 ** 2))),
+         pos_CO_x * (-2 * W1 * W2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                     W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - W2 ** 2 * cos(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 ** 2 * sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) + pos_CO_y * (
+                     W1 * W2 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 * W2 * sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W2 ** 2 * W3 * (
+                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W2 ** 2 * W3 * sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 * (
+                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2)) + pos_CO_z * (
+                     W2 * (-W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
+                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
+                                 2 * W1 ** 2 * W2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W2 ** 3 / (
+                                     W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W2 / (W1 ** 2 + W2 ** 2 + W3 ** 2))),
+         pos_CO_x * (-2 * W1 * W3 ** 2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                     W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W3 ** 2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * (
+                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 * W3 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2)) + pos_CO_y * (
+                     W1 * W3 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 * W3 * sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W2 * W3 ** 2 * (
+                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W2 * W3 ** 2 * sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 * (
+                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2)) + pos_CO_z * (
+                     W3 * (-W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
+                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
+                                 2 * W1 ** 2 * W3 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W2 ** 2 * W3 / (
+                                     W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2))]
+    ])
+    return H
+
+def H_calculator_pn(W1, W2, W3, normal_CO_x, normal_CO_y, normal_CO_z):
+    H = sy.Matrix([[0, 0, 0, normal_CO_x * (
+                W1 * (-W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+            sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
+                            1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
+                            2 * W1 * W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W1 * W3 ** 2 / (
+                                W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2)) + normal_CO_y * (
+                             -2 * W1 ** 2 * W2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 ** 2 * W2 * sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - W1 * W3 * cos(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 * W3 * sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 * (
+                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                         W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_z * (
+                             -2 * W1 ** 2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 ** 2 * W3 * sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * W2 * cos(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 * W2 * sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 * (
+                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (W1 ** 2 + W2 ** 2 + W3 ** 2)),
+                 normal_CO_x * (W2 * (
+                             -W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+                     sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
+                                            1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
+                                            2 * W2 ** 3 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W2 * W3 ** 2 / (
+                                                W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W2 / (
+                                                        W1 ** 2 + W2 ** 2 + W3 ** 2))) + normal_CO_y * (
+                             -2 * W1 * W2 ** 2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 ** 2 * sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * (
+                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                         W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 * W3 * cos(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 * W3 * sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (
+                                         3 / 2)) + normal_CO_z * (
+                             -2 * W1 * W2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 ** 2 * cos(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 ** 2 * sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)), normal_CO_x * (W3 * (
+                    -W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+            sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (1 - cos(
+            sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (2 * W2 ** 2 * W3 / (
+                    W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W3 ** 3 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W3 / (
+                                                               W1 ** 2 + W2 ** 2 + W3 ** 2))) + normal_CO_y * (
+                             -2 * W1 * W2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - W3 ** 2 * cos(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W3 ** 2 * sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_z * (
+                             -2 * W1 * W3 ** 2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W3 ** 2 * sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * (
+                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                         W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 * W3 * cos(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 * W3 * sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2))],
+                [0, 0, 0, normal_CO_x * (-2 * W1 ** 2 * W2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                            W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 ** 2 * W2 * sin(
+                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * W3 * cos(
+                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 * W3 * sin(
+                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 * (
+                                                     1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                                     W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_y * (W1 * (
+                            -W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (1 - cos(
+                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (2 * W1 ** 3 / (
+                            W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W1 * W3 ** 2 / (
+                                                                       W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W1 / (
+                                                                       W1 ** 2 + W2 ** 2 + W3 ** 2))) + normal_CO_z * (
+                             -W1 ** 2 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 ** 2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W1 * W2 * W3 * (
+                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)), normal_CO_x * (
+                             -2 * W1 * W2 ** 2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 ** 2 * sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * (
+                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                         W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 * W3 * cos(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 * W3 * sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (
+                                         3 / 2)) + normal_CO_y * (W2 * (
+                            -W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (1 - cos(
+                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (2 * W1 ** 2 * W2 / (
+                            W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W2 * W3 ** 2 / (
+                                                                       W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2)) + normal_CO_z * (
+                             -W1 * W2 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 * W2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W2 ** 2 * W3 * (
+                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W2 ** 2 * W3 * sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 * (
+                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (W1 ** 2 + W2 ** 2 + W3 ** 2)),
+                 normal_CO_x * (-2 * W1 * W2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                             W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(
+                     sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 ** 2 * cos(
+                     sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 * sin(
+                     sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + sin(
+                     sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_y * (W3 * (
+                             -W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+                     sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (1 - cos(
+                     sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (2 * W1 ** 2 * W3 / (
+                             W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W3 ** 3 / (
+                                                                        W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W3 / (
+                                                                        W1 ** 2 + W2 ** 2 + W3 ** 2))) + normal_CO_z * (
+                             -W1 * W3 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W2 * W3 ** 2 * (
+                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W2 * W3 ** 2 * sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 * (
+                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (W1 ** 2 + W2 ** 2 + W3 ** 2))],
+                [0, 0, 0, normal_CO_x * (-2 * W1 ** 2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                            W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 ** 2 * W3 * sin(
+                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - W1 * W2 * cos(
+                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 * W2 * sin(
+                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 * (
+                                                     1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                                     W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_y * (
+                             W1 ** 2 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 ** 2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W1 * W2 * W3 * (
+                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_z * (W1 * (
+                            -W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (1 - cos(
+                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (2 * W1 ** 3 / (
+                            W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W1 * W2 ** 2 / (
+                                                                       W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W1 / (
+                                                                       W1 ** 2 + W2 ** 2 + W3 ** 2))), normal_CO_x * (
+                             -2 * W1 * W2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - W2 ** 2 * cos(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 ** 2 * sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_y * (
+                             W1 * W2 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 * W2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W2 ** 2 * W3 * (
+                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W2 ** 2 * W3 * sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 * (
+                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                         W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_z * (W2 * (
+                            -W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (1 - cos(
+                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (2 * W1 ** 2 * W2 / (
+                            W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W2 ** 3 / (
+                                                                       W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W2 / (
+                                                                       W1 ** 2 + W2 ** 2 + W3 ** 2))), normal_CO_x * (
+                             -2 * W1 * W3 ** 2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W3 ** 2 * sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * (
+                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                         W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 * W3 * cos(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 * W3 * sin(
+                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (
+                                         3 / 2)) + normal_CO_y * (W1 * W3 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                            W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                                                              W1 ** 2 + W2 ** 2 + W3 ** 2) ** (
+                                                                              3 / 2) - 2 * W2 * W3 ** 2 * (1 - cos(
+                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W2 * W3 ** 2 * sin(
+                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 * (1 - cos(
+                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_z * (W3 * (
+                            -W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (1 - cos(
+                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (2 * W1 ** 2 * W3 / (
+                            W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W2 ** 2 * W3 / (
+                                                                       W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2))]])
+
+    # print(H)
+    return H
+
+def F_calculator_4Ginv(ju):
+    """
+    Use the F_mat which is already complete.
+    The GT_inv is spliced from GT1_inv, GT2_inv, GT3_inv and GT4_inv.
+    """
+    R1_CH = sy.eye(3)
+    R2_CH = sy.eye(3)
+    R3_CH = sy.eye(3)
+    R4_CH = sy.eye(3)
+
+    r100, r101, r102, r110, r111, r112, r120, r121, r122 = R1_CH[0, 0], R1_CH[0, 1], R1_CH[0, 2], R1_CH[1, 0], R1_CH[1,
+                                                                                                                     1], \
+                                                           R1_CH[1, 2], R1_CH[2, 0], R1_CH[2, 1], R1_CH[2, 2]
+    r200, r201, r202, r210, r211, r212, r220, r221, r222 = R2_CH[0, 0], R2_CH[0, 1], R2_CH[0, 2], R2_CH[1, 0], R2_CH[1,
+                                                                                                                     1], \
+                                                           R2_CH[1, 2], R2_CH[2, 0], R2_CH[2, 1], R2_CH[2, 2]
+    r300, r301, r302, r310, r311, r312, r320, r321, r322 = R3_CH[0, 0], R3_CH[0, 1], R3_CH[0, 2], R3_CH[1, 0], R3_CH[1,
+                                                                                                                     1], \
+                                                           R3_CH[1, 2], R3_CH[2, 0], R3_CH[2, 1], R3_CH[2, 2]
+    r400, r401, r402, r410, r411, r412, r420, r421, r422 = R4_CH[0, 0], R4_CH[0, 1], R4_CH[0, 2], R4_CH[1, 0], R4_CH[1,
+                                                                                                                     1], \
+                                                           R4_CH[1, 2], R4_CH[2, 0], R4_CH[2, 1], R4_CH[2, 2]
+    ju = np.ravel(ju.T)
+    # print("??", ju)
+    ju10, ju11, ju12, ju13, ju14, ju15 = ju[0], ju[1], ju[2], ju[3], ju[4], ju[5]
+    ju20, ju21, ju22, ju23, ju24, ju25 = ju[6], ju[7], ju[8], ju[9], ju[10], ju[11]
+    ju30, ju31, ju32, ju33, ju34, ju35 = ju[12], ju[13], ju[14], ju[15], ju[16], ju[17]
+    ju40, ju41, ju42, ju43, ju44, ju45 = ju[18], ju[19], ju[20], ju[21], ju[22], ju[23]
+
+    F = sy.Matrix([
+        [1, ju13 * (-r101 * r112 + r102 * r111) / (
+                r100 * r111 * r122 - r100 * r112 * r121 - r101 * r110 * r122 + r101 * r112 * r120 + r102 * r110 * r121 - r102 * r111 * r120) + ju14 * (
+                 r100 * r112 - r102 * r110) / (
+                 r100 * r111 * r122 - r100 * r112 * r121 - r101 * r110 * r122 + r101 * r112 * r120 + r102 * r110 * r121 - r102 * r111 * r120) + ju15 * (
+                 -r100 * r111 + r101 * r110) / (
+                 r100 * r111 * r122 - r100 * r112 * r121 - r101 * r110 * r122 + r101 * r112 * r120 + r102 * r110 * r121 - r102 * r111 * r120) + ju23 * (
+                 -r201 * r212 + r202 * r211) / (
+                 r200 * r211 * r222 - r200 * r212 * r221 - r201 * r210 * r222 + r201 * r212 * r220 + r202 * r210 * r221 - r202 * r211 * r220) + ju24 * (
+                 r200 * r212 - r202 * r210) / (
+                 r200 * r211 * r222 - r200 * r212 * r221 - r201 * r210 * r222 + r201 * r212 * r220 + r202 * r210 * r221 - r202 * r211 * r220) + ju25 * (
+                 -r200 * r211 + r201 * r210) / (
+                 r200 * r211 * r222 - r200 * r212 * r221 - r201 * r210 * r222 + r201 * r212 * r220 + r202 * r210 * r221 - r202 * r211 * r220) + ju33 * (
+                 -r301 * r312 + r302 * r311) / (
+                 r300 * r311 * r322 - r300 * r312 * r321 - r301 * r310 * r322 + r301 * r312 * r320 + r302 * r310 * r321 - r302 * r311 * r320) + ju34 * (
+                 r300 * r312 - r302 * r310) / (
+                 r300 * r311 * r322 - r300 * r312 * r321 - r301 * r310 * r322 + r301 * r312 * r320 + r302 * r310 * r321 - r302 * r311 * r320) + ju35 * (
+                 -r300 * r311 + r301 * r310) / (
+                 r300 * r311 * r322 - r300 * r312 * r321 - r301 * r310 * r322 + r301 * r312 * r320 + r302 * r310 * r321 - r302 * r311 * r320) + ju43 * (
+                 -r401 * r412 + r402 * r411) / (
+                 r400 * r411 * r422 - r400 * r412 * r421 - r401 * r410 * r422 + r401 * r412 * r420 + r402 * r410 * r421 - r402 * r411 * r420) + ju44 * (
+                 r400 * r412 - r402 * r410) / (
+                 r400 * r411 * r422 - r400 * r412 * r421 - r401 * r410 * r422 + r401 * r412 * r420 + r402 * r410 * r421 - r402 * r411 * r420) + ju45 * (
+                 -r400 * r411 + r401 * r410) / (
+                 r400 * r411 * r422 - r400 * r412 * r421 - r401 * r410 * r422 + r401 * r412 * r420 + r402 * r410 * r421 - r402 * r411 * r420),
+         ju13 * (-r101 * r122 + r102 * r121) / (
+                 r100 * r111 * r122 - r100 * r112 * r121 - r101 * r110 * r122 + r101 * r112 * r120 + r102 * r110 * r121 - r102 * r111 * r120) + ju14 * (
+                 r100 * r122 - r102 * r120) / (
+                 r100 * r111 * r122 - r100 * r112 * r121 - r101 * r110 * r122 + r101 * r112 * r120 + r102 * r110 * r121 - r102 * r111 * r120) + ju15 * (
+                 -r100 * r121 + r101 * r120) / (
+                 r100 * r111 * r122 - r100 * r112 * r121 - r101 * r110 * r122 + r101 * r112 * r120 + r102 * r110 * r121 - r102 * r111 * r120) + ju23 * (
+                 -r201 * r222 + r202 * r221) / (
+                 r200 * r211 * r222 - r200 * r212 * r221 - r201 * r210 * r222 + r201 * r212 * r220 + r202 * r210 * r221 - r202 * r211 * r220) + ju24 * (
+                 r200 * r222 - r202 * r220) / (
+                 r200 * r211 * r222 - r200 * r212 * r221 - r201 * r210 * r222 + r201 * r212 * r220 + r202 * r210 * r221 - r202 * r211 * r220) + ju25 * (
+                 -r200 * r221 + r201 * r220) / (
+                 r200 * r211 * r222 - r200 * r212 * r221 - r201 * r210 * r222 + r201 * r212 * r220 + r202 * r210 * r221 - r202 * r211 * r220) + ju33 * (
+                 -r301 * r322 + r302 * r321) / (
+                 r300 * r311 * r322 - r300 * r312 * r321 - r301 * r310 * r322 + r301 * r312 * r320 + r302 * r310 * r321 - r302 * r311 * r320) + ju34 * (
+                 r300 * r322 - r302 * r320) / (
+                 r300 * r311 * r322 - r300 * r312 * r321 - r301 * r310 * r322 + r301 * r312 * r320 + r302 * r310 * r321 - r302 * r311 * r320) + ju35 * (
+                 -r300 * r321 + r301 * r320) / (
+                 r300 * r311 * r322 - r300 * r312 * r321 - r301 * r310 * r322 + r301 * r312 * r320 + r302 * r310 * r321 - r302 * r311 * r320) + ju43 * (
+                 -r401 * r422 + r402 * r421) / (
+                 r400 * r411 * r422 - r400 * r412 * r421 - r401 * r410 * r422 + r401 * r412 * r420 + r402 * r410 * r421 - r402 * r411 * r420) + ju44 * (
+                 r400 * r422 - r402 * r420) / (
+                 r400 * r411 * r422 - r400 * r412 * r421 - r401 * r410 * r422 + r401 * r412 * r420 + r402 * r410 * r421 - r402 * r411 * r420) + ju45 * (
+                 -r400 * r421 + r401 * r420) / (
+                 r400 * r411 * r422 - r400 * r412 * r421 - r401 * r410 * r422 + r401 * r412 * r420 + r402 * r410 * r421 - r402 * r411 * r420),
+         0, 0, 0],
+        [ju13 * (r101 * r112 - r102 * r111) / (
+                r100 * r111 * r122 - r100 * r112 * r121 - r101 * r110 * r122 + r101 * r112 * r120 + r102 * r110 * r121 - r102 * r111 * r120) + ju14 * (
+                 -r100 * r112 + r102 * r110) / (
+                 r100 * r111 * r122 - r100 * r112 * r121 - r101 * r110 * r122 + r101 * r112 * r120 + r102 * r110 * r121 - r102 * r111 * r120) + ju15 * (
+                 r100 * r111 - r101 * r110) / (
+                 r100 * r111 * r122 - r100 * r112 * r121 - r101 * r110 * r122 + r101 * r112 * r120 + r102 * r110 * r121 - r102 * r111 * r120) + ju23 * (
+                 r201 * r212 - r202 * r211) / (
+                 r200 * r211 * r222 - r200 * r212 * r221 - r201 * r210 * r222 + r201 * r212 * r220 + r202 * r210 * r221 - r202 * r211 * r220) + ju24 * (
+                 -r200 * r212 + r202 * r210) / (
+                 r200 * r211 * r222 - r200 * r212 * r221 - r201 * r210 * r222 + r201 * r212 * r220 + r202 * r210 * r221 - r202 * r211 * r220) + ju25 * (
+                 r200 * r211 - r201 * r210) / (
+                 r200 * r211 * r222 - r200 * r212 * r221 - r201 * r210 * r222 + r201 * r212 * r220 + r202 * r210 * r221 - r202 * r211 * r220) + ju33 * (
+                 r301 * r312 - r302 * r311) / (
+                 r300 * r311 * r322 - r300 * r312 * r321 - r301 * r310 * r322 + r301 * r312 * r320 + r302 * r310 * r321 - r302 * r311 * r320) + ju34 * (
+                 -r300 * r312 + r302 * r310) / (
+                 r300 * r311 * r322 - r300 * r312 * r321 - r301 * r310 * r322 + r301 * r312 * r320 + r302 * r310 * r321 - r302 * r311 * r320) + ju35 * (
+                 r300 * r311 - r301 * r310) / (
+                 r300 * r311 * r322 - r300 * r312 * r321 - r301 * r310 * r322 + r301 * r312 * r320 + r302 * r310 * r321 - r302 * r311 * r320) + ju43 * (
+                 r401 * r412 - r402 * r411) / (
+                 r400 * r411 * r422 - r400 * r412 * r421 - r401 * r410 * r422 + r401 * r412 * r420 + r402 * r410 * r421 - r402 * r411 * r420) + ju44 * (
+                 -r400 * r412 + r402 * r410) / (
+                 r400 * r411 * r422 - r400 * r412 * r421 - r401 * r410 * r422 + r401 * r412 * r420 + r402 * r410 * r421 - r402 * r411 * r420) + ju45 * (
+                 r400 * r411 - r401 * r410) / (
+                 r400 * r411 * r422 - r400 * r412 * r421 - r401 * r410 * r422 + r401 * r412 * r420 + r402 * r410 * r421 - r402 * r411 * r420),
+         1, ju13 * (-r111 * r122 + r112 * r121) / (
+                 r100 * r111 * r122 - r100 * r112 * r121 - r101 * r110 * r122 + r101 * r112 * r120 + r102 * r110 * r121 - r102 * r111 * r120) + ju14 * (
+                 r110 * r122 - r112 * r120) / (
+                 r100 * r111 * r122 - r100 * r112 * r121 - r101 * r110 * r122 + r101 * r112 * r120 + r102 * r110 * r121 - r102 * r111 * r120) + ju15 * (
+                 -r110 * r121 + r111 * r120) / (
+                 r100 * r111 * r122 - r100 * r112 * r121 - r101 * r110 * r122 + r101 * r112 * r120 + r102 * r110 * r121 - r102 * r111 * r120) + ju23 * (
+                 -r211 * r222 + r212 * r221) / (
+                 r200 * r211 * r222 - r200 * r212 * r221 - r201 * r210 * r222 + r201 * r212 * r220 + r202 * r210 * r221 - r202 * r211 * r220) + ju24 * (
+                 r210 * r222 - r212 * r220) / (
+                 r200 * r211 * r222 - r200 * r212 * r221 - r201 * r210 * r222 + r201 * r212 * r220 + r202 * r210 * r221 - r202 * r211 * r220) + ju25 * (
+                 -r210 * r221 + r211 * r220) / (
+                 r200 * r211 * r222 - r200 * r212 * r221 - r201 * r210 * r222 + r201 * r212 * r220 + r202 * r210 * r221 - r202 * r211 * r220) + ju33 * (
+                 -r311 * r322 + r312 * r321) / (
+                 r300 * r311 * r322 - r300 * r312 * r321 - r301 * r310 * r322 + r301 * r312 * r320 + r302 * r310 * r321 - r302 * r311 * r320) + ju34 * (
+                 r310 * r322 - r312 * r320) / (
+                 r300 * r311 * r322 - r300 * r312 * r321 - r301 * r310 * r322 + r301 * r312 * r320 + r302 * r310 * r321 - r302 * r311 * r320) + ju35 * (
+                 -r310 * r321 + r311 * r320) / (
+                 r300 * r311 * r322 - r300 * r312 * r321 - r301 * r310 * r322 + r301 * r312 * r320 + r302 * r310 * r321 - r302 * r311 * r320) + ju43 * (
+                 -r411 * r422 + r412 * r421) / (
+                 r400 * r411 * r422 - r400 * r412 * r421 - r401 * r410 * r422 + r401 * r412 * r420 + r402 * r410 * r421 - r402 * r411 * r420) + ju44 * (
+                 r410 * r422 - r412 * r420) / (
+                 r400 * r411 * r422 - r400 * r412 * r421 - r401 * r410 * r422 + r401 * r412 * r420 + r402 * r410 * r421 - r402 * r411 * r420) + ju45 * (
+                 -r410 * r421 + r411 * r420) / (
+                 r400 * r411 * r422 - r400 * r412 * r421 - r401 * r410 * r422 + r401 * r412 * r420 + r402 * r410 * r421 - r402 * r411 * r420),
+         0, 0, 0],
+        [ju13 * (r101 * r122 - r102 * r121) / (
+                r100 * r111 * r122 - r100 * r112 * r121 - r101 * r110 * r122 + r101 * r112 * r120 + r102 * r110 * r121 - r102 * r111 * r120) + ju14 * (
+                 -r100 * r122 + r102 * r120) / (
+                 r100 * r111 * r122 - r100 * r112 * r121 - r101 * r110 * r122 + r101 * r112 * r120 + r102 * r110 * r121 - r102 * r111 * r120) + ju15 * (
+                 r100 * r121 - r101 * r120) / (
+                 r100 * r111 * r122 - r100 * r112 * r121 - r101 * r110 * r122 + r101 * r112 * r120 + r102 * r110 * r121 - r102 * r111 * r120) + ju23 * (
+                 r201 * r222 - r202 * r221) / (
+                 r200 * r211 * r222 - r200 * r212 * r221 - r201 * r210 * r222 + r201 * r212 * r220 + r202 * r210 * r221 - r202 * r211 * r220) + ju24 * (
+                 -r200 * r222 + r202 * r220) / (
+                 r200 * r211 * r222 - r200 * r212 * r221 - r201 * r210 * r222 + r201 * r212 * r220 + r202 * r210 * r221 - r202 * r211 * r220) + ju25 * (
+                 r200 * r221 - r201 * r220) / (
+                 r200 * r211 * r222 - r200 * r212 * r221 - r201 * r210 * r222 + r201 * r212 * r220 + r202 * r210 * r221 - r202 * r211 * r220) + ju33 * (
+                 r301 * r322 - r302 * r321) / (
+                 r300 * r311 * r322 - r300 * r312 * r321 - r301 * r310 * r322 + r301 * r312 * r320 + r302 * r310 * r321 - r302 * r311 * r320) + ju34 * (
+                 -r300 * r322 + r302 * r320) / (
+                 r300 * r311 * r322 - r300 * r312 * r321 - r301 * r310 * r322 + r301 * r312 * r320 + r302 * r310 * r321 - r302 * r311 * r320) + ju35 * (
+                 r300 * r321 - r301 * r320) / (
+                 r300 * r311 * r322 - r300 * r312 * r321 - r301 * r310 * r322 + r301 * r312 * r320 + r302 * r310 * r321 - r302 * r311 * r320) + ju43 * (
+                 r401 * r422 - r402 * r421) / (
+                 r400 * r411 * r422 - r400 * r412 * r421 - r401 * r410 * r422 + r401 * r412 * r420 + r402 * r410 * r421 - r402 * r411 * r420) + ju44 * (
+                 -r400 * r422 + r402 * r420) / (
+                 r400 * r411 * r422 - r400 * r412 * r421 - r401 * r410 * r422 + r401 * r412 * r420 + r402 * r410 * r421 - r402 * r411 * r420) + ju45 * (
+                 r400 * r421 - r401 * r420) / (
+                 r400 * r411 * r422 - r400 * r412 * r421 - r401 * r410 * r422 + r401 * r412 * r420 + r402 * r410 * r421 - r402 * r411 * r420),
+         ju13 * (r111 * r122 - r112 * r121) / (
+                 r100 * r111 * r122 - r100 * r112 * r121 - r101 * r110 * r122 + r101 * r112 * r120 + r102 * r110 * r121 - r102 * r111 * r120) + ju14 * (
+                 -r110 * r122 + r112 * r120) / (
+                 r100 * r111 * r122 - r100 * r112 * r121 - r101 * r110 * r122 + r101 * r112 * r120 + r102 * r110 * r121 - r102 * r111 * r120) + ju15 * (
+                 r110 * r121 - r111 * r120) / (
+                 r100 * r111 * r122 - r100 * r112 * r121 - r101 * r110 * r122 + r101 * r112 * r120 + r102 * r110 * r121 - r102 * r111 * r120) + ju23 * (
+                 r211 * r222 - r212 * r221) / (
+                 r200 * r211 * r222 - r200 * r212 * r221 - r201 * r210 * r222 + r201 * r212 * r220 + r202 * r210 * r221 - r202 * r211 * r220) + ju24 * (
+                 -r210 * r222 + r212 * r220) / (
+                 r200 * r211 * r222 - r200 * r212 * r221 - r201 * r210 * r222 + r201 * r212 * r220 + r202 * r210 * r221 - r202 * r211 * r220) + ju25 * (
+                 r210 * r221 - r211 * r220) / (
+                 r200 * r211 * r222 - r200 * r212 * r221 - r201 * r210 * r222 + r201 * r212 * r220 + r202 * r210 * r221 - r202 * r211 * r220) + ju33 * (
+                 r311 * r322 - r312 * r321) / (
+                 r300 * r311 * r322 - r300 * r312 * r321 - r301 * r310 * r322 + r301 * r312 * r320 + r302 * r310 * r321 - r302 * r311 * r320) + ju34 * (
+                 -r310 * r322 + r312 * r320) / (
+                 r300 * r311 * r322 - r300 * r312 * r321 - r301 * r310 * r322 + r301 * r312 * r320 + r302 * r310 * r321 - r302 * r311 * r320) + ju35 * (
+                 r310 * r321 - r311 * r320) / (
+                 r300 * r311 * r322 - r300 * r312 * r321 - r301 * r310 * r322 + r301 * r312 * r320 + r302 * r310 * r321 - r302 * r311 * r320) + ju43 * (
+                 r411 * r422 - r412 * r421) / (
+                 r400 * r411 * r422 - r400 * r412 * r421 - r401 * r410 * r422 + r401 * r412 * r420 + r402 * r410 * r421 - r402 * r411 * r420) + ju44 * (
+                 -r410 * r422 + r412 * r420) / (
+                 r400 * r411 * r422 - r400 * r412 * r421 - r401 * r410 * r422 + r401 * r412 * r420 + r402 * r410 * r421 - r402 * r411 * r420) + ju45 * (
+                 r410 * r421 - r411 * r420) / (
+                 r400 * r411 * r422 - r400 * r412 * r421 - r401 * r410 * r422 + r401 * r412 * r420 + r402 * r410 * r421 - r402 * r411 * r420),
+         1, 0, 0, 0],
+        [0, 0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 1, 0],
+        [0, 0, 0, 0, 0, 1]
+    ])
+    print("  F_val(4 small_GT_inv)", F.shape, "\n",
+          F[0, :], "\n",
+          F[1, :], "\n",
+          F[2, :], "\n",
+          F[3, :], "\n",
+          F[4, :], "\n",
+          F[5, :])
+    return F

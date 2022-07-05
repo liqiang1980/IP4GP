@@ -10,7 +10,7 @@ def read_xml(xml_file):
 
 def pass_arg():
         if (len(sys.argv) < 2):
-                print ("Error: Missing parameter.")
+                print("Error: Missing parameter.")
         else:
                 dom = read_xml(sys.argv[1])
                 hand_name = dom.getElementsByTagName('name')[0].firstChild.data

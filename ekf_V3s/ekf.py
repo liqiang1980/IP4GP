@@ -1,4 +1,6 @@
 import numpy as np
+
+import tactile_allegro_mujo_const
 import tactile_perception as tacperception
 import util_geometry as ug
 import object_geometry as og
@@ -45,7 +47,8 @@ class EKF:
 
     def state_predictor(self, sim, model, hand_param, object_param, x_state, tacperception, P_state_cov):
         print("state prediction")
-        Transfer_Fun_Matrix = np.identity(6 + 4 * 3)
+        Transfer_Fun_Matrix = np.mat(np.zeros([18, 18]))  # F
+        Transfer_Fun_Matrix[:6, :6] = np.mat(np.eye(6))
         Q_state_noise_cov = 0.001 * np.identity(6 + 4 * 3)
 
         x_state = np.ravel(x_state)
@@ -54,20 +57,17 @@ class EKF:
 
         # start = time.time()
 
+        self.Grasping_matrix = np.zeros([6, 6*4])
         for i in range(4):
             self.G_contact[i, :, :], self.J[i, :, :], self.u_t_tmp[i, :]\
                 = ug.contact_compute(sim, model, hand_param[i + 1][0], tacperception, x_state)
+            if tactile_allegro_mujo_const.GT_FLAG == '1G':
+                self.Grasping_matrix[:, 0 + i * 6: 6 + i * 6] = self.G_contact[i, :, :]
+            elif tactile_allegro_mujo_const.GT_FLAG == '4G':
+                self.Grasping_matrix[:, 0 + i * 6: 6 + i * 6] = -self.G_contact[i, :, :].T
 
-        # end = time.time()
+                # end = time.time()
         # print("The time of execution of above program is :", end-start)
-
-        ########## form Grasping matrix from contact information ##########
-        # dim: 6n * 6, n is the number of fingers
-        self.Grasping_matrix = np.zeros([6 * 4, 6])
-        # print(self.Grasping_matrix)
-        for i in range(4):
-            self.Grasping_matrix[0 + i * 6: 6 + i * 6, :] = self.G_contact[i, :, :]
-        # print("CHek:", self.Grasping_matrix)
 
         ############### Form hand Jacobian matrix from contact information #################
         self.J_fingers = np.zeros([6 * 4, 4 * 4])
@@ -79,12 +79,23 @@ class EKF:
         for i in range(4):
             self.u_t[0 + i * 4: 4 + i * 4] = self.u_t_tmp[i]
 
-        G_pinv = np.linalg.pinv(self.Grasping_matrix)  # Get G_pinv
-        prediction = np.matmul(np.matmul(G_pinv, self.J_fingers), self.u_t)
+        G_pinv = self.Grasping_matrix  # 4 GT_inv splice a big G
+        if tactile_allegro_mujo_const.GT_FLAG == '1G':  # 4 G splice and calculate big GT_pinv
+            G_pinv = np.linalg.pinv(self.Grasping_matrix.T)  # Get G_pinv
+        # prediction = np.matmul(np.matmul(G_pinv, self.J_fingers), self.u_t)
+        ju = np.matmul(self.J_fingers, self.u_t * 0.15)
+        # prediction = np.matmul(np.matmul(G_pinv, self.J_fingers), self.u_t * 0.15)
+        prediction = np.matmul(G_pinv, ju)
+        if tactile_allegro_mujo_const.GT_FLAG == '4G':
+            Transfer_Fun_Matrix[:6, :6] = ug.F_calculator_4Ginv(ju=ju)
 
         prediction = np.append(prediction, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-        x_bar = x_state + prediction + \
-                np.random.normal(0, 0.001, (1, 6 + 4 * 3))
+        # x_bar = x_state + prediction + np.random.normal(0, 0.001, (1, 6 + 4 * 3))
+        # x_bar = x_state + 1/(tacperception.fin_num*4)*prediction + np.random.normal(0, 0.001, (1, 6 + 4 * 3))
+        prediction[1] = -prediction[1]
+        prediction[3] = -prediction[3]
+        prediction[5] = -prediction[5]
+        x_bar = x_state + 1/4*prediction + np.random.normal(0, 0.001, (1, 6 + 4 * 3))
         x_bar = np.ravel(x_bar)
 
         P_state_cov = Transfer_Fun_Matrix * P_state_cov * \
@@ -99,7 +110,7 @@ class EKF:
         self.fin_num = tacperception.fin_num
         self.fin_tri = tacperception.fin_tri
         obj_position = x_bar[:3]
-        rot = ug.pos_euler_xyz_2_matrix(x_bar[3:6])
+        rot = ug.rotvec_2_Matrix(x_bar[3:6])
         for i in range(4):
             ct_relative_obj = x_bar[6:24]
             if tacperception.fin_tri[i] == 1:
@@ -139,14 +150,42 @@ class EKF:
     def ekf_posteriori(self, sim, model, viewer, x_bar, z_t, h_t, P_state_cov, tacperception):
         print('posterior computation')
         # the jocobian matrix of measurement equation
-        J_h = np.zeros([6 * 4, 6 + 4 * 3])
+        [W1, W2, W3] = x_bar[3:6]  # the rotvec of object in palm frame {P}
+        pos_c1 = x_bar[6:9]  # the pos of contact point in object frame {O}
+        pos_c2 = x_bar[9:12]  # the pos of contact point in object frame {O}
+        pos_c3 = x_bar[12:15]  # the pos of contact point in object frame {O}
+        pos_c4 = x_bar[15:18]  # the pos of contact point in object frame {O}
+        normal_c1 = og.surface_cup(pos_c1[0], pos_c1[1], pos_c1[2])[0]  # the normal of contact point in {O}
+        normal_c2 = og.surface_cup(pos_c2[0], pos_c2[1], pos_c2[2])[0]  # the normal of contact point in {O}
+        normal_c3 = og.surface_cup(pos_c3[0], pos_c3[1], pos_c3[2])[0]  # the normal of contact point in {O}
+        normal_c4 = og.surface_cup(pos_c4[0], pos_c4[1], pos_c4[2])[0]  # the normal of contact point in {O}
+        print("  normal_c1:", normal_c1)
+        pn_flag = tactile_allegro_mujo_const.PN_FLAG
+        if pn_flag == 'pn':  # use pos and normal as observation variable
+            J_h = np.zeros([6 * 4, 6 + 4 * 3])
+            J_h[:3, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c1[0], pos_CO_y=pos_c1[1], pos_CO_z=pos_c1[2])
+            J_h[3:6, :6] = ug.H_calculator_pn(W1=W1, W2=W2, W3=W3, normal_CO_x=normal_c1[0], normal_CO_y=normal_c1[1], normal_CO_z=normal_c1[2])
+            J_h[6:9, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c2[0], pos_CO_y=pos_c2[1], pos_CO_z=pos_c2[2])
+            J_h[9:12, :6] = ug.H_calculator_pn(W1=W1, W2=W2, W3=W3, normal_CO_x=normal_c2[0], normal_CO_y=normal_c2[1], normal_CO_z=normal_c2[2])
+            J_h[12:15, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c3[0], pos_CO_y=pos_c3[1], pos_CO_z=pos_c3[2])
+            J_h[15:18, :6] = ug.H_calculator_pn(W1=W1, W2=W2, W3=W3, normal_CO_x=normal_c3[0], normal_CO_y=normal_c3[1], normal_CO_z=normal_c3[2])
+            J_h[18:21, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c4[0], pos_CO_y=pos_c4[1], pos_CO_z=pos_c4[2])
+            J_h[21:24, :6] = ug.H_calculator_pn(W1=W1, W2=W2, W3=W3, normal_CO_x=normal_c4[0], normal_CO_y=normal_c4[1], normal_CO_z=normal_c4[2])
+        elif pn_flag == 'p':  # use pos only as observation variable
+            J_h = np.zeros([3 * 4, 6 + 4 * 3])
+            J_h[:3, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c1[0], pos_CO_y=pos_c1[1], pos_CO_z=pos_c1[2])
+            J_h[3:6, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c2[0], pos_CO_y=pos_c2[1], pos_CO_z=pos_c2[2])
+            J_h[6:9, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c3[0], pos_CO_y=pos_c3[1], pos_CO_z=pos_c3[2])
+            J_h[9:12, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c4[0], pos_CO_y=pos_c4[1], pos_CO_z=pos_c4[2])
         # the covariance of measurement noise
         R_noi = np.random.normal(0, 0.01, size=(6 * 4, 6 * 4))
         # K_t =  np.matmul(np.matmul(P_state_cov, J_h.transpose()), \
         #                  np.linalg.pinv(np.matmul(np.matmul(J_h, P_state_cov), J_h.transpose()) + R_noi))
         K_t = P_state_cov @ J_h.transpose() @ \
               np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi)
-        x_hat = x_bar + np.matmul(K_t, (z_t - h_t))
+        Update = np.matmul(K_t, (z_t - h_t))
+        print("/////Check z, h:", z_t, h_t, (z_t - h_t))
+        x_hat = x_bar + Update
         P_state_cov = (np.zeros([6 + 4 * 3, 6 + 4 * 3]) \
                        - K_t @ J_h ) @ P_state_cov
         return x_hat, P_state_cov

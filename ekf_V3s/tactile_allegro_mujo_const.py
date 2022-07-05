@@ -54,3 +54,7 @@ RF_TAXEL_NUM_MIN = 288
 RF_TAXEL_NUM_MAX = 360
 TH_TAXEL_NUM_MIN = 432
 TH_TAXEL_NUM_MAX = 504
+
+PN_FLAG = 'pn'  # Observation controller: assign 'p' (position) or 'pn' (position and normal)
+GT_FLAG = '1G'  # G Matrix controller: assign '1G' (splice a big G, then pinv) or '4G' (inv 4 GT, then splice)
+posteriori_FLAG = True
