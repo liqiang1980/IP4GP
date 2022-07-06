@@ -77,7 +77,11 @@ class EKF:
         ############# form action - u_t #################
         self.u_t = np.zeros(4 * 4)
         for i in range(4):
-            self.u_t[0 + i * 4: 4 + i * 4] = self.u_t_tmp[i]
+            if tacperception.fin_tri[i] == 1:
+                self.u_t[0 + i * 4: 4 + i * 4] = self.u_t_tmp[i]
+            else:
+                self.u_t[0 + i * 4: 4 + i * 4] = np.zeros(4)
+        print("  contact_num & ut:", tacperception.fin_num, '   ', self.u_t)
 
         G_pinv = self.Grasping_matrix  # 4 GT_inv splice a big G
         if tactile_allegro_mujo_const.GT_FLAG == '1G':  # 4 G splice and calculate big GT_pinv
@@ -101,7 +105,7 @@ class EKF:
         P_state_cov = Transfer_Fun_Matrix * P_state_cov * \
                       Transfer_Fun_Matrix.transpose() + Q_state_noise_cov
 
-        return x_bar, P_state_cov
+        return x_bar, P_state_cov, ju, self.u_t * 0.15
 
     def observe_computation(self, x_bar, tacperception):
         print('measurement equation computation')
@@ -109,8 +113,8 @@ class EKF:
         contact_nv = []
         self.fin_num = tacperception.fin_num
         self.fin_tri = tacperception.fin_tri
-        obj_position = x_bar[:3]
-        rot = ug.rotvec_2_Matrix(x_bar[3:6])
+        obj_position = x_bar[:3]  # position of object in palm
+        rot = ug.rotvec_2_Matrix(x_bar[3:6])  # rot of object in palm
         for i in range(4):
             ct_relative_obj = x_bar[6:24]
             if tacperception.fin_tri[i] == 1:
@@ -137,10 +141,10 @@ class EKF:
             if tacperception.fin_tri[i] == 1:
                 contact_position.append((tacperception.get_contact_taxel_position(sim, model, \
                                                                      hand_param[i + 1][0], "palm_link"))[:3] \
-                                        + np.random.normal(0, 0.001, 3))
+                                        + np.random.normal(0, 0.00, 3))
                 contact_nv.append(tacperception.get_contact_taxel_nv(sim, model, \
                                                            hand_param[i + 1][0], "palm_link") \
-                          + np.random.normal(0, 0.001, 3))
+                          + np.random.normal(0, 0.00, 3))
             else:
                 contact_position.append([0, 0, 0])
                 contact_nv.append([0, 0, 0])
@@ -183,7 +187,8 @@ class EKF:
         #                  np.linalg.pinv(np.matmul(np.matmul(J_h, P_state_cov), J_h.transpose()) + R_noi))
         K_t = P_state_cov @ J_h.transpose() @ \
               np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi)
-        Update = np.matmul(K_t, (z_t - h_t))
+        # Update = np.matmul(K_t, (z_t - h_t))
+        Update = np.matmul(K_t, (z_t + h_t))
         print("/////Check z, h:", z_t, h_t, (z_t - h_t))
         x_hat = x_bar + Update
         P_state_cov = (np.zeros([6 + 4 * 3, 6 + 4 * 3]) \

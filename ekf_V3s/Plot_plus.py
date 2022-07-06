@@ -228,6 +228,18 @@ def plot_xt_GD_6in1(Af, GD, label1, label2, label3, label4, label5, label6):
     GD4 = GD[:, 3] * 57.3
     GD5 = GD[:, 4] * 57.3
     GD6 = GD[:, 5] * 57.3
+    # Af1 = Af[:10, 0] * 1000
+    # Af2 = Af[:10, 1] * 1000
+    # Af3 = Af[:10, 2] * 1000
+    # Af4 = Af[:10, 3] * 57.3
+    # Af5 = Af[:10, 4] * 57.3
+    # Af6 = Af[:10, 5] * 57.3
+    # GD1 = GD[:10, 0] * 1000
+    # GD2 = GD[:10, 1] * 1000
+    # GD3 = GD[:10, 2] * 1000
+    # GD4 = GD[:10, 3] * 57.3
+    # GD5 = GD[:10, 4] * 57.3
+    # GD6 = GD[:10, 5] * 57.3
     t = np.arange(0, GD1.shape[0], 1)
 
     fig, ax = plt.subplots(3, 2, figsize=(12, 6), sharex='all', dpi=240)
@@ -278,11 +290,49 @@ def plot_xt_GD_6in1(Af, GD, label1, label2, label3, label4, label5, label6):
     plt.show()
 
 
-def plot_3d_track(x, y, z):
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.plot(x, y, z)
-    ax.set_title('3d track')
-    ax.set_xlabel('')
+def plot_ut(Af, GD, label1, label2, label3, label4, label5, label6):
+    print("Plot, shape1, shape2:", Af.shape, GD.shape)
+    Af1 = Af[:, 0] * 57.3
+    Af2 = Af[:, 1] * 57.3
+    Af3 = Af[:, 2] * 57.3
+    Af4 = Af[:, 3] * 57.3
+    GD1 = GD[:, 0] * 57.3
+    GD2 = GD[:, 1] * 57.3
+    GD3 = GD[:, 2] * 57.3
+    GD4 = GD[:, 3] * 57.3
+    t = np.arange(0, GD1.shape[0], 1)
+
+    fig, ax = plt.subplots(2, 2, figsize=(12, 6), sharex='all', dpi=240)
+    fig.subplots_adjust(hspace=0.1, wspace=0.2)
+
+    ax1 = ax[0, 0]
+    ax1.plot(t, Af1, color='red')
+    ax1.plot(t, GD1, color='black')
+    ax1.set_ylabel(label1, {'size': 13})
+    ax1.grid(axis="both")
+    ax1.tick_params(labelsize=13)
+
+    ax2 = ax[1, 1]
+    ax2.plot(t, Af2, color='red')
+    ax2.plot(t, GD2, color='black')
+    ax2.set_ylabel(label2, {'size': 13})
+    ax2.grid(axis="both")
+    ax2.tick_params(labelsize=13)
+
+    ax3 = ax[1, 0]
+    ax3.plot(t, Af3, color='red')
+    ax3.plot(t, GD3, color='black')
+    ax3.set_ylabel(label3, {'size': 13})
+    ax3.set_xlabel('Count', {'size': 13})
+    ax3.grid(axis="both")
+    ax3.tick_params(labelsize=13)
+
+    ax4 = ax[0, 1]
+    ax4.plot(t, Af4, color='red')
+    ax4.plot(t, GD4, color='black')
+    ax4.set_ylabel(label4, {'size': 13})
+    ax4.grid(axis="both")
+
+
     plt.show()
 

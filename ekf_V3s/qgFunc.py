@@ -864,3 +864,17 @@ def id2name_pulp(taxel_id, patch_id):
     name = 'touch_' + patch_id + '_' + id_col + '_' + id_row
     return name
 
+
+def vec2rot(vec):
+    rot = np.zeros([3, 3])
+    rot_x = np.zeros(3)
+    x = vec[0]
+    y = vec[1]
+    rot_x[0] = y / (x**2 + y**2)**0.5
+    rot_x[1] = - x / (x**2 + y**2)**0.5
+    rot_y = np.cross(vec, rot_x)
+    rot[:3, 0] = rot_x
+    rot[:3, 1] = rot_y
+    rot[:3, 2] = vec.T
+    print("    vec==rot:", rot)
+    return rot

@@ -235,5 +235,6 @@ class cls_tactile_perception:
         pos_contact = ug.get_relative_posquat(sim, ref_frame, c_point_name)
 
         T_contact = ug.posquat2trans(pos_contact)
-        nv = T_contact[:3, 2]  # Get R of contact point
+        # nv = T_contact[:3, 2]  # Get R of contact point
+        nv = T_contact[:3, 0]  # Get R of contact point
         return nv

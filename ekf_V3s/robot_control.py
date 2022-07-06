@@ -8,7 +8,7 @@ import viz
 import util_geometry as ug
 import time
 import qgFunc as qg
-import Plot_plus as pPlt
+import fcl
 
 def robot_init(sim):
     sim.data.ctrl[tactile_allegro_mujo_const.UR_CTRL_1] = 0.8
@@ -112,19 +112,19 @@ def thumb(sim, input1, input2):
             sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] + input2 * 5
 
 
-# def config_robot():
-#     # kinematic chain for all fingers
-#     robot = URDF.from_xml_file('../../robots/UR5_allegro_hand_right.urdf')
-#     # first finger
-#     kdl_kin0 = KDLKinematics(robot, "palm_link", "link_3.0_tip")
-#     # middle finger
-#     kdl_kin1 = KDLKinematics(robot, "palm_link", "link_7.0_tip")
-#     # ring finger
-#     kdl_kin2 = KDLKinematics(robot, "palm_link", "link_11.0_tip")
-#     # thumb
-#     kdl_kin3 = KDLKinematics(robot, "palm_link", "link_15.0_tip")
-#     kdl_tree = kdl_tree_from_urdf_model(robot)
-#     return kdl_kin0, kdl_kin1, kdl_kin2, kdl_kin3, kdl_tree
+def config_robot_tip_kin():
+    # kinematic chain for all fingers
+    robot = URDF.from_xml_file('../../robots/UR5_allegro_hand_right.urdf')
+    # first finger
+    kdl_kin0 = KDLKinematics(robot, "palm_link", "link_3.0_tip")
+    # middle finger
+    kdl_kin1 = KDLKinematics(robot, "palm_link", "link_7.0_tip")
+    # ring finger
+    kdl_kin2 = KDLKinematics(robot, "palm_link", "link_11.0_tip")
+    # thumb
+    kdl_kin3 = KDLKinematics(robot, "palm_link", "link_15.0_tip")
+    kdl_tree = kdl_tree_from_urdf_model(robot)
+    return kdl_kin0, kdl_kin1, kdl_kin2, kdl_kin3, kdl_tree
 
 def config_robot(taxel_name):
     # kinematic chain for all fingers
@@ -167,6 +167,8 @@ def augmented_state(sim, model, hand_param, tacperception, x_state):
 def interaction(sim, model, viewer, hand_param, object_param, alg_param, \
                 ekf_grasping, tacperception):
     global contact_flag, x_all, gd_all
+    u_all = np.zeros(16)
+    ju_all = np.zeros(24)
     # number of triggered fingers
     tacperception.fin_num = 0
     # The fingers which are triggered are Marked them with "1"
@@ -218,7 +220,8 @@ def interaction(sim, model, viewer, hand_param, object_param, alg_param, \
                 x_state = ug.get_relative_posquat(sim, "palm_link", "cup")
                 # attention, here orientation we use the axis angle representation.
                 x_state = np.array([ug.pos_quat2axis_angle(x_state)])
-                x_state += init_e
+                if tactile_allegro_mujo_const.initE_FLAG:
+                    x_state += init_e
                 # augmented state with the contact position on the object surface described in the object frame
                 x_state = augmented_state(sim, model, hand_param, tacperception, x_state)
 
@@ -233,7 +236,7 @@ def interaction(sim, model, viewer, hand_param, object_param, alg_param, \
             gd_posquat = ug.get_relative_posquat(sim, "palm_link", "cup")
             gd_state = qg.posquat2posrotvec(gd_posquat)
             # Prediction step in EKF
-            x_bar, P_state_cov = ekf_grasping.state_predictor(sim, model, hand_param, object_param, \
+            x_bar, P_state_cov, ju, delta_angles = ekf_grasping.state_predictor(sim, model, hand_param, object_param, \
                                                               x_state, tacperception, P_state_cov)
             #
             h_t_position, h_t_nv, = ekf_grasping.observe_computation(x_bar, tacperception)
@@ -243,6 +246,32 @@ def interaction(sim, model, viewer, hand_param, object_param, alg_param, \
             #
             z_t = np.concatenate((z_t_position, z_t_nv), axis=None)
             h_t = np.concatenate((h_t_position, h_t_nv), axis=None)
+            print("++++z_t:", z_t)
+            print("++++h_t:", h_t)
+            """ z_t and h_t visualization """
+            posquat_palm_world = ug.get_relative_posquat(sim, "world", "palm_link")
+            T_palm_world = ug.posquat2trans(posquat_palm_world)
+            for i in range(4):
+                if tacperception.fin_tri[i] == 1:
+                    pos_zt_palm = z_t[3*i:3*i+3]
+                    pos_zt_world = T_palm_world[:3, 3] + np.matmul(T_palm_world[:3, :3], pos_zt_palm.T)
+                    pos_zt_world = np.ravel(pos_zt_world.T)
+                    rot_zt_palm = qg.vec2rot(z_t[3*i+12:3*i+15])
+                    rot_zt_world = np.matmul(T_palm_world[:3, :3], rot_zt_palm)
+                    # rot_z = np.array([[1, 0, 0], [0, 0, 1], [0, 1, 0]])
+                    viewer.add_marker(pos=pos_zt_world, mat=rot_zt_world, type=tactile_allegro_mujo_const.GEOM_ARROW,
+                              label="z", size=np.array([0.001, 0.001, 0.1]), rgba=np.array([1.0, 0.0, 0.0, 1.0]))
+            for i in range(4):
+                if tacperception.fin_tri[i] == 1:
+                    pos_ht_palm = h_t[3 * i:3 * i + 3]
+                    pos_ht_world = T_palm_world[:3, 3] + np.matmul(T_palm_world[:3, :3], pos_ht_palm.T)
+                    pos_ht_world = np.ravel(pos_ht_world.T)
+                    rot_ht_palm = qg.vec2rot(h_t[3 * i + 12:3 * i + 15])
+                    rot_ht_world = np.matmul(T_palm_world[:3, :3], rot_ht_palm)
+                    # rot_h = np.array([[1, 0, 0], [0, 0, 1], [0, 1, 0]])
+                    viewer.add_marker(pos=pos_ht_world, mat=rot_ht_world, type=tactile_allegro_mujo_const.GEOM_ARROW,
+                              label="h", size=np.array([0.001, 0.001, 0.1]), rgba=np.array([0.34, 0.98, 1., 1.0]))
+
             # # posterior estimation
             if tactile_allegro_mujo_const.posteriori_FLAG:
                 x_state, P_state_cov = ekf_grasping.ekf_posteriori(sim, model, viewer, x_bar, z_t, h_t, \
@@ -255,9 +284,14 @@ def interaction(sim, model, viewer, hand_param, object_param, alg_param, \
             """ Save data in one loop """
             x_all = np.vstack((x_all, x_state))
             gd_all = np.vstack((gd_all, gd_state))
+            u_all = np.vstack((u_all, delta_angles))
+            ju_all = np.vstack((ju_all, ju))
             """ Save to txt """
             np.savetxt('../x_data.txt', x_all)
             np.savetxt('../gd_data.txt', gd_all)
+            np.savetxt('../u_data.txt', u_all)
+            np.savetxt('../ju_data.txt', ju_all)
+            """ Visualization h_t and z_t """
         end = time.time()
         print('time cost in one loop ', end - start)
         # if not np.all(sim.data.sensordata == 0):

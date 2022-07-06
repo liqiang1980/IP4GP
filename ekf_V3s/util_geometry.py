@@ -3,6 +3,8 @@ from scipy.spatial.transform import Rotation
 import math
 from mujoco_py import functions
 import PyKDL as kdl
+
+import robot_control
 import tactile_perception as tacperception
 import tactile_allegro_mujo_const
 import robot_control as robcontrol
@@ -691,10 +693,13 @@ def joint_kdl_to_list(q):
 def contact_compute(sim, model, fingername, tacperception, x_state):
     # body jocobian matrix and velocity
     G_contact = np.zeros([6, 6])
+    if not tactile_allegro_mujo_const.betterJ_FLAG:
+        kdl_kin0, kdl_kin1, kdl_kin2, kdl_kin3, kdl_tree = robot_control.config_robot_tip_kin()
 
     if fingername == 'ff':
-        taxel_name0 = tacperception.get_contact_taxel_name(sim, model, 'ff')
-        kdl_kin0 = robcontrol.config_robot(taxel_name0)
+        if tactile_allegro_mujo_const.betterJ_FLAG:
+            taxel_name0 = tacperception.get_contact_taxel_name(sim, model, 'ff')
+            kdl_kin0 = robcontrol.config_robot(taxel_name0)
         u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_1], \
                              sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_2], \
                              sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_3], \
@@ -718,8 +723,9 @@ def contact_compute(sim, model, fingername, tacperception, x_state):
             G_contact = np.zeros([6, 6])
 
     if fingername == 'mf':
-        taxel_name1 = tacperception.get_contact_taxel_name(sim, model, 'mf')
-        kdl_kin1 = robcontrol.config_robot(taxel_name1)
+        if tactile_allegro_mujo_const.betterJ_FLAG:
+            taxel_name1 = tacperception.get_contact_taxel_name(sim, model, 'mf')
+            kdl_kin1 = robcontrol.config_robot(taxel_name1)
         u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_1], \
                              sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_2], \
                              sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_3], \
@@ -744,8 +750,9 @@ def contact_compute(sim, model, fingername, tacperception, x_state):
 
 
     if fingername == 'rf':
-        taxel_name2 = tacperception.get_contact_taxel_name(sim, model, 'rf')
-        kdl_kin2 = robcontrol.config_robot(taxel_name2)
+        if tactile_allegro_mujo_const.betterJ_FLAG:
+            taxel_name2 = tacperception.get_contact_taxel_name(sim, model, 'rf')
+            kdl_kin2 = robcontrol.config_robot(taxel_name2)
         u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_1], \
                              sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_2], \
                              sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_3], \
@@ -771,8 +778,9 @@ def contact_compute(sim, model, fingername, tacperception, x_state):
 
 
     if fingername == 'th':
-        taxel_name3 = tacperception.get_contact_taxel_name(sim, model, 'th')
-        kdl_kin3 = robcontrol.config_robot(taxel_name3)
+        if tactile_allegro_mujo_const.betterJ_FLAG:
+            taxel_name3 = tacperception.get_contact_taxel_name(sim, model, 'th')
+            kdl_kin3 = robcontrol.config_robot(taxel_name3)
         u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_1], \
                              sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_2], \
                              sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_3], \
