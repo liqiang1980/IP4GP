@@ -358,11 +358,10 @@ def pos_quat2pos_xyz_rpy_xyzw(pos_quat):
 def pos_quat2axis_angle(pos_quat):
     # input must be w x y z
     quat = pos_quat[3:]
-    r = Rotation.from_quat(quat)
-    axis_angle = r.as_rotvec()
+    axis_angle = Rotation.from_quat(quat).as_rotvec()
     pos_xyz_axis_angle = np.zeros(6, dtype=np.double)
-    pos_xyz_axis_angle[0:3] = pos_quat[0:3]
-    pos_xyz_axis_angle[-3:] = axis_angle
+    pos_xyz_axis_angle[:3] = pos_quat[:3]
+    pos_xyz_axis_angle[3:] = axis_angle
     return pos_xyz_axis_angle
 
 def pos_euler_xyz_2_matrix(euler):
@@ -370,7 +369,7 @@ def pos_euler_xyz_2_matrix(euler):
     return rot.as_matrix()
 
 def rotvec_2_Matrix(rotvec):
-    rot = Rotation.from_rotvec(rotvec=rotvec).as_matrix()
+    rot = Rotation.from_rotvec(rotvec).as_matrix()
     return rot
 
 def move_ik(sim, ee_tget_posquat, gripper_action=0.04):

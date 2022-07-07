@@ -1,5 +1,6 @@
 import numpy as np
 
+import qgFunc
 import tactile_allegro_mujo_const
 import tactile_perception as tacperception
 import util_geometry as ug
@@ -7,6 +8,7 @@ import object_geometry as og
 import viz
 import storeQR as sQR
 import time
+from scipy.spatial.transform import Rotation
 
 # the concept of ekf algorithm can refer to one simplified example in
 # https://automaticaddison.com/extended-kalman-filter-ekf-with-python-code-example/
@@ -99,7 +101,7 @@ class EKF:
         prediction[1] = -prediction[1]
         prediction[3] = -prediction[3]
         prediction[5] = -prediction[5]
-        x_bar = x_state + 1/4*prediction + np.random.normal(0, 0.001, (1, 6 + 4 * 3))
+        x_bar = x_state + 1/4*prediction + np.random.normal(0, 0.000, (1, 6 + 4 * 3))
         x_bar = np.ravel(x_bar)
 
         P_state_cov = Transfer_Fun_Matrix * P_state_cov * \
@@ -107,18 +109,23 @@ class EKF:
 
         return x_bar, P_state_cov, ju, self.u_t * 0.15
 
-    def observe_computation(self, x_bar, tacperception):
-        print('measurement equation computation')
+    def observe_computation(self, x_bar, tacperception, sim):
+        print('measurement equation computation', x_bar.shape)
         contact_position = []
         contact_nv = []
         self.fin_num = tacperception.fin_num
         self.fin_tri = tacperception.fin_tri
-        obj_position = x_bar[:3]  # position of object in palm
-        rot = ug.rotvec_2_Matrix(x_bar[3:6])  # rot of object in palm
+        _obj_position = x_bar[:3]  # position of object in palm
+        _rot = ug.rotvec_2_Matrix(x_bar[3:6])  # rot of object in palm
+        _euler = Rotation.from_matrix(_rot).as_euler('xyz', degrees=True)
+        posquat_obj_p = ug.get_relative_posquat(sim, "palm_link", "cup")
+        obj_position = posquat_obj_p[:3]  # position of object in palm
+        rot = Rotation.from_quat(posquat_obj_p[3:]).as_matrix()  # rot of object in palm
+        euler = Rotation.from_matrix(rot).as_euler('xyz', degrees=True)
+        print("}}}}}}}}}}}rot1, rot2:\n", _rot, "\n>", _euler, "\n", rot, '\n>', euler, "\n")
         for i in range(4):
-            ct_relative_obj = x_bar[6:24]
             if tacperception.fin_tri[i] == 1:
-                contact_position.append(obj_position + np.matmul(rot, np.array((x_bar[6 + i * 3:6 + (i + 1) * 3]))))
+                contact_position.append(obj_position + np.matmul(rot, x_bar[6 + i * 3:6 + (i + 1) * 3]))
                 ##########Get normal of contact point on the cup
                 nor_contact_in_cup, res = og.surface_cup(x_bar[6 + i * 3], x_bar[6 + i * 3 + 1],
                                     x_bar[6 + i * 3 + 2])

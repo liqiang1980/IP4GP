@@ -9,6 +9,7 @@ import util_geometry as ug
 import time
 import qgFunc as qg
 import fcl
+from scipy.spatial.transform import Rotation
 
 def robot_init(sim):
     sim.data.ctrl[tactile_allegro_mujo_const.UR_CTRL_1] = 0.8
@@ -224,7 +225,8 @@ def interaction(sim, model, viewer, hand_param, object_param, alg_param, \
                     x_state += init_e
                 # augmented state with the contact position on the object surface described in the object frame
                 x_state = augmented_state(sim, model, hand_param, tacperception, x_state)
-
+                __rot = Rotation.from_rotvec(x_state[3:6]).as_matrix()
+                print("}}}}}rot0:", __rot)
                 x_all = x_state
                 gd_posquat = ug.get_relative_posquat(sim, "palm_link", "cup")
                 gd_state = qg.posquat2posrotvec(gd_posquat)
@@ -238,8 +240,9 @@ def interaction(sim, model, viewer, hand_param, object_param, alg_param, \
             # Prediction step in EKF
             x_bar, P_state_cov, ju, delta_angles = ekf_grasping.state_predictor(sim, model, hand_param, object_param, \
                                                               x_state, tacperception, P_state_cov)
+            print("+++xbar, xstate:", x_bar, "\n>>", x_state, "\n>>", x_bar[:6]-x_state[:6])
             #
-            h_t_position, h_t_nv, = ekf_grasping.observe_computation(x_bar, tacperception)
+            h_t_position, h_t_nv, = ekf_grasping.observe_computation(x_bar, tacperception, sim)
             #
             z_t_position, z_t_nv = ekf_grasping.measure_fb(sim, model, hand_param, object_param, \
                                                        x_bar, tacperception)
@@ -271,6 +274,25 @@ def interaction(sim, model, viewer, hand_param, object_param, alg_param, \
                     # rot_h = np.array([[1, 0, 0], [0, 0, 1], [0, 1, 0]])
                     viewer.add_marker(pos=pos_ht_world, mat=rot_ht_world, type=tactile_allegro_mujo_const.GEOM_ARROW,
                               label="h", size=np.array([0.001, 0.001, 0.1]), rgba=np.array([0.34, 0.98, 1., 1.0]))
+            """ Test pos_c_obj in x_bar """
+            pos1_c_obj = x_bar[6:9]
+            posquat_obj_world = ug.get_relative_posquat(sim, "world", "cup")
+            T_obj_world = ug.posquat2trans(posquat_obj_world)
+            pos1_c_world = T_obj_world[:3, 3] + np.matmul(T_obj_world[:3, :3], pos1_c_obj.T)
+            rot = np.array([[1, 0, 0], [0, 0, 1], [0, 1, 0]])
+            viewer.add_marker(pos=pos1_c_world, mat=rot, type=tactile_allegro_mujo_const.GEOM_ARROW, label="xbar_c", size=np.array([0.001, 0.001, 0.1]), rgba=np.array([0.34, 0.98, 1., 1.0]))
+            """ Test cup and palm in world """
+            posquat_obj_world = ug.get_relative_posquat(sim, "world", "cup")
+            T_obj_world = ug.posquat2trans(posquat_obj_world)
+            pos_obj_world = T_obj_world[:3, 3].T
+            rot_obj_world = T_obj_world[:3, :3]
+            viewer.add_marker(pos=pos_obj_world, mat=rot_obj_world, type=tactile_allegro_mujo_const.GEOM_ARROW, label="obj", size=np.array([0.001, 0.001, 0.1]), rgba=np.array([0.34, 0.98, 1., 1.0]))
+            posquat_p_world = ug.get_relative_posquat(sim, "world", "palm_link")
+            T_p_world = ug.posquat2trans(posquat_p_world)
+            pos_p_world = T_p_world[:3, 3].T
+            rot_p_world = T_p_world[:3, :3]
+            viewer.add_marker(pos=pos_p_world, mat=rot_p_world, type=tactile_allegro_mujo_const.GEOM_ARROW,
+                              label="palm", size=np.array([0.001, 0.001, 0.1]), rgba=np.array([0.34, 0.98, 1., 1.0]))
 
             # # posterior estimation
             if tactile_allegro_mujo_const.posteriori_FLAG:
