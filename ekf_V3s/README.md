@@ -68,7 +68,7 @@
 - run fingers configurable object pose estimation
  ```bash
   cd ekf_obj_pose
-  python3 ekf_obj_pose.py data.xml
+  python3 verification_main.py data.xml
   ```
 
 

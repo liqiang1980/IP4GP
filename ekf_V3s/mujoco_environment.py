@@ -51,7 +51,7 @@ def config_fcl(obj1_name, obj2_name):
 
     # fcl库加载finger_tip 的 BVH模型
     # obj_fingertip = fcl_python.OBJ("fingertip_part.obj")
-    obj_fingertip = fcl_python.OBJ(obj1_name)
+    obj_fingertip = fcl_python.OBJ(obj2_name)
     verts_fingertip = obj_fingertip.get_vertices()
     tris_fingertip = obj_fingertip.get_faces()
     print("len_verts_fingertip:", len(verts_fingertip))

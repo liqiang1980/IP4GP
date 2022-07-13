@@ -97,24 +97,24 @@ class cls_tactile_perception:
 
         if fingername == 'ff':
             c_points = taxels_id[0]
-            print(">>c_points:", c_points)
+            print(">>c_points_ff:", c_points)
             if len(c_points) == 0:
-                return 'link_3.0_tip_tactile'
+                return 'link_3.0_tip'
         if fingername == 'mf':
             c_points = taxels_id[0] + 144
-            print(">>c_points:", c_points)
+            print(">>c_points_mf:", c_points)
             if len(c_points) == 0:
-                return 'link_7.0_tip_tactile'
+                return 'link_7.0_tip'
         if fingername == 'rf':
             c_points = taxels_id[0] + 288
-            print(">>c_points:", c_points)
+            print(">>c_points_rf:", c_points)
             if len(c_points) == 0:
-                return 'link_11.0_tip_tactile'
+                return 'link_11.0_tip'
         if fingername == 'th':
             c_points = taxels_id[0] + 432
-            print(">>c_points:", c_points)
+            print(">>c_points_th:", c_points)
             if len(c_points) == 0:
-                return 'link_15.0_tip_tactile'
+                return 'link_15.0_tip'
 
         actived_tmp_position = np.zeros((3, len(c_points)))
         taxel_position = np.zeros((3, 72))

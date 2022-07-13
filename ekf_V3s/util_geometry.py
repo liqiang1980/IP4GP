@@ -357,7 +357,7 @@ def pos_quat2pos_xyz_rpy_xyzw(pos_quat):
 # function from quaterion to Euler angle
 def pos_quat2axis_angle(pos_quat):
     # input must be w x y z
-    quat = pos_quat[3:]
+    quat = np.hstack((pos_quat[4:], pos_quat[3]))
     axis_angle = Rotation.from_quat(quat).as_rotvec()
     pos_xyz_axis_angle = np.zeros(6, dtype=np.double)
     pos_xyz_axis_angle[:3] = pos_quat[:3]
@@ -699,20 +699,19 @@ def contact_compute(sim, model, fingername, tacperception, x_state):
         if tactile_allegro_mujo_const.betterJ_FLAG:
             taxel_name0 = tacperception.get_contact_taxel_name(sim, model, 'ff')
             kdl_kin0 = robcontrol.config_robot(taxel_name0)
-        u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_1], \
-                             sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_2], \
-                             sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_3], \
-                             sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_4]])
-        cur_jnt = np.array([sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_1], \
-                             sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_2], \
-                             sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_3], \
-                             sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_4]])
+        u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_1],
+                         sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_2],
+                         sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_3],
+                         sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_4]])
+        cur_jnt = np.array([sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_1],
+                            sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_2],
+                            sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_3],
+                            sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_4]])
 
         # Get Jacobi J
         Jac = kdl_kin0.jacobian(cur_jnt)
         if tacperception.is_ff_contact == True:
-            pos_contact = tacperception.get_contact_taxel_position(sim, \
-                                                                       model, fingername, "palm_link")
+            pos_contact = tacperception.get_contact_taxel_position(sim, model, fingername, "palm_link")
             #    the G_contact is partial grasping matrix because the noised object pose, refer to:
             #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
             #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
@@ -803,7 +802,7 @@ def contact_compute(sim, model, fingername, tacperception, x_state):
             G_contact = np.zeros([6, 6])
 
 
-    return G_contact, Jac, u_t0
+    return G_contact, Jac, u_t0, cur_jnt
 
 
 def H_calculator(W1, W2, W3, pos_CO_x, pos_CO_y, pos_CO_z):

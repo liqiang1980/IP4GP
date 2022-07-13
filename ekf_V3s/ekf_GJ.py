@@ -57,7 +57,7 @@ class EKF:
         Q_state_noise_cov = np.zeros([18, 18])
 
         x_state = np.ravel(x_state)
-        rot_obj_palm = Rotation.from_rotvec(x_state[3:6]).as_matrix()
+        rot_obj_palm = Rotation.from_rotvec(x_state[3:]).as_matrix()
         self.fin_num = tacperception.fin_num
         self.fin_tri = tacperception.fin_tri
 
@@ -98,39 +98,33 @@ class EKF:
             G_pinv = np.linalg.pinv(self.Grasping_matrix.T)  # Get G_pinv
         # prediction = np.matmul(np.matmul(G_pinv, self.J_fingers), self.u_t)
         delta_angles = self.angles - last_angle
-
-        """ Exchange z and x of ju_rotvec (must exchange rot matrix's 1th, 3rd col) """
         ju = np.matmul(self.J_fingers, delta_angles)
-        ju_rot1 = Rotation.from_rotvec(ju[3:6]).as_matrix()
-        ju_rot2 = Rotation.from_rotvec(ju[9:12]).as_matrix()
-        ju_rot3 = Rotation.from_rotvec(ju[15:18]).as_matrix()
-        ju_rot4 = Rotation.from_rotvec(ju[21:24]).as_matrix()
+        ju_go = np.eye(24)
         ju_tmp = np.array([[0, 0, 1],
                            [0, 1, 0],
                            [1, 0, 0]])
-        ju_rot1 = np.matmul(ju_rot1, ju_tmp)
-        ju_rot2 = np.matmul(ju_rot2, ju_tmp)
-        ju_rot3 = np.matmul(ju_rot3, ju_tmp)
-        ju_rot4 = np.matmul(ju_rot4, ju_tmp)
-        ju[3:6] = Rotation.from_matrix(ju_rot1).as_rotvec()
-        ju[9:12] = Rotation.from_matrix(ju_rot2).as_rotvec()
-        ju[15:18] = Rotation.from_matrix(ju_rot3).as_rotvec()
-        ju[21:24] = Rotation.from_matrix(ju_rot4).as_rotvec()
+        ju_go[3:6, 3:6] = ju_tmp
+        ju_go[9:12, 9:12] = ju_tmp
+        ju_go[15:18, 15:18] = ju_tmp
+        ju_go[21:24, 21:24] = ju_tmp
         # prediction = np.matmul(np.matmul(G_pinv, self.J_fingers), self.u_t * 0.15)
         prediction = np.matmul(G_pinv, ju)
         if tactile_allegro_mujo_const.GT_FLAG == '4G':
             Transfer_Fun_Matrix[:6, :6] = ug.F_calculator_4Ginv(ju=ju)
 
-        prediction[:3] = (x_state[:3].T + np.matmul(rot_obj_palm, prediction[:3].T)).T
-        prediction[3:6] = np.matmul(rot_obj_palm, prediction[3:6].T).T
-        prediction = np.append(prediction, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        # prediction[:3] = np.matmul(rot_obj_palm, )
+        # prediction = np.append(prediction, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        # prediction[:3] = -prediction[:3]
+        # prediction[1] = -prediction[1]
+        # prediction[3] = -prediction[3]
+        # prediction[5] = -prediction[5]
         x_bar = x_state + 1/tacperception.fin_num*prediction
         x_bar = np.ravel(x_bar)
 
         P_state_cov = Transfer_Fun_Matrix * P_state_cov * \
                       Transfer_Fun_Matrix.transpose() + Q_state_noise_cov
 
-        return x_bar, P_state_cov, ju, self.angles
+        return x_bar, P_state_cov, ju, self.angles, G_pinv
 
     def observe_computation(self, x_bar, tacperception, sim):
         print('measurement equation computation', x_bar.shape)
@@ -236,8 +230,7 @@ class EKF:
         #                  np.linalg.pinv(np.matmul(np.matmul(J_h, P_state_cov), J_h.transpose()) + R_noi))
         K_t = P_state_cov @ J_h.transpose() @ \
               np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi)
-        h_t[:3] = -h_t[:3]
-        Update = np.matmul(K_t, (z_t - h_t))
+        Update = np.matmul(K_t, (z_t + h_t))
         print("/////Check z, h:", z_t, h_t, "\ndis:", (z_t - h_t))
         x_hat = x_bar + Update
         P_state_cov = (np.eye(6 + 4 * 3) - K_t @ J_h) @ P_state_cov

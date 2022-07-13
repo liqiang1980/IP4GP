@@ -216,30 +216,35 @@ def plot_4_joint_vel(joint_vel_all, label1, label2, label3, label4):
 
 def plot_xt_GD_6in1(Af, GD, label1, label2, label3, label4, label5, label6):
     print("Plot, shape1, shape2:", Af.shape, GD.shape)
-    Af1 = Af[:, 0] * 1000
-    Af2 = Af[:, 1] * 1000
-    Af3 = Af[:, 2] * 1000
-    Af4 = Af[:, 3] * 57.3
-    Af5 = Af[:, 4] * 57.3
-    Af6 = Af[:, 5] * 57.3
-    GD1 = GD[:, 0] * 1000
-    GD2 = GD[:, 1] * 1000
-    GD3 = GD[:, 2] * 1000
-    GD4 = GD[:, 3] * 57.3
-    GD5 = GD[:, 4] * 57.3
-    GD6 = GD[:, 5] * 57.3
-    # Af1 = Af[:10, 0] * 1000
-    # Af2 = Af[:10, 1] * 1000
-    # Af3 = Af[:10, 2] * 1000
-    # Af4 = Af[:10, 3] * 57.3
-    # Af5 = Af[:10, 4] * 57.3
-    # Af6 = Af[:10, 5] * 57.3
-    # GD1 = GD[:10, 0] * 1000
-    # GD2 = GD[:10, 1] * 1000
-    # GD3 = GD[:10, 2] * 1000
-    # GD4 = GD[:10, 3] * 57.3
-    # GD5 = GD[:10, 4] * 57.3
-    # GD6 = GD[:10, 5] * 57.3
+    # ALL_FLAG = False
+    ALL_FLAG = True
+    k = 19
+    if ALL_FLAG:
+        Af1 = Af[:, 0] * 1000
+        Af2 = Af[:, 1] * 1000
+        Af3 = Af[:, 2] * 1000
+        Af4 = Af[:, 3] * 57.3
+        Af5 = Af[:, 4] * 57.3
+        Af6 = Af[:, 5] * 57.3
+        GD1 = GD[:, 0] * 1000
+        GD2 = GD[:, 1] * 1000
+        GD3 = GD[:, 2] * 1000
+        GD4 = GD[:, 3] * 57.3
+        GD5 = GD[:, 4] * 57.3
+        GD6 = GD[:, 5] * 57.3
+    else:
+        Af1 = Af[:k, 0] * 1000
+        Af2 = Af[:k, 1] * 1000
+        Af3 = Af[:k, 2] * 1000
+        Af4 = Af[:k, 3] * 57.3
+        Af5 = Af[:k, 4] * 57.3
+        Af6 = Af[:k, 5] * 57.3
+        GD1 = GD[:k, 0] * 1000
+        GD2 = GD[:k, 1] * 1000
+        GD3 = GD[:k, 2] * 1000
+        GD4 = GD[:k, 3] * 57.3
+        GD5 = GD[:k, 4] * 57.3
+        GD6 = GD[:k, 5] * 57.3
     t = np.arange(0, GD1.shape[0], 1)
 
     fig, ax = plt.subplots(3, 2, figsize=(12, 6), sharex='all', dpi=240)

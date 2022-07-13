@@ -95,7 +95,8 @@ def posquat2posrpy(posquat):
 def posquat2posrotvec(posquat):
     posrotvec = np.zeros(6)
     posrotvec[:3] = posquat[:3]
-    posrotvec[3:] = Rotation.from_quat(posquat[3:]).as_rotvec()
+    _quat = np.hstack((posquat[4:], posquat[3]))
+    posrotvec[3:] = Rotation.from_quat(_quat).as_rotvec()
     return posrotvec
 
 
