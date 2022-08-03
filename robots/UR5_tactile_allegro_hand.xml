@@ -162,6 +162,7 @@ Control Engineering / Automation Engineering
         <body name="cup" pos=" 0.0 0.8 0.8"  >
         <!-- <body name="bottle" pos=" 0.0 0.8 0.8"  > -->
             <joint type="free"/>
+<!-- 	    <joint type="hinge" axis="0 0 1"/> -->
             <site name="cup" pos="0 0 0 " euler="0 0 0"/>
             <geom type="mesh" material="gripper_mat" mesh="cup" euler="0 0 0" friction="1 0.1 0.5"/>
             <inertial pos="0 0 0" mass="0.3" diaginertia="0.0035 0.0035 0.0035" />

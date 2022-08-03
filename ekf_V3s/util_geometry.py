@@ -10,7 +10,7 @@ import tactile_allegro_mujo_const
 import robot_control as robcontrol
 import sympy as sy
 from math import sin, cos, sqrt
-
+import time
 
 def calculate_cov(mat):
     average = np.average(mat, axis=0)  # axis=0 按列求均值
@@ -63,16 +63,13 @@ def delta_pose2next_pose(d_pose, pose_0):
 
 
 def get_G_contact(pos_contact, x_state):
-    #   pose_contact is the pose of actived taxel which comes from the ground truth
-    #   x_state is the current estmated object's pose
+    #   pose_contact is the pose of active taxel which comes from the ground truth
+    #   x_state is the current estimated object's pose
     S = get_S(pos_contact[:3] - x_state[:3])  # Get S(c_i - p), palm frame
-    # todo could you please comment the formula you are using for f.get_T();
-    T_contact = posquat2trans(pos_contact)
+    # T_contact = posquat2trans(pos_contact)
     # T_contact = get_T(sim, c_point_name)  # contact point in cup frame
     # R_contact = T_contact[:3, :3]  # Get R of contact point
     R_contact = np.mat(np.eye(3))  # Get R of contact point
-    # todo name is the same with this function,
-    # todo could you please comment the formula you are using for f.get_G();
     G_contact = get_G(R_contact, S)
     return G_contact
 
@@ -631,7 +628,7 @@ def get_G(R_contact, S):
     G_upper = np.hstack((R_contact, np.zeros((3, 3))))
     G_lower = np.hstack((np.matmul(S, R_contact), R_contact))
     G_contact = np.vstack((G_upper, G_lower))  # Get grasp matrix G of contact point
-    print("  >>Check G:", G_contact)
+    # print("  >>Check G:", G_contact)
     return G_contact
 
 
@@ -683,30 +680,42 @@ def Euler2posquat1D(Eula):
     # print(posquat)
     return posquat
 
+def posquat2posrotvec(posquat):
+    posrotvec = np.zeros(6)
+    posrotvec[:3] = posquat[:3]
+    _quat = np.hstack((posquat[4:], posquat[3]))
+    posrotvec[3:] = Rotation.from_quat(_quat).as_rotvec()
+    return posrotvec
+
 
 def joint_kdl_to_list(q):
     if q == None:
         return None
     return [q[i] for i in range(q.rows())]
 
-def contact_compute(sim, model, fingername, tacperception, x_state):
+def contact_compute(sim, model, fingername, tacperception, x_state, cur_angles, robctrl):
     # body jocobian matrix and velocity
     G_contact = np.zeros([6, 6])
     if not tactile_allegro_mujo_const.betterJ_FLAG:
-        kdl_kin0, kdl_kin1, kdl_kin2, kdl_kin3, kdl_tree = robot_control.config_robot_tip_kin()
+        # kdl_kin0, kdl_kin1, kdl_kin2, kdl_kin3 = robot_control.config_robot_tip_kin()
+        kdl_kin0 = robctrl.kdl_kin0
+        kdl_kin1 = robctrl.kdl_kin1
+        kdl_kin2 = robctrl.kdl_kin2
+        kdl_kin3 = robctrl.kdl_kin3
 
     if fingername == 'ff':
         if tactile_allegro_mujo_const.betterJ_FLAG:
             taxel_name0 = tacperception.get_contact_taxel_name(sim, model, 'ff')
-            kdl_kin0 = robcontrol.config_robot(taxel_name0)
-        u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_1],
-                         sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_2],
-                         sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_3],
-                         sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_4]])
-        cur_jnt = np.array([sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_1],
-                            sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_2],
-                            sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_3],
-                            sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_4]])
+            kdl_kin0 = robctrl.config_robot(taxel_name0)
+        cur_jnt = cur_angles[0:4]
+        # u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_1],
+        #                  sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_2],
+        #                  sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_3],
+        #                  sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_4]])
+        # cur_jnt = np.array([sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_1],
+        #                     sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_2],
+        #                     sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_3],
+        #                     sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_4]])
 
         # Get Jacobi J
         Jac = kdl_kin0.jacobian(cur_jnt)
@@ -723,15 +732,16 @@ def contact_compute(sim, model, fingername, tacperception, x_state):
     if fingername == 'mf':
         if tactile_allegro_mujo_const.betterJ_FLAG:
             taxel_name1 = tacperception.get_contact_taxel_name(sim, model, 'mf')
-            kdl_kin1 = robcontrol.config_robot(taxel_name1)
-        u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_1], \
-                             sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_2], \
-                             sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_3], \
-                             sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_4]])
-        cur_jnt = np.array([sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_1], \
-                             sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_2], \
-                             sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_3], \
-                             sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_4]])
+            kdl_kin1 = robctrl.config_robot(taxel_name1)
+        cur_jnt = cur_angles[4:8]
+        # u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_1], \
+        #                      sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_2], \
+        #                      sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_3], \
+        #                      sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_4]])
+        # cur_jnt = np.array([sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_1], \
+        #                      sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_2], \
+        #                      sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_3], \
+        #                      sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_4]])
 
         # Get Jacobi J
         Jac = kdl_kin1.jacobian(cur_jnt)
@@ -750,15 +760,16 @@ def contact_compute(sim, model, fingername, tacperception, x_state):
     if fingername == 'rf':
         if tactile_allegro_mujo_const.betterJ_FLAG:
             taxel_name2 = tacperception.get_contact_taxel_name(sim, model, 'rf')
-            kdl_kin2 = robcontrol.config_robot(taxel_name2)
-        u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_1], \
-                             sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_2], \
-                             sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_3], \
-                             sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_4]])
-        cur_jnt = np.array([sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_1], \
-                             sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_2], \
-                             sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_3], \
-                             sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_4]])
+            kdl_kin2 = robctrl.config_robot(taxel_name2)
+        cur_jnt = cur_angles[8:12]
+        # u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_1], \
+        #                      sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_2], \
+        #                      sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_3], \
+        #                      sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_4]])
+        # cur_jnt = np.array([sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_1], \
+        #                      sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_2], \
+        #                      sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_3], \
+        #                      sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_4]])
         # Get Jacobi J
         Jac = kdl_kin2.jacobian(cur_jnt)
 
@@ -778,15 +789,16 @@ def contact_compute(sim, model, fingername, tacperception, x_state):
     if fingername == 'th':
         if tactile_allegro_mujo_const.betterJ_FLAG:
             taxel_name3 = tacperception.get_contact_taxel_name(sim, model, 'th')
-            kdl_kin3 = robcontrol.config_robot(taxel_name3)
-        u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_1], \
-                             sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_2], \
-                             sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_3], \
-                             sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_4]])
-        cur_jnt = np.array([sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_1], \
-                             sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_2], \
-                             sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_3], \
-                             sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_4]])
+            kdl_kin3 = robctrl.config_robot(taxel_name3)
+        cur_jnt = cur_angles[12:16]
+        # u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_1], \
+        #                      sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_2], \
+        #                      sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_3], \
+        #                      sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_4]])
+        # cur_jnt = np.array([sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_1], \
+        #                      sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_2], \
+        #                      sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_3], \
+        #                      sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_4]])
         # Get Jacobi J
         Jac = kdl_kin3.jacobian(cur_jnt)
 
@@ -801,15 +813,15 @@ def contact_compute(sim, model, fingername, tacperception, x_state):
         else:
             G_contact = np.zeros([6, 6])
 
-
-    return G_contact, Jac, u_t0, cur_jnt
+    return G_contact, Jac
+    # return G_contact, Jac, u_t0, cur_jnt
 
 
 def H_calculator(W1, W2, W3, pos_CO_x, pos_CO_y, pos_CO_z):
     """
     Calculate a 3*6 H matrix
     """
-    print("  W1, W2, W3, pos_CO_x, pos_CO_y, pos_CO_z", W1, W2, W3, pos_CO_x, pos_CO_y, pos_CO_z)
+    # print("  W1, W2, W3, pos_CO_x, pos_CO_y, pos_CO_z", W1, W2, W3, pos_CO_x, pos_CO_y, pos_CO_z)
     H = sy.Matrix([
         [1, 0, 0, pos_CO_x * (
                 W1 * (-W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
@@ -1351,3 +1363,17 @@ def F_calculator_4Ginv(ju):
           F[4, :], "\n",
           F[5, :])
     return F
+
+def vec2rot(vec):
+    rot = np.zeros([3, 3])
+    rot_x = np.zeros(3)
+    x = vec[0]
+    y = vec[1]
+    rot_x[0] = y / (x**2 + y**2)**0.5
+    rot_x[1] = - x / (x**2 + y**2)**0.5
+    rot_y = np.cross(vec, rot_x)
+    rot[:3, 0] = rot_x
+    rot[:3, 1] = rot_y
+    rot[:3, 2] = vec.T
+    print("    vec==rot:", rot)
+    return rot

@@ -31,8 +31,8 @@ class EKF:
         self.J = np.zeros([4, 6, 4])
         self.nor_in_p = np.zeros(3)
         self.G_contact = np.zeros([4, 6, 6])
-        self.u_t_tmp = np.zeros([4, 4])
-        self.angle_tmp = np.zeros([4, 4])
+        # self.u_t_tmp = np.zeros([4, 4])
+        # self.angle_tmp = np.zeros([4, 4])
         self.nor_tmp = np.zeros([4, 3])
         self.count_time = 0
         self.save_count_time = []
@@ -49,7 +49,8 @@ class EKF:
     def set_contact_flag(self, flag):
         self.flag = flag
 
-    def state_predictor(self, sim, model, hand_param, object_param, x_state, tacperception, P_state_cov, last_angle):
+    def state_predictor(self, sim, model, hand_param, object_param, x_state, tacperception, \
+                        P_state_cov, cur_angles, last_angles,robctrl):
         print("state prediction")
         Transfer_Fun_Matrix = np.mat(np.zeros([18, 18]))  # F
         Transfer_Fun_Matrix[:6, :6] = np.mat(np.eye(6))
@@ -61,68 +62,80 @@ class EKF:
         self.fin_num = tacperception.fin_num
         self.fin_tri = tacperception.fin_tri
 
-        # start = time.time()
-
         self.Grasping_matrix = np.zeros([6, 6 * 4])
         for i in range(4):
-            self.G_contact[i, :, :], self.J[i, :, :], self.u_t_tmp[i, :], self.angle_tmp[i, :]\
-                = ug.contact_compute(sim, model, hand_param[i + 1][0], tacperception, x_state)
-            if tactile_allegro_mujo_const.GT_FLAG == '1G':
-                self.Grasping_matrix[:, 0 + i * 6: 6 + i * 6] = self.G_contact[i, :, :]
-            elif tactile_allegro_mujo_const.GT_FLAG == '4G':
-                self.Grasping_matrix[:, 0 + i * 6: 6 + i * 6] = -self.G_contact[i, :, :].T
+            # self.G_contact[i, :, :], self.J[i, :, :], self.u_t_tmp[i, :], self.angle_tmp[i, :]\
+            #     = ug.contact_compute(sim, model, hand_param[i + 1][0], tacperception, x_state)
+            self.G_contact[i, :, :], self.J[i, :, :] \
+                = ug.contact_compute(sim, model, hand_param[i + 1][0], tacperception, x_state, cur_angles,robctrl)
+            self.Grasping_matrix[:, 0 + i * 6: 6 + i * 6] = self.G_contact[i, :, :]
 
-        ############### Form hand Jacobian matrix from contact information #################
+            # if tactile_allegro_mujo_const.GT_FLAG == '1G':
+            #     self.Grasping_matrix[:, 0 + i * 6: 6 + i * 6] = self.G_contact[i, :, :]
+            # elif tactile_allegro_mujo_const.GT_FLAG == '4G':
+            #     self.Grasping_matrix[:, 0 + i * 6: 6 + i * 6] = -self.G_contact[i, :, :].T
+
+        ############### Form hand Jacobian matrix #################
         self.J_fingers = np.zeros([6 * 4, 4 * 4])
         for i in range(4):
             self.J_fingers[0 + i * 6: 6 + i * 6, 0 + i * 4: 4 + i * 4] = self.J[i, :, :]
 
-        ############# form action - u_t #################
-        self.u_t = np.zeros(4 * 4)
-        for i in range(4):
-            if tacperception.fin_tri[i] == 1:
-                self.u_t[0 + i * 4: 4 + i * 4] = self.u_t_tmp[i]
-            else:
-                self.u_t[0 + i * 4: 4 + i * 4] = np.zeros(4)
-        print("  contact_num & ut:", tacperception.fin_num, '   ', self.u_t)
-        ############# form action - angles #################
-        self.angles = np.zeros(4 * 4)
-        for i in range(4):
-            if tacperception.fin_tri[i] == 1:
-                self.angles[0 + i * 4: 4 + i * 4] = self.angle_tmp[i]
-            else:
-                self.angles[0 + i * 4: 4 + i * 4] = np.zeros(4)
+        # ############# form action - u_t #################
+        # self.u_t = np.zeros(4 * 4)
+        # for i in range(4):
+        #     if tacperception.fin_tri[i] == 1:
+        #         self.u_t[0 + i * 4: 4 + i * 4] = self.u_t_tmp[i]
+        #     else:
+        #         self.u_t[0 + i * 4: 4 + i * 4] = np.zeros(4)
 
-        G_pinv = self.Grasping_matrix  # 4 GT_inv splice a big G
+        # ############# form action - angles #################
+        # self.angles = np.zeros(4 * 4)
+        # for i in range(4):
+        #     if tacperception.fin_tri[i] == 1:
+        #         self.angles[0 + i * 4: 4 + i * 4] = self.angle_tmp[i]
+        #     else:
+        #         self.angles[0 + i * 4: 4 + i * 4] = np.zeros(4)
+
+        inv_tmp = np.zeros([6, 6])
         if tactile_allegro_mujo_const.GT_FLAG == '1G':  # 4 G splice and calculate big GT_pinv
             G_pinv = np.linalg.pinv(self.Grasping_matrix.T)  # Get G_pinv
+        elif tactile_allegro_mujo_const.GT_FLAG == '4G':
+            for i in range(4):
+                inv_tmp = self.Grasping_matrix[:, 0 + i * 6: 6 + i * 6]
+                Y_RU = np.copy(inv_tmp[0:3, 3:6])
+                Y_LD = np.copy(inv_tmp[3:6, 0:3])
+                inv_tmp[0:3, 3:6] = Y_LD
+                inv_tmp[3:6, 0:3] = Y_RU
+                G_pinv[:, 0 + i * 6: 6 + i * 6] = inv_tmp  # 4 GT_inv splice a big G
         # prediction = np.matmul(np.matmul(G_pinv, self.J_fingers), self.u_t)
-        delta_angles = self.angles - last_angle
+        # delta_angles = self.angles - last_angle
+        delta_angles = cur_angles - last_angles
+        ju = np.matmul(self.J_fingers, delta_angles)
 
         """ Exchange z and x of ju_rotvec (must exchange rot matrix's 1th, 3rd col) """
-        ju = np.matmul(self.J_fingers, delta_angles)
-        ju_rot1 = Rotation.from_rotvec(ju[3:6]).as_matrix()
-        ju_rot2 = Rotation.from_rotvec(ju[9:12]).as_matrix()
-        ju_rot3 = Rotation.from_rotvec(ju[15:18]).as_matrix()
-        ju_rot4 = Rotation.from_rotvec(ju[21:24]).as_matrix()
-        ju_tmp = np.array([[0, 0, 1],
-                           [0, 1, 0],
-                           [1, 0, 0]])
-        ju_rot1 = np.matmul(ju_rot1, ju_tmp)
-        ju_rot2 = np.matmul(ju_rot2, ju_tmp)
-        ju_rot3 = np.matmul(ju_rot3, ju_tmp)
-        ju_rot4 = np.matmul(ju_rot4, ju_tmp)
-        ju[3:6] = Rotation.from_matrix(ju_rot1).as_rotvec()
-        ju[9:12] = Rotation.from_matrix(ju_rot2).as_rotvec()
-        ju[15:18] = Rotation.from_matrix(ju_rot3).as_rotvec()
-        ju[21:24] = Rotation.from_matrix(ju_rot4).as_rotvec()
+        # ju_rot1 = Rotation.from_rotvec(ju[3:6]).as_matrix()
+        # ju_rot2 = Rotation.from_rotvec(ju[9:12]).as_matrix()
+        # ju_rot3 = Rotation.from_rotvec(ju[15:18]).as_matrix()
+        # ju_rot4 = Rotation.from_rotvec(ju[21:24]).as_matrix()
+        # ju_tmp = np.array([[0, 0, 1],
+        #                    [0, 1, 0],
+        #                    [1, 0, 0]])
+        # ju_rot1 = np.matmul(ju_rot1, ju_tmp)
+        # ju_rot2 = np.matmul(ju_rot2, ju_tmp)
+        # ju_rot3 = np.matmul(ju_rot3, ju_tmp)
+        # ju_rot4 = np.matmul(ju_rot4, ju_tmp)
+        # ju[3:6] = Rotation.from_matrix(ju_rot1).as_rotvec()
+        # ju[9:12] = Rotation.from_matrix(ju_rot2).as_rotvec()
+        # ju[15:18] = Rotation.from_matrix(ju_rot3).as_rotvec()
+        # ju[21:24] = Rotation.from_matrix(ju_rot4).as_rotvec()
         # prediction = np.matmul(np.matmul(G_pinv, self.J_fingers), self.u_t * 0.15)
         prediction = np.matmul(G_pinv, ju)
         if tactile_allegro_mujo_const.GT_FLAG == '4G':
             Transfer_Fun_Matrix[:6, :6] = ug.F_calculator_4Ginv(ju=ju)
 
-        prediction[:3] = (x_state[:3].T + np.matmul(rot_obj_palm, prediction[:3].T)).T
-        prediction[3:6] = np.matmul(rot_obj_palm, prediction[3:6].T).T
+        # prediction[:3] = (x_state[:3].T + np.matmul(rot_obj_palm, prediction[:3].T)).T
+        # prediction[3:6] = np.matmul(rot_obj_palm, prediction[3:6].T).T
+
         prediction = np.append(prediction, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
         x_bar = x_state + 1/tacperception.fin_num*prediction
         x_bar = np.ravel(x_bar)
@@ -130,10 +143,10 @@ class EKF:
         P_state_cov = Transfer_Fun_Matrix * P_state_cov * \
                       Transfer_Fun_Matrix.transpose() + Q_state_noise_cov
 
-        return x_bar, P_state_cov, ju, self.angles
+        return x_bar, P_state_cov
 
     def observe_computation(self, x_bar, tacperception, sim):
-        print('measurement equation computation', x_bar.shape)
+        print('measurement equation computation')
         contact_position = []
         contact_nv = []
         self.fin_num = tacperception.fin_num
@@ -169,6 +182,7 @@ class EKF:
         contact_nv = []
         self.fin_num = tacperception.fin_num
         self.fin_tri = tacperception.fin_tri
+
         for i in range(4):
             if tacperception.fin_tri[i] == 1:
                 contact_position.append((tacperception.get_contact_taxel_position(sim, model, \
@@ -196,7 +210,7 @@ class EKF:
         normal_c2 = og.surface_cup(pos_c2[0], pos_c2[1], pos_c2[2])[0]  # the normal of contact point in {O}
         normal_c3 = og.surface_cup(pos_c3[0], pos_c3[1], pos_c3[2])[0]  # the normal of contact point in {O}
         normal_c4 = og.surface_cup(pos_c4[0], pos_c4[1], pos_c4[2])[0]  # the normal of contact point in {O}
-        print("  normal_c1:", normal_c1)
+        # print("  normal_c1:", normal_c1)
         pn_flag = tactile_allegro_mujo_const.PN_FLAG
         if pn_flag == 'pn':  # use pos and normal as observation variable
             J_h = np.zeros([6 * 4, 6 + 4 * 3])
@@ -238,7 +252,7 @@ class EKF:
               np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi)
         h_t[:3] = -h_t[:3]
         Update = np.matmul(K_t, (z_t - h_t))
-        print("/////Check z, h:", z_t, h_t, "\ndis:", (z_t - h_t))
+        # print("/////Check z, h:", z_t, h_t, "\ndis:", (z_t - h_t))
         x_hat = x_bar + Update
         P_state_cov = (np.eye(6 + 4 * 3) - K_t @ J_h) @ P_state_cov
         return x_hat, P_state_cov

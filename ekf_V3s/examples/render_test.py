@@ -4,11 +4,11 @@ from mujoco_py import load_model_from_path, MjSim, MjViewer, const
 from pykdl_utils.kdl_kinematics import KDLKinematics
 from pykdl_utils.kdl_parser import kdl_tree_from_urdf_model
 from urdf_parser_py.urdf import URDF
-import fcl
-import fcl_python
-import func as f
-import func2 as f2
+import util_geometry as ug
+import mujoco_environment as mu_env
+import robot_control as robcontrol
 import tactile_allegro_mujo_const
+import viz
 
 #used for configure parameters
 import sys
@@ -74,13 +74,13 @@ model = load_model_from_path(xml_path)
 sim = MjSim(model)
 viewer = MjViewer(sim)
 
-pose_cup = f.get_body_posquat(sim, object_param[0])
-trans_cup = f.posquat2trans(pose_cup)
+pose_cup = ug.get_body_posquat(sim, object_param[0])
+trans_cup = ug.posquat2trans(pose_cup)
 trans_pregrasp = np.array([[0, 0, 1, 0.1],  # cup参考系
                            [0, 1, 0, -0.23],
                            [-1, 0, 0, 0.07],
                            [0, 0, 0, 1]])
-posequat = f.get_prepose_posequat(trans_cup, trans_pregrasp)  # 转为世界参考系
+posequat = ug.get_prepose_posequat(trans_cup, trans_pregrasp)  # 转为世界参考系
 print("INIT:", posequat)
 ctrl_wrist_pos = posequat[:3]
 ctrl_wrist_quat = posequat[3:]
@@ -105,46 +105,46 @@ kdl_tree = kdl_tree_from_urdf_model(robot)
 
 def interacting(hand_param):
     global err_all
-    f2.pre_thumb(sim, viewer)  # Thumb root movement
+    robcontrol.pre_thumb(sim, viewer)  # Thumb root movement
     # Fast
     for ii in range(37):
         if hand_param[1][1] == '1':
-            f2.index_finger(sim, 0.015, 0.00001)
+            robcontrol.index_finger(sim, 0.015, 0.00001)
         if hand_param[2][1] == '1':
-            f2.middle_finger(sim, 0.015, 0.00001)
+            robcontrol.middle_finger(sim, 0.015, 0.00001)
         if hand_param[3][1] == '1':
-            f2.little_thumb(sim, 0.015, 0.001)
+            robcontrol.ring_finger(sim, 0.015, 0.001)
     # Slow Down whether any array element along a given axis evaluates to True.
     for ij in range(300):
         if hand_param[1][1] == '1':
-            f2.index_finger(sim, 0.0055, 0.004)
+            robcontrol.index_finger(sim, 0.0055, 0.004)
         if hand_param[2][1] == '1':
-            f2.middle_finger(sim, 0.0036, 0.003)
+            robcontrol.middle_finger(sim, 0.0036, 0.003)
         if hand_param[3][1] == '1':
-            f2.little_thumb(sim, 0.0032, 0.0029)
+            robcontrol.ring_finger(sim, 0.0032, 0.0029)
         if hand_param[4][1] == '1':
-            f2.thumb(sim, 0.003, 0.003)
+            robcontrol.thumb(sim, 0.003, 0.003)
         sim.step()
         viewer.render()
 
     # Rotate
     for ij in range(300):
         if hand_param[1][1] == '1':
-            f2.index_finger(sim, 0.0055, 0.0038)
+            robcontrol.index_finger(sim, 0.0055, 0.0038)
         if hand_param[2][1] == '1':
-            f2.middle_finger(sim, 0.0003, 0.003)
+            robcontrol.middle_finger(sim, 0.0003, 0.003)
         if hand_param[3][1] == '1':
-            f2.little_thumb(sim, 0.0005, 0.005)
+            robcontrol.ring_finger(sim, 0.0005, 0.005)
         if hand_param[4][1] == '1':
-            f2.thumb(sim, 0.003, 0.003)
+            robcontrol.thumb(sim, 0.003, 0.003)
         sim.step()
         viewer.render()
 
 
 ############################>>>>>>>>>>>>>>>    MAIN LOOP    <<<<<<<<<<<<<###############################################
 
-f2.robot_init(sim)
-f2.Camera_set(viewer, model)
+robcontrol.robot_init(sim)
+mu_env.Camera_set(viewer, model)
 sim.model.eq_active[0] = True
 for i in range(500):
     sim.step()

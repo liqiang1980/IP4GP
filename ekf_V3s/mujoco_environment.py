@@ -29,6 +29,11 @@ def init_robot_object_mujoco(sim, object_param):
                                [0, 1, 0, -0.23],
                                [-1, 0, 0, 0.07],
                                [0, 0, 0, 1]])
+
+    # trans_pregrasp = np.array([[0, 0, 1, 0.1],
+    #                            [0, 1, 0, -0.23],
+    #                            [-1, 0, 0, 0.02],
+    #                            [0, 0, 0, 1]])
     # ref: palm
     posequat = ug.get_prepose_posequat(trans_cup, trans_pregrasp)
 

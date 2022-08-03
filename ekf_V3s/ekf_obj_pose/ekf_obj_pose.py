@@ -21,7 +21,8 @@ grasping_ekf.set_store_flag(alg_param[0])
 tacperception = tactile_perception.cls_tactile_perception()
 
 # init robot
-robcontrol.robot_init(sim)
+rob_control = robcontrol.ROBCTRL()
+rob_control.robot_init(sim)
 mu_env.Camera_set(viewer, model)
 sim.model.eq_active[0] = True
 
@@ -37,5 +38,5 @@ for _ in range(50):
     viewer.render()
 
 # start interaction
-robcontrol.interaction(sim, model, viewer, \
+rob_control.interaction(sim, model, viewer, \
                        hand_param, object_param, alg_param, grasping_ekf, tacperception)

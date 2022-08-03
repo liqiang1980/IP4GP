@@ -6,7 +6,7 @@ import copy
 import xml.etree.ElementTree as ET
 
 coe = np.array([129.4, 1.984, 139., -0.666, 0.32, -0.207])  # 6 coefficients of the surface
-xml_path = "/home/lqg/PycharmProjects/EKF_v5/allegro_hand_description/UR5_allegro_test.xml"
+xml_path = "../../EKF_V5/allegro_hand_description/UR5_allegro_test.xml"
 xml_tree = ET.parse(xml_path)
 xml_root = xml_tree.getroot()
 
@@ -877,5 +877,5 @@ def vec2rot(vec):
     rot[:3, 0] = rot_x
     rot[:3, 1] = rot_y
     rot[:3, 2] = vec.T
-    print("    vec==rot:", rot)
+    # print("    vec==rot:", rot)
     return rot

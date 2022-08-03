@@ -85,10 +85,6 @@ print("INIT:", posequat)
 ctrl_wrist_pos = posequat[:3]
 ctrl_wrist_quat = posequat[3:]
 
-q_pos_pre = np.array([sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_1],\
-                      sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_2],\
-                      sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_3],\
-                      sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_4]])
 
 # kinematic chain for all fingers
 robot = URDF.from_xml_file('../../robots/UR5_allegro_hand_right.urdf')
@@ -114,6 +110,7 @@ def interacting(hand_param):
             f2.middle_finger_vel(sim, 0.015, 0.00001)
         if hand_param[3][1] == '1':
             f2.little_thumb(sim, 0.015, 0.001)
+
     # Slow Down whether any array element along a given axis evaluates to True.
     for ij in range(300):
         if hand_param[1][1] == '1':
@@ -124,6 +121,13 @@ def interacting(hand_param):
             f2.little_thumb(sim, 0.0032, 0.0029)
         if hand_param[4][1] == '1':
             f2.thumb(sim, 0.003, 0.003)
+
+        q_pos_pre = np.array([sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_1], \
+                              sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_2], \
+                              sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_3], \
+                              sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_4]])
+
+        print("q_pos_pre ", q_pos_pre)
         sim.step()
         viewer.render()
 
