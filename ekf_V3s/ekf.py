@@ -58,7 +58,7 @@ class EKF:
         Q_state_noise_cov = np.zeros([18, 18])
 
         x_state = np.ravel(x_state)
-        rot_obj_palm = Rotation.from_rotvec(x_state[3:6]).as_matrix()
+        # rot_obj_palm = Rotation.from_rotvec(x_state[3:6]).as_matrix()
         self.fin_num = tacperception.fin_num
         self.fin_tri = tacperception.fin_tri
 
@@ -143,7 +143,8 @@ class EKF:
         P_state_cov = Transfer_Fun_Matrix * P_state_cov * \
                       Transfer_Fun_Matrix.transpose() + Q_state_noise_cov
 
-        return x_bar, P_state_cov
+        #ju is only for debugging
+        return x_bar, P_state_cov, ju
 
     def observe_computation(self, x_bar, tacperception, sim):
         print('measurement equation computation')

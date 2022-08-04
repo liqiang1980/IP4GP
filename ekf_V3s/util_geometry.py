@@ -1364,16 +1364,22 @@ def F_calculator_4Ginv(ju):
           F[5, :])
     return F
 
+def normalize(v):
+    norm = np.linalg.norm(v)
+    if norm == 0:
+       return v
+    return v / norm
 def vec2rot(vec):
     rot = np.zeros([3, 3])
     rot_x = np.zeros(3)
-    x = vec[0]
-    y = vec[1]
+    vec_normalize = normalize(vec)
+    x = vec_normalize[0]
+    y = vec_normalize[1]
     rot_x[0] = y / (x**2 + y**2)**0.5
     rot_x[1] = - x / (x**2 + y**2)**0.5
-    rot_y = np.cross(vec, rot_x)
+    rot_y = np.cross(vec_normalize, rot_x)
     rot[:3, 0] = rot_x
     rot[:3, 1] = rot_y
-    rot[:3, 2] = vec.T
-    print("    vec==rot:", rot)
+    rot[:3, 2] = vec_normalize.T
+    # print("    vec==rot:", rot)
     return rot

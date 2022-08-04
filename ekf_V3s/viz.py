@@ -2,13 +2,30 @@ import util_geometry as ug
 import numpy as np
 from mujoco_py import const
 
+def cor_frame_visual(viewer, position, mat_rot, length, frame_name):
+    x_rot = ug.vec2rot(mat_rot[:, 0])
+    y_rot = ug.vec2rot(mat_rot[:, 1])
+    z_rot = ug.vec2rot(mat_rot[:, 2])
+    viewer.add_marker(pos=position, mat=x_rot, type=const.GEOM_ARROW, label=frame_name,
+                      size=np.array([0.001, 0.001, length]), rgba=np.array([1.0, 0.0, 0.0, 1.0]))
+    viewer.add_marker(pos=position, mat=y_rot, type=const.GEOM_ARROW, label=frame_name,
+                      size=np.array([0.001, 0.001, length]), rgba=np.array([0.0, 1.0, 0.0, 1.0]))
+    viewer.add_marker(pos=position, mat=z_rot, type=const.GEOM_ARROW, label=frame_name,
+                      size=np.array([0.001, 0.001, length]), rgba=np.array([0.0, 0.0, 1.0, 1.0]))
+
 def geo_visual(viewer, position, mat_rot, length, geo_type, finger_id, c_semantic):
     if geo_type == const.GEOM_ARROW:
+        # print('coordinate position ', position)
+        # print('coordinate rotation ', mat_rot)
         viewer.add_marker(pos=position, mat=mat_rot, type=geo_type, label="vec " + str(finger_id) + c_semantic,
                       size=np.array([0.001, 0.001, length]), rgba=np.array([1.0, 0.0, 0.0, 1.0]))
     if geo_type == const.GEOM_BOX:
-        viewer.add_marker(pos=position, mat=mat_rot, type=geo_type, label="point" + str(finger_id) + c_semantic,
-                      size=np.array([0.001, 0.001, 0.001]), rgba=np.array([0.0, 1.0, 0.0, 1.0]))
+        if c_semantic == 'h':
+            viewer.add_marker(pos=position, mat=mat_rot, type=geo_type, label="point" + str(finger_id) + c_semantic,
+                      size=np.array([length, length, length]), rgba=np.array([0.0, 1.0, 0.0, 1.0]))
+        if c_semantic == 'z':
+            viewer.add_marker(pos=position, mat=mat_rot, type=geo_type, label="point" + str(finger_id) + c_semantic,
+                      size=np.array([length, length, length]), rgba=np.array([0.0, 0.0, 1.0, 1.0]))
 
 def touch_visual(sim, model, viewer, a):
     global max_size
