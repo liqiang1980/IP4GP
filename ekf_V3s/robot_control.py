@@ -14,7 +14,7 @@ import viz
 class ROBCTRL:
 
     def __init__(self):
-        robot = URDF.from_xml_file('../../robots/UR5_allegro_hand_right.urdf')
+        robot = URDF.from_xml_file('../../robots/allegro_hand_right_with_tactile.urdf')
         # first finger
         self.kdl_kin0 = KDLKinematics(robot, "palm_link", "link_3.0_tip")
         # middle finger
@@ -168,8 +168,8 @@ class ROBCTRL:
 
     def config_robot(self, taxel_name):
         # kinematic chain for all fingers
-        robot = URDF.from_xml_file("../../robots/allegro_hand_tactile_v1.4.urdf")
-        kdl_kin = KDLKinematics(robot, "palm_link", taxel_name)
+        robot = URDF.from_xml_file("../../robots/allegro_hand_right_with_tactile.urdf")
+        kdl_kin = KDLKinematics(self.robot, "palm_link", taxel_name)
         return kdl_kin
 
     def update_augmented_state(self, sim, model, hand_param, tacperception, x_state):
@@ -363,7 +363,6 @@ class ROBCTRL:
                 np.savetxt('x_gt.txt', self.x_gt)
                 #
                 h_t_position, h_t_nv = ekf_grasping.observe_computation(x_bar, tacperception, sim)
-
                 #
                 z_t_position, z_t_nv = ekf_grasping.measure_fb(sim, model, hand_param, object_param, \
                                                            x_bar, tacperception)
