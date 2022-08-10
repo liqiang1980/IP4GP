@@ -687,6 +687,14 @@ def posquat2posrotvec(posquat):
     posrotvec[3:] = Rotation.from_quat(_quat).as_rotvec()
     return posrotvec
 
+def posquat2pos_p_o(posquat):
+    # pos_p = np.zeros(3)
+    # pos_o = np.zeros(3, 3)
+    pos_p = posquat[:3]
+    _quat = np.hstack((posquat[4:], posquat[3]))
+    pos_o = Rotation.from_quat(_quat).as_matrix()
+    return pos_p, pos_o
+
 
 def joint_kdl_to_list(q):
     if q == None:

@@ -14,15 +14,16 @@ import viz
 class ROBCTRL:
 
     def __init__(self):
-        robot = URDF.from_xml_file('../../robots/allegro_hand_right_with_tactile.urdf')
+        # self.robot = URDF.from_xml_file('../../robots/UR5_allegro_hand_right.urdf')
+        self.robot = URDF.from_xml_file('../../robots/allegro_hand_right_with_tactile.urdf')
         # first finger
-        self.kdl_kin0 = KDLKinematics(robot, "palm_link", "link_3.0_tip")
+        self.kdl_kin0 = KDLKinematics(self.robot, "palm_link", "link_3.0_tip")
         # middle finger
-        self.kdl_kin1 = KDLKinematics(robot, "palm_link", "link_7.0_tip")
+        self.kdl_kin1 = KDLKinematics(self.robot, "palm_link", "link_7.0_tip")
         # ring finger
-        self.kdl_kin2 = KDLKinematics(robot, "palm_link", "link_11.0_tip")
+        self.kdl_kin2 = KDLKinematics(self.robot, "palm_link", "link_11.0_tip")
         # thumb
-        self.kdl_kin3 = KDLKinematics(robot, "palm_link", "link_15.0_tip")
+        self.kdl_kin3 = KDLKinematics(self.robot, "palm_link", "link_15.0_tip")
         self.ct_g_z_position = [0, 0, 0]
         self.ct_p_z_position = [0, 0, 0]
         self.x_bar_all = [0, 0, 0, 0, 0, 0]
@@ -103,6 +104,47 @@ class ROBCTRL:
             sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_4] = \
                 sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_4] + input2
 
+    def thumb_zero(self, sim, viewer):
+        for _ in range(200):
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_1] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_2] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] = 0
+            sim.step()
+            viewer.render()
+    def ff_zero(self, sim, viewer):
+        for _ in range(200):
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_1] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] = 0
+            sim.step()
+            viewer.render()
+
+    def mf_zero(self, sim, viewer):
+        for _ in range(200):
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_1] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_3] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_4] = 0
+            sim.step()
+            viewer.render()
+
+    def rf_zero(self, sim, viewer):
+        for _ in range(200):
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_1] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_2] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_3] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_4] = 0
+            sim.step()
+            viewer.render()
+
+    def hand_zero(self, sim, viewer):
+        self.thumb_zero(sim, viewer)
+        self.ff_zero(sim, viewer)
+        self.mf_zero(sim, viewer)
+        self.rf_zero(sim, viewer)
+
 
     def pre_thumb(self, sim, viewer):
         for _ in range(1000):
@@ -149,7 +191,6 @@ class ROBCTRL:
                             sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_2],
                             sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_3],
                             sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_4]])
-        # print("cur jnt ", cur_jnt)
         return cur_jnt
 
     # def config_robot_tip_kin():
@@ -168,7 +209,7 @@ class ROBCTRL:
 
     def config_robot(self, taxel_name):
         # kinematic chain for all fingers
-        robot = URDF.from_xml_file("../../robots/allegro_hand_right_with_tactile.urdf")
+        # self.robot = URDF.from_xml_file("../../robots/allegro_hand_right_with_tactile.urdf")
         kdl_kin = KDLKinematics(self.robot, "palm_link", taxel_name)
         return kdl_kin
 
@@ -393,7 +434,7 @@ class ROBCTRL:
                         #from vel generate frame
                         vel_frame = ug.vec2rot(np.matmul(T_palm_world[:3, :3], ju_all[6*i: 6*i+3]))
                         print('vel_frame determinant ', np.linalg.det(vel_frame))
-                        # viz.geo_visual(viewer, pos_zt_world, vel_frame, 0.1, tactile_allegro_mujo_const.GEOM_ARROW, i, "z_vel")
+                        viz.geo_visual(viewer, pos_zt_world, vel_frame, 0.1, tactile_allegro_mujo_const.GEOM_ARROW, i, "z_vel")
 
                         self.ct_p_z_position = np.vstack((self.ct_p_z_position, pos_zt_palm))
                         self.ct_g_z_position = np.vstack((self.ct_g_z_position, pos_zt_world))
