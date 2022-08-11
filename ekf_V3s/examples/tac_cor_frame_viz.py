@@ -45,15 +45,22 @@ rob_control.hand_zero(sim, viewer)
 np.set_printoptions(suppress=True)
 angles = rob_control.get_cur_jnt(sim)
 
-pose_tac_test_tip = ug.get_relative_posquat(sim, "world", "touch_0_3_3")
-pos_p, pos_o = ug.posquat2pos_p_o(pose_tac_test_tip)
-print('******************tac pose_p in mujoco xml', pos_p)
+pose_tac_test = ug.get_relative_posquat(sim, "world", "touch_0_3_3")
+tac_pos_p, tac_pos_o = ug.posquat2pos_p_o(pose_tac_test)
+print('******************tac pose_p in mujoco xml', tac_pos_p)
 print('******************tac pose_o in mujoco xml ')
-print(pos_o)
+print(tac_pos_o)
+
+pose_tip_test = ug.get_relative_posquat(sim, "world", "link_3.0_tip")
+tip_pos_p, tip_pos_o = ug.posquat2pos_p_o(pose_tip_test)
+print('******************ff tip pose_p in mujoco xml', tip_pos_p)
+print('******************ff tip pose_o in mujoco xml ')
+print(tip_pos_o)
 
 
 for _ in range(5000):
-    viz.cor_frame_visual(viewer, pos_p, pos_o, 0.1, 'tax_frame')
+    viz.cor_frame_visual(viewer, tac_pos_p, tac_pos_o, 0.1, 'tax_frame')
+    viz.cor_frame_visual(viewer, tip_pos_p, tip_pos_o, 0.1, 'tip_frame')
     sim.step()
     viewer.render()
 

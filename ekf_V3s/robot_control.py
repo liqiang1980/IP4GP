@@ -145,6 +145,46 @@ class ROBCTRL:
         self.mf_zero(sim, viewer)
         self.rf_zero(sim, viewer)
 
+    def thumb_pregrasp(self, sim, viewer):
+        for _ in range(200):
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_1] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_2] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] = 0
+            sim.step()
+            viewer.render()
+    def ff_pregrasp(self, sim, viewer):
+        for _ in range(2000):
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_1] = 0.5
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] = 0.2
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] = 0.2
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] = 1.3
+            sim.step()
+            viewer.render()
+
+    def mf_pregrasp(self, sim, viewer):
+        for _ in range(200):
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_1] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_3] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_4] = 0
+            sim.step()
+            viewer.render()
+
+    def rf_pregrasp(self, sim, viewer):
+        for _ in range(200):
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_1] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_2] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_3] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_4] = 0
+            sim.step()
+            viewer.render()
+    def hand_pregrasp(self, sim, viewer):
+        self.thumb_pregrasp(sim, viewer)
+        self.ff_pregrasp(sim, viewer)
+        self.mf_pregrasp(sim, viewer)
+        self.rf_pregrasp(sim, viewer)
+
 
     def pre_thumb(self, sim, viewer):
         for _ in range(1000):
