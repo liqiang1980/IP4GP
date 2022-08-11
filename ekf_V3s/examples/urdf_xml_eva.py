@@ -20,7 +20,7 @@ kdl_kin1 = KDLKinematics(robot, "palm_link", "link_7.0_tip")
 kdl_kin2 = KDLKinematics(robot, "palm_link", "link_11.0_tip")
 kdl_kin3 = KDLKinematics(robot, "palm_link", "link_15.0_tip")
 
-kdl_kin_tac_test = KDLKinematics(robot, "palm_link", "link_3.0_tip_tactile_14")
+kdl_kin_tac_test = KDLKinematics(robot, "palm_link", "touch_0_3_3")
 
 # init mujoco environment
 model, sim, viewer = mu_env.init_mujoco()
