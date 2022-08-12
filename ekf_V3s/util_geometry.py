@@ -104,6 +104,37 @@ def get_relative_posquat_geom(sim, src, tgt):
     srcHtgt = np.matmul(np.linalg.inv(trans_src), trans_tgt)
     return trans2posquat(srcHtgt)
 
+def pose_trans_palm_to_world(sim, position, orien):
+    quat = sim.data.get_body_xquat("palm_link")
+    quat = np.hstack((quat[1:], quat[0]))  # Change to x y z w
+    palm_rot = Rotation.from_quat(quat).as_matrix()
+    palm_position = sim.data.get_body_xpos("palm_link")
+    p_ret = palm_position + np.matmul(palm_rot, position)
+    o_ret = np.matmul(palm_rot, orien)
+    return p_ret, o_ret
+def pose_trans_world_to_palm(sim, position, orien):
+    quat = sim.data.get_body_xquat("palm_link")
+    quat = np.hstack((quat[1:], quat[0]))  # Change to x y z w
+    palm_rot = Rotation.from_quat(quat).as_matrix()
+    palm_position = sim.data.get_body_xpos("palm_link")
+
+    p_ret = np.matmul(palm_rot.transpose(), position - palm_position)
+    o_ret = np.matmul(orien,palm_rot.transpose())
+    return p_ret, o_ret
+
+def vec_world_to_palm(sim, vec):
+    quat = sim.data.get_body_xquat("palm_link")
+    quat = np.hstack((quat[1:], quat[0]))  # Change to x y z w
+    palm_rot = Rotation.from_quat(quat).as_matrix()
+    v_ret = np.matmul(palm_rot.transpose(), vec)
+    return v_ret
+
+def vec_palm_to_world(sim, vec):
+    quat = sim.data.get_body_xquat("palm_link")
+    quat = np.hstack((quat[1:], quat[0]))  # Change to x y z w
+    palm_rot = Rotation.from_quat(quat).as_matrix()
+    v_ret = np.matmul(palm_rot, vec)
+    return v_ret
 
 # 获得相对的位置姿态的四元数
 # outputs: position, rotation:w x y z
