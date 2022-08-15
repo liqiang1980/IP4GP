@@ -434,36 +434,63 @@ class ROBCTRL:
         self.rf_zero(sim, viewer)
 
     def thumb_pregrasp(self, sim, viewer):
-        for _ in range(500):
-            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_1] = 0.5
+        for _ in range(50):
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_1] = 0
             sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_2] = 0
             sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] = 0
             sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] = 0
             sim.step()
             viewer.render()
     def ff_pregrasp(self, sim, viewer):
-        for _ in range(2000):
+        for _ in range(20):
             sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_1] = 0
-            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] = 0.2
-            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] = 0.2
-            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] = 0.8
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] = 0
             sim.step()
             viewer.render()
 
     def mf_pregrasp(self, sim, viewer):
         for _ in range(500):
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_1] = 0
-            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] = 0.2
-            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_3] = 0.6
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] = 1.2
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_3] = 1
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_4] = 0
             sim.step()
             viewer.render()
 
-    def rf_pregrasp(self, sim, viewer):
-        for _ in range(500):
+    def rf_move_taxels_render(self, sim, model, viewer, hand_param, tacperception):
+        for _ in range(2000):
             sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_1] = 0
-            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_2] = 0.5
-            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_3] = 0.8
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_2] = 0.9
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_3] = 1
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_4] = 1
+            flag_rf = tacperception.is_finger_contact(sim, hand_param[3][0])
+            if flag_rf == True:
+                taxels_id = tacperception.get_contact_taxel_id(sim, 'rf')
+                # taxels_id[0] + 288 includes all active taxels id
+                viz.active_taxels_visual(sim, model, viewer, taxels_id[0] + 288)
+            sim.step()
+            viewer.render()
+    def mf_move_taxels_render(self, sim, model, viewer, hand_param, tacperception):
+        for _ in range(2000):
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_1] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] = 0.9
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_3] = 1
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_4] = 1
+            flag_mf = tacperception.is_finger_contact(sim, hand_param[2][0])
+            if flag_mf == True:
+                taxels_id = tacperception.get_contact_taxel_id(sim, 'mf')
+                # print("taxel names are", taxels_id[0] + 144)
+                # taxels_id[0] + 144 includes all active taxels id
+                viz.active_taxels_visual(sim, model, viewer, taxels_id[0] + 144)
+            sim.step()
+            viewer.render()
+    def rf_pregrasp(self, sim, viewer):
+        for _ in range(50):
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_1] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_2] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_3] = 0
             sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_4] = 0
             sim.step()
             viewer.render()

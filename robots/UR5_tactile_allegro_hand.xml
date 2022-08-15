@@ -3874,10 +3874,10 @@ Control Engineering / Automation Engineering
         <position name='finger_6_0' ctrllimited="true" ctrlrange="-0.174 1.709" joint='joint_6.0'/>
         <position name='finger_7_0' ctrllimited="true" ctrlrange="-0.227 1.618" joint='joint_7.0'/> -->
 
-        <position name='finger_8_0' ctrllimited="true" ctrlrange="-0.47 0.47" joint='joint_8.0'/>
-        <position name='finger_9_0' ctrllimited="true" ctrlrange="-0.196 1.61" joint='joint_9.0'/>
-        <position name='finger_10_0' ctrllimited="true" ctrlrange="-0.174 1.709" joint='joint_10.0'/>
-        <position name='finger_11_0' ctrllimited="true" ctrlrange="-0.227 1.618" joint='joint_11.0'/>
+        <position name='finger_8_0' ctrllimited="true" kp="20" ctrlrange="-0.47 0.47" joint='joint_8.0'/>
+        <position name='finger_9_0' ctrllimited="true" kp="20" ctrlrange="-0.196 1.61" joint='joint_9.0'/>
+        <position name='finger_10_0' ctrllimited="true" kp="20" ctrlrange="-0.174 1.709" joint='joint_10.0'/>
+        <position name='finger_11_0' ctrllimited="true" kp="20" ctrlrange="-0.227 1.618" joint='joint_11.0'/>
 
         <position name='finger_12_0' ctrllimited="true" kp="20" ctrlrange="0.263 1.396" joint='joint_12.0'/>
         <position name='finger_13_0' ctrllimited="true" kp="50" ctrlrange="-0.105 1.163" joint='joint_13.0'/>
