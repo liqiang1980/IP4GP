@@ -1,15 +1,17 @@
 import numpy as np
 import tactile_allegro_mujo_const
 from pykdl_utils.kdl_kinematics import KDLKinematics
+from pykdl_utils.kdl_kinematics import joint_kdl_to_list
 from pykdl_utils.kdl_parser import kdl_tree_from_urdf_model
 from urdf_parser_py.urdf import URDF
 import util_geometry as ug
 import time
-import qgFunc as qg
 import fcl
 from scipy.spatial.transform import Rotation
 
 import viz
+import PyKDL as kdl
+from mujoco_py import const
 
 class ROBCTRL:
 
@@ -37,6 +39,292 @@ class ROBCTRL:
         sim.data.ctrl[tactile_allegro_mujo_const.UR_CTRL_5] = 0
         sim.data.ctrl[tactile_allegro_mujo_const.UR_CTRL_6] = -0.3
 
+
+    def ik_control(self, sim, viewer, kin_finger, vel, kdl):
+
+
+        angles = [0, 0.2, 0.2, 0.8]
+        ff_q_start = angles[0:4]
+        kdl_p, kdl_o = kin_finger.FK(ff_q_start)
+        kdl_p_s, kdl_o_s = ug.pose_trans_palm_to_world(sim, kdl_p, kdl_o)
+        angles = [0, 0.4, 0.4, 1.2]
+        ff_q_end = angles[0:4]
+        kdl_p, kdl_o = kin_finger.FK(ff_q_end)
+        kdl_p_e, kdl_o_e = ug.pose_trans_palm_to_world(sim, kdl_p, kdl_o)
+
+
+        for _ in range(200):
+            # visualize start_p and end_p
+            viz.geo_visual(viewer, kdl_p_s, kdl_o_s, 0.003, const.GEOM_BOX, 0, 'h')
+            viz.geo_visual(viewer, kdl_p_e, kdl_o_e, 0.003, const.GEOM_BOX, 0, 'h')
+
+            angles = self.get_cur_jnt(sim)
+            kdl_p, kdl_o = kin_finger.FK(angles[0: 4])
+            print("kdl p ", kdl_p)
+            print("kdl o ", kdl_o)
+            vel_twist = kdl.Twist()
+            vel_twist.vel = kdl.Vector(vel, vel, 0)
+            vel_twist.rot = kdl.Vector(0, 0, 0)
+
+            sp_w, so_w = ug.pose_trans_palm_to_world(sim, kdl_p, kdl_o)
+            des_vec = [vel, vel, 0]
+            des_rot_z = ug.vec2rot(des_vec)
+            print('position: ', sp_w)
+            # print('orientation: ', so_w)
+            viz.geo_visual(viewer, sp_w, des_rot_z, 0.1, const.GEOM_ARROW, 0, 'des')
+
+            q_out = kdl.JntArray(len(kin_finger.get_joint_names()))
+            q_pos_input = kdl.JntArray(len(kin_finger.get_joint_names()))
+            for i, q_i in enumerate(self.get_cur_jnt(sim)[0:4]):
+                q_pos_input[i] = q_i
+
+            succ = kin_finger._ik_v_kdl.CartToJnt(q_pos_input, vel_twist, q_out)
+            print("succ:", succ)
+            q_out = np.array(joint_kdl_to_list(q_out))
+
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_1] = \
+                sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_1] + q_out[0]
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] = \
+                sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_2] + q_out[1]
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] = \
+                sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_3] + q_out[2]
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] = \
+                sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_4] + q_out[3]
+
+            # sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_1] = 0
+            # sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] = 0
+            # sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] = 0
+            # sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] = 0
+            sim.step()
+            viewer.render()
+            del viewer._markers[:]
+
+    def move_ik_finger(self, sim, kdl_kin, ee_tget_posquat, gripper_action=0.04, viewer=None):
+        # ee_target is in world frame
+        ee_curr_posquat = ug.get_relative_posquat(sim, "palm_link", "link_3.0_tip")
+        max_step = 1000
+        no_step = 0
+        threshold = 0.001
+        # kdl_kin = KDLKinematics(robot, "palm_link", "link_3.0_tip")
+        # ee_jac = jac_geom(sim, "link_3.0_tip")
+        for i in range(max_step):
+            if (posquat_equal(ee_curr_posquat[:7], ee_tget_posquat[:7], threshold)):
+                break
+            try:
+                q_pos_test = sim.data.qpos
+                q_pos_temp = np.array(q_pos_test[13:17])
+                print("q_pos_temp:", q_pos_temp)
+                ee_jac = kdl_kin.jacobian(q_pos_temp)
+                # if i == 0:
+                # vel = np.hstack(((ee_tget_posquat[:3] - ee_curr_posquat[:3]) / 5, quat2vel(mul_quat(ee_tget_posquat[-4:], conj_quat(ee_curr_posquat[-4:])), 1)))
+                vel = np.hstack(((ee_tget_posquat[:3] - ee_curr_posquat[:3]),
+                                 quat2vel(mul_quat(ee_tget_posquat[-4:], conj_quat(ee_curr_posquat[-4:])), 1)))
+
+                qvel = np.matmul(np.linalg.pinv(ee_jac), vel.transpose())
+                print("qvel:\n", qvel)
+                sim.data.ctrl[6:10] = sim.data.qpos[13:17] + qvel
+                # print("sim.data.ctrl[6:10]:\n", sim.data.ctrl[6:10] )
+                # sim.data.ctrl[7] = gripper_action
+                sim.step()
+                viewer.render()
+
+                ee_curr_posquat = get_relative_posquat(sim, "palm_link", "link_3.0_tip")
+            except Exception as e:
+                return 0
+        return (posquat_equal(ee_curr_posquat[:7], ee_tget_posquat[:7], threshold))
+
+    def move_ik_kdl_finger_pinv(sim, kdl_kin, ee_tget_posquat, gripper_action=0.04, viewer=None):
+        # ee_target is in world frame
+        ee_curr_posquat = get_relative_posquat(sim, "palm_link", "link_3.0_tip")
+        max_step = 1000
+        no_step = 0
+        threshold = 0.001
+        # kdl_kin = KDLKinematics(robot, "palm_link", "link_3.0_tip")
+        # ee_jac = jac_geom(sim, "link_3.0_tip")
+        for i in range(max_step):
+            if (posquat_equal(ee_curr_posquat[:7], ee_tget_posquat[:7], threshold)):
+                break
+            try:
+                q_pos_test = sim.data.qpos
+                q_pos_temp = np.array(q_pos_test[13:17])
+                # vel = np.hstack(((ee_tget_posquat[:3] - ee_curr_posquat[:3]) / 5, quat2vel(mul_quat(ee_tget_posquat[-4:], conj_quat(ee_curr_posquat[-4:])), 1)))
+                vel = np.hstack(((ee_tget_posquat[:3] - ee_curr_posquat[:3]),
+                                 quat2vel(mul_quat(ee_tget_posquat[-4:], conj_quat(ee_curr_posquat[-4:])), 1)))
+
+                print("vel:", vel)
+                vel_twist = kdl.Twist()
+                vel_twist.vel = kdl.Vector(vel[0], vel[1], vel[2])
+                vel_twist.rot = kdl.Vector(vel[3], vel[4], vel[5])
+
+                _ik_v_kdl = kdl.ChainIkSolverVel_pinv(kdl_chain)
+
+                num_joints = len(kdl_kin.get_joint_names())
+                q_out = kdl.JntArray(num_joints)
+
+                q_pos_input = kdl.JntArray(num_joints)
+                for i, q_i in enumerate(q_pos_temp):
+                    q_pos_input[i] = q_i
+
+                succ = _ik_v_kdl.CartToJnt(q_pos_input, vel_twist, q_out)
+                print("succ:", succ)
+                q_out = np.array(joint_kdl_to_list(q_out))
+
+                sim.data.ctrl[6:10] = sim.data.qpos[13:17] + q_out
+                sim.step()
+                viewer.render()
+
+                ee_curr_posquat = get_relative_posquat(sim, "palm_link", "link_3.0_tip")
+            except Exception as e:
+                return 0
+        return (posquat_equal(ee_curr_posquat[:7], ee_tget_posquat[:7], threshold))
+
+    def move_ik_kdl_finger_wdls_middle(sim, kdl_kin, ee_tget_posquat, gripper_action=0.04, viewer=None):
+        # ee_target is in world frame
+        # ee_curr_posquat = get_relative_posquat(sim, "palm_link", "link_3.0_tip")
+        ee_curr_posquat = get_relative_posquat(sim, "palm_link", "link_7.0_tip")
+        max_step = 1000
+        no_step = 0
+        threshold = 0.001
+        # kdl_kin = KDLKinematics(robot, "palm_link", "link_3.0_tip")
+        # kdl_kin = KDLKinematics(robot, "palm_link", "link_7.0_tip")
+        # ee_jac = jac_geom(sim, "link_3.0_tip")
+        for i in range(max_step):
+            if (posquat_equal(ee_curr_posquat[:7], ee_tget_posquat[:7], threshold)):
+                break
+            try:
+                q_pos_test = sim.data.qpos
+                # q_pos_temp  = np.array(q_pos_test[13:17])
+                q_pos_temp = np.array(q_pos_test[17:21])
+                # vel = np.hstack(((ee_tget_posquat[:3] - ee_curr_posquat[:3]) / 5, quat2vel(mul_quat(ee_tget_posquat[-4:], conj_quat(ee_curr_posquat[-4:])), 1)))
+                vel = np.hstack(((ee_tget_posquat[:3] - ee_curr_posquat[:3]),
+                                 quat2vel(mul_quat(ee_tget_posquat[-4:], conj_quat(ee_curr_posquat[-4:])), 1)))
+
+                # 转化速度到twist形式
+                vel_twist = kdl.Twist()
+                vel_twist.vel = kdl.Vector(vel[0], vel[1], vel[2])
+                vel_twist.rot = kdl.Vector(vel[3], vel[4], vel[5])
+
+                _ik_v_kdl = kdl.ChainIkSolverVel_wdls(kdl_chain)
+                num_joints = len(kdl_kin.get_joint_names())
+                q_out = kdl.JntArray(num_joints)
+
+                q_pos_input = kdl.JntArray(num_joints)
+                for i, q_i in enumerate(q_pos_temp):
+                    q_pos_input[i] = q_i
+
+                matrix_weight = np.eye(4)
+                matrix_weight[0][0] = 0.1
+                matrix_weight[1][1] = 0.5
+                matrix_weight[2][2] = 0.3
+                matrix_weight[3][3] = 0.2
+                _ik_v_kdl.setWeightJS(matrix_weight)
+
+                _ik_v_kdl.CartToJnt(q_pos_input, vel_twist, q_out)
+                q_out = np.array(joint_kdl_to_list(q_out))
+
+                # 这里添加了限幅值
+                # if(q_out[1]>0.05):
+                #     q_out[1] = 0.05
+                # if(q_out[1]<-0.05):
+                #     q_out[1] = -0.05
+                # print("q_out:", q_out)
+                # q_out[q_out>1] = 1
+                # sim.data.ctrl[6:10]   = sim.data.qpos[13:17] + q_out
+                # sim.data.qpos[6:10] = sim.data.qpos[13:17] + q_out
+                sim.data.ctrl[10:14] = sim.data.qpos[17:21] + q_out
+                sim.step()
+                viewer.render()
+
+                # ee_curr_posquat = get_relative_posquat(sim, "palm_link", "link_3.0_tip")
+                ee_curr_posquat = get_relative_posquat(sim, "palm_link", "link_7.0_tip")
+            except Exception as e:
+                return 0
+        return (posquat_equal(ee_curr_posquat[:7], ee_tget_posquat[:7], threshold))
+
+    def move_ik_kdl_finger_wdls_king(sim, kdl_kin, ee_tget_posquat, gripper_action=0.04, viewer=None):
+        # ee_target is in world frame
+        ee_curr_posquat = get_relative_posquat(sim, "palm_link", "link_3.0_tip")
+        # ee_curr_posquat = get_relative_posquat(sim, "palm_link", "link_7.0_tip")
+        max_step = 1000
+        no_step = 0
+        threshold = 0.001
+        # kdl_kin = KDLKinematics(robot, "palm_link", "link_3.0_tip")
+        # kdl_kin = KDLKinematics(robot, "palm_link", "link_7.0_tip")
+        # ee_jac = jac_geom(sim, "link_3.0_tip")
+        for i in range(max_step):
+            if (posquat_equal(ee_curr_posquat[:7], ee_tget_posquat[:7], threshold)):
+                print("**********************************************************************")
+                break
+            try:
+                q_pos_test = sim.data.qpos
+                q_pos_temp = np.array(q_pos_test[13:17])
+                # q_pos_temp  = np.array(q_pos_test[17:21])
+                # vel = np.hstack(((ee_tget_posquat[:3] - ee_curr_posquat[:3]) / 5, quat2vel(mul_quat(ee_tget_posquat[-4:], conj_quat(ee_curr_posquat[-4:])), 1)))
+                vel = np.hstack(((ee_tget_posquat[:3] - ee_curr_posquat[:3]),
+                                 quat2vel(mul_quat(ee_tget_posquat[-4:], conj_quat(ee_curr_posquat[-4:])), 1)))
+                print("vel:", vel)
+                # 转化速度到twist形式
+                vel_twist = kdl.Twist()
+                vel_twist.vel = kdl.Vector(vel[0], vel[1], vel[2])
+                vel_twist.rot = kdl.Vector(vel[3], vel[4], vel[5])
+
+                _ik_v_kdl = kdl.ChainIkSolverVel_wdls(kdl_chain)
+                num_joints = len(kdl_kin.get_joint_names())
+                q_out = kdl.JntArray(num_joints)
+
+                q_pos_input = kdl.JntArray(num_joints)
+                for i, q_i in enumerate(q_pos_temp):
+                    q_pos_input[i] = q_i
+
+                _ik_v_kdl.CartToJnt(q_pos_input, vel_twist, q_out)
+                q_out = np.array(joint_kdl_to_list(q_out))
+                sim.data.ctrl[6:10] = sim.data.qpos[13:17] + q_out
+                # sim.data.ctrl[10:14] = sim.data.qpos[17:21] + q_out
+                sim.step()
+                viewer.render()
+
+                ee_curr_posquat = get_relative_posquat(sim, "palm_link", "link_3.0_tip")
+            except Exception as e:
+                return 0
+        return (posquat_equal(ee_curr_posquat[:7], ee_tget_posquat[:7], threshold))
+
+    # def move_interperate_point(sim, desire_pos_quat, curr_posquat, viewer=None):
+    #     # curr_posquat = get_relative_posquat(sim, "palm_link", "link_3.0_tip")
+    #     delta_k = 5
+    #     # X = np.arange(0, 1, 1)
+    #     # Y = [curr_posquat, desire_pos_quat]
+    #     interpolate_point = []
+    #     for i in range(1,delta_k+1):
+    #         interpolate_point.append(curr_posquat + (desire_pos_quat-curr_posquat)/delta_k*i)
+    #
+    #     count_execute = 0;
+    #     for k,inter in enumerate(interpolate_point):
+    #         done_execute = False
+    #         # move_ik_kdl_finger_wdls(sim, inter)
+    #         print("inter:", inter)
+    #         while(count_execute < 200):
+    #             done_execute = move_ik_kdl_finger_wdls(sim, inter)
+    #             count_execute += 1
+    #             sim.step()
+    #             viewer.render()
+    #         count_execute = 0
+
+    # 对这里进行修正，进行修改即可
+    # def force_control(sim, force_set, cur_force):
+    # 	kp, ki, kd = 0.0, 0.3, 0.0
+    # 	pid = pid.PID(kp, ki, kd)
+    # 	transfom_factor = 0.000003
+    # 	setpoint = 10
+    #
+    #     transform_base2tip3 = get_relative_posquat(sim, "base_link", "link_3.0 _tip")
+    #     rot = posquat2trans(transform_base2tip3)[0:3, 0:3]
+    #     pid_out = pid.calc(cur_force, force_set)
+    #     ze = np.array([0, 0, pid_out*transfom_factor]).transpose()
+    #     ze = np.matmul(rot, ze)
+    #     z = pos-ze
+    #     transform_base2tip3[:3] = z
+    #     desire_pos_quat_in_force = np.array();
+    #     move_ik_kdl_finger_wdls(sim, desire_pos_quat_in_force)
 
     def index_finger(self, sim, input1, input2):
         if not (np.array(sim.data.sensordata[tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN: \
@@ -146,8 +434,8 @@ class ROBCTRL:
         self.rf_zero(sim, viewer)
 
     def thumb_pregrasp(self, sim, viewer):
-        for _ in range(200):
-            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_1] = 0
+        for _ in range(500):
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_1] = 0.5
             sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_2] = 0
             sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] = 0
             sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] = 0
@@ -155,27 +443,27 @@ class ROBCTRL:
             viewer.render()
     def ff_pregrasp(self, sim, viewer):
         for _ in range(2000):
-            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_1] = 0.5
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_1] = 0
             sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] = 0.2
             sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] = 0.2
-            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] = 1.3
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] = 0.8
             sim.step()
             viewer.render()
 
     def mf_pregrasp(self, sim, viewer):
-        for _ in range(200):
+        for _ in range(500):
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_1] = 0
-            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] = 0
-            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_3] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] = 0.2
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_3] = 0.6
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_4] = 0
             sim.step()
             viewer.render()
 
     def rf_pregrasp(self, sim, viewer):
-        for _ in range(200):
+        for _ in range(500):
             sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_1] = 0
-            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_2] = 0
-            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_3] = 0
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_2] = 0.5
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_3] = 0.8
             sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_4] = 0
             sim.step()
             viewer.render()
@@ -464,7 +752,7 @@ class ROBCTRL:
                         pos_zt_palm = z_t[3*i:3*i+3]
                         pos_zt_world = T_palm_world[:3, 3] + np.matmul(T_palm_world[:3, :3], pos_zt_palm.T)
                         pos_zt_world = np.ravel(pos_zt_world.T)
-                        rot_zt_palm = qg.vec2rot(z_t[3*i+12:3*i+15])
+                        rot_zt_palm = ug.vec2rot(z_t[3*i+12:3*i+15])
                         rot_zt_world = np.matmul(T_palm_world[:3, :3], rot_zt_palm)
                         #visualize coordinate frame of the global, palm
                         # viz.cor_frame_visual(viewer, T_palm_world[:3, 3], T_palm_world[:3, :3], 0.3, "Palm")
@@ -486,7 +774,7 @@ class ROBCTRL:
                         pos_ht_palm = h_t[3 * i:3 * i + 3]
                         pos_ht_world = T_palm_world[:3, 3] + np.matmul(T_palm_world[:3, :3], pos_ht_palm.T)
                         pos_ht_world = np.ravel(pos_ht_world.T)
-                        rot_ht_palm = qg.vec2rot(h_t[3 * i + 12:3 * i + 15])
+                        rot_ht_palm = ug.vec2rot(h_t[3 * i + 12:3 * i + 15])
                         rot_ht_world = np.matmul(T_palm_world[:3, :3], rot_ht_palm)
                         # rot_h = np.array([[1, 0, 0], [0, 0, 1], [0, 1, 0]])
                         # viz.geo_visual(viewer, pos_ht_world, rot_ht_world, 0.1, tactile_allegro_mujo_const.GEOM_ARROW)

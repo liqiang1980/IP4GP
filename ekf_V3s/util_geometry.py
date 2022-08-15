@@ -109,7 +109,7 @@ def pose_trans_palm_to_world(sim, position, orien):
     quat = np.hstack((quat[1:], quat[0]))  # Change to x y z w
     palm_rot = Rotation.from_quat(quat).as_matrix()
     palm_position = sim.data.get_body_xpos("palm_link")
-    p_ret = palm_position + np.matmul(palm_rot, position)
+    p_ret = palm_position + np.ravel(np.matmul(palm_rot, position))
     o_ret = np.matmul(palm_rot, orien)
     return p_ret, o_ret
 def pose_trans_world_to_palm(sim, position, orien):
