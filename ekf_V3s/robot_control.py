@@ -460,7 +460,7 @@ class ROBCTRL:
             viewer.render()
 
     def rf_move_taxels_render(self, sim, model, viewer, hand_param, tacperception):
-        for _ in range(2000):
+        for _ in range(500):
             sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_1] = 0
             sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_2] = 0.9
             sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_3] = 1
@@ -473,7 +473,7 @@ class ROBCTRL:
             sim.step()
             viewer.render()
     def mf_move_taxels_render(self, sim, model, viewer, hand_param, tacperception):
-        for _ in range(2000):
+        for _ in range(500):
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_1] = 0
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] = 0.9
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_3] = 1

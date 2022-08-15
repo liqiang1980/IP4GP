@@ -26,7 +26,12 @@ TH_CTRL_2 = 19
 TH_CTRL_3 = 20
 TH_CTRL_4 = 21
 
-OFF_SET = 0
+# if object (as a joint) is free type, then OFF_SET = 0
+# if object (as a joint) is hinge type, then OFF_SET = 6
+# if object (as a joint) is ball type, then OFF_SET = 3
+# if object (as a joint) is no type, then OFF_SET = 7
+
+OFF_SET = 7
 FF_MEA_1 = 126-OFF_SET
 FF_MEA_2 = 127-OFF_SET
 FF_MEA_3 = 164-OFF_SET

@@ -14,8 +14,8 @@ def Camera_set(viewer, model):
     viewer.cam.elevation = -0
     viewer.cam.azimuth = 0
 
-def init_mujoco():
-    xml_path = "../../robots/UR5_tactile_allegro_hand.xml"
+def init_mujoco(filename = "../../robots/UR5_tactile_allegro_hand.xml"):
+    xml_path = filename
     model = load_model_from_path(xml_path)
     sim = MjSim(model)
     viewer = MjViewer(sim)

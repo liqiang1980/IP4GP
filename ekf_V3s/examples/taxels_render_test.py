@@ -39,3 +39,8 @@ for _ in range(500):
 
 rob_control.mf_move_taxels_render(sim, model, viewer, hand_param, tacperception)
 rob_control.rf_move_taxels_render(sim, model, viewer, hand_param, tacperception)
+
+np.set_printoptions(suppress=True)
+angles = rob_control.get_cur_jnt(sim)
+
+print('current jnt ', angles)
