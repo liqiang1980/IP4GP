@@ -4,6 +4,11 @@ import util_geometry as ug
 import object_geometry as og
 import time
 
+class taxel_pose:
+    def __init__(self):
+        self.position = [0, 0, 0]
+        self.orientation = np.identity(3)
+
 class cls_tactile_perception:
     def __init__(self):
         c_point_name = []
@@ -93,6 +98,26 @@ class cls_tactile_perception:
 
         return nn_nor_contact_in_p, res
 
+    def get_contact_taxel_id_withoffset(self, sim, fingername):
+        taxels_id = self.get_contact_taxel_id(sim, fingername)
+
+        if fingername == 'ff':
+            c_points = taxels_id[0]
+            # print(">>c_points_ff:", c_points)
+
+        if fingername == 'mf':
+            c_points = taxels_id[0] + 144
+            # print(">>c_points_mf:", c_points)
+
+        if fingername == 'rf':
+            c_points = taxels_id[0] + 288
+            # print(">>c_points_rf:", c_points)
+
+        if fingername == 'th':
+            c_points = taxels_id[0] + 432
+            # print(">>c_points_th:", c_points)
+
+        return c_points
     def get_contact_taxel_name(self, sim, model, fingername):
         taxels_id = self.get_contact_taxel_id(sim, fingername)
 

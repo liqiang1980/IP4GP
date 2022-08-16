@@ -25,16 +25,15 @@ def geo_visual(viewer, position, mat_rot, length, geo_type, finger_id, c_semanti
             viewer.add_marker(pos=position, mat=mat_rot, type=geo_type, label="point" + str(finger_id) + c_semantic,
                       size=np.array([length, length, length]), rgba=np.array([0.0, 0.0, 1.0, 1.0]))
 
-def active_taxels_visual(sim, model, viewer, taxels):
-    for i in taxels:
-        active_taxel_name = sim.model._sensor_id2name[i]
-        pose_taxel_w = ug.get_relative_posquat(sim, "world", active_taxel_name)
-        pos_p_world, pos_o_world = ug.posquat2pos_p_o(pose_taxel_w)
-        # print('****************** real ff pose_p in palm frame', pos_p_world)
-        # print('****************** real ff pose_o in palm frame ')
-        # print(pos_o_world)
-        viewer.add_marker(pos=pos_p_world, mat=pos_o_world, type=const.GEOM_BOX,label="",
-                      size=np.array([0.001, 0.001, 0.001]), rgba=np.array([0.0, 1.0, 0.0, 1.0]))
+def active_taxels_visual(viewer, taxels_pose, lbl):
+    if lbl == 'gt':
+        for i in range(len(taxels_pose)):
+            viewer.add_marker(pos=taxels_pose[i].position, mat=taxels_pose[i].orientation, type=const.GEOM_BOX,label="",
+                          size=np.array([0.0003, 0.0003, 0.0003]), rgba=np.array([0.0, 1.0, 0.0, 1.0]))
+    if lbl == 'fk':
+        for i in range(len(taxels_pose)):
+            viewer.add_marker(pos=taxels_pose[i].position, mat=taxels_pose[i].orientation, type=const.GEOM_BOX,label="",
+                          size=np.array([0.0003, 0.0003, 0.0003]), rgba=np.array([0.0, 0.0, 1.0, 1.0]))
 
 def touch_visual(sim, model, viewer, a):
     global max_size

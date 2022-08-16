@@ -12,6 +12,7 @@ from scipy.spatial.transform import Rotation
 import viz
 import PyKDL as kdl
 from mujoco_py import const
+from tactile_perception import taxel_pose
 
 class ROBCTRL:
 
@@ -19,13 +20,13 @@ class ROBCTRL:
         # self.robot = URDF.from_xml_file('../../robots/UR5_allegro_hand_right.urdf')
         self.robot = URDF.from_xml_file('../../robots/allegro_hand_right_with_tactile.urdf')
         # first finger
-        self.kdl_kin0 = KDLKinematics(self.robot, "palm_link", "link_3.0_tip")
+        self.kdl_kin_ff = KDLKinematics(self.robot, "palm_link", "link_3.0_tip")
         # middle finger
-        self.kdl_kin1 = KDLKinematics(self.robot, "palm_link", "link_7.0_tip")
+        self.kdl_kin_mf = KDLKinematics(self.robot, "palm_link", "link_7.0_tip")
         # ring finger
-        self.kdl_kin2 = KDLKinematics(self.robot, "palm_link", "link_11.0_tip")
+        self.kdl_kin_rf = KDLKinematics(self.robot, "palm_link", "link_11.0_tip")
         # thumb
-        self.kdl_kin3 = KDLKinematics(self.robot, "palm_link", "link_15.0_tip")
+        self.kdl_kin_th = KDLKinematics(self.robot, "palm_link", "link_15.0_tip")
         self.ct_g_z_position = [0, 0, 0]
         self.ct_p_z_position = [0, 0, 0]
         self.x_bar_all = [0, 0, 0, 0, 0, 0]
@@ -459,6 +460,30 @@ class ROBCTRL:
             sim.step()
             viewer.render()
 
+    def fk_offset(self, sim, finger_name, active_taxel_name):
+        if finger_name == 'ff':
+            q = self.get_cur_jnt(sim)[0:4]
+            position_tip_inpalm, orien_tip_inpalm = self.kdl_kin_ff.FK(q)
+            pose_taxels_intip = ug.get_relative_posquat(sim, "link_3.0_tip", active_taxel_name)
+        if finger_name == 'mf':
+            q = self.get_cur_jnt(sim)[4:8]
+            print('q is ', q)
+            position_tip_inpalm, orien_tip_inpalm = self.kdl_kin_mf.FK(q)
+            pose_taxels_intip = ug.get_relative_posquat(sim, "link_7.0_tip", active_taxel_name)
+        if finger_name == 'rf':
+            q = self.get_cur_jnt(sim)[8:12]
+            print('q is ', q)
+            position_tip_inpalm, orien_tip_inpalm = self.kdl_kin_rf.FK(q)
+            pose_taxels_intip = ug.get_relative_posquat(sim, "link_11.0_tip", active_taxel_name)
+        if finger_name == 'th':
+            q = self.get_cur_jnt(sim)[12:16]
+            position_tip_inpalm, orien_tip_inpalm = self.kdl_kin_th.FK(q)
+            pose_taxels_intip = ug.get_relative_posquat(sim, "link_15.0_tip", active_taxel_name)
+        pos_p_intip, pos_o_intip = ug.posquat2pos_p_o(pose_taxels_intip)
+        position_taxel_inpalm = position_tip_inpalm + (np.matmul(orien_tip_inpalm, pos_p_intip)).transpose()
+        orien_taxel_inpalm = np.matmul(orien_tip_inpalm, pos_o_intip)
+        position_taxel_inworld, orien_taxel_inworld = ug.pose_trans_palm_to_world(sim, position_taxel_inpalm, orien_taxel_inpalm)
+        return position_taxel_inworld, orien_taxel_inworld
     def rf_move_taxels_render(self, sim, model, viewer, hand_param, tacperception):
         for _ in range(500):
             sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_1] = 0
@@ -467,9 +492,28 @@ class ROBCTRL:
             sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_4] = 1
             flag_rf = tacperception.is_finger_contact(sim, hand_param[3][0])
             if flag_rf == True:
-                taxels_id = tacperception.get_contact_taxel_id(sim, 'rf')
-                # taxels_id[0] + 288 includes all active taxels id
-                viz.active_taxels_visual(sim, model, viewer, taxels_id[0] + 288)
+                taxels_id = tacperception.get_contact_taxel_id_withoffset(sim, 'rf')
+                taxels_pose_gt = []
+                taxels_pose_fk = []
+                for i in taxels_id:
+                    active_taxel_name = sim.model._sensor_id2name[i]
+                    #compute ground truth taxels
+                    taxel_pose_gt = taxel_pose()
+                    pose_taxels_w = ug.get_relative_posquat(sim, "world", active_taxel_name)
+                    pos_p_world, pos_o_world = ug.posquat2pos_p_o(pose_taxels_w)
+                    taxel_pose_gt.position = pos_p_world
+                    taxel_pose_gt.orien = pos_o_world
+                    taxels_pose_gt.append(taxel_pose_gt)
+
+                    #compute taxels from forward kinematics
+                    position_taxel_inworld, orien_taxel_inworld = self.fk_offset(sim, 'rf', active_taxel_name)
+                    taxel_pose_fk = taxel_pose()
+                    taxel_pose_fk.position = position_taxel_inworld
+                    taxel_pose_fk.orien = orien_taxel_inworld
+                    taxels_pose_fk.append(taxel_pose_fk)
+
+                viz.active_taxels_visual(viewer, taxels_pose_gt, 'gt')
+                viz.active_taxels_visual(viewer, taxels_pose_fk, 'fk')
             sim.step()
             viewer.render()
     def mf_move_taxels_render(self, sim, model, viewer, hand_param, tacperception):
@@ -480,10 +524,28 @@ class ROBCTRL:
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_4] = 1
             flag_mf = tacperception.is_finger_contact(sim, hand_param[2][0])
             if flag_mf == True:
-                taxels_id = tacperception.get_contact_taxel_id(sim, 'mf')
-                # print("taxel names are", taxels_id[0] + 144)
-                # taxels_id[0] + 144 includes all active taxels id
-                viz.active_taxels_visual(sim, model, viewer, taxels_id[0] + 144)
+                taxels_id = tacperception.get_contact_taxel_id_withoffset(sim, 'mf')
+                taxels_pose_gt = []
+                taxels_pose_fk = []
+                for i in taxels_id:
+                    active_taxel_name = sim.model._sensor_id2name[i]
+                    # compute ground truth taxels
+                    taxel_pose_gt = taxel_pose()
+                    pose_taxels_w = ug.get_relative_posquat(sim, "world", active_taxel_name)
+                    pos_p_world, pos_o_world = ug.posquat2pos_p_o(pose_taxels_w)
+                    taxel_pose_gt.position = pos_p_world
+                    taxel_pose_gt.orien = pos_o_world
+                    taxels_pose_gt.append(taxel_pose_gt)
+
+                    # compute taxels from forward kinematics
+                    position_taxel_inworld, orien_taxel_inworld = self.fk_offset(sim, 'mf', active_taxel_name)
+                    taxel_pose_fk = taxel_pose()
+                    taxel_pose_fk.position = position_taxel_inworld
+                    taxel_pose_fk.orien = orien_taxel_inworld
+                    taxels_pose_fk.append(taxel_pose_fk)
+
+                viz.active_taxels_visual(viewer, taxels_pose_gt, 'gt')
+                viz.active_taxels_visual(viewer, taxels_pose_fk, 'fk')
             sim.step()
             viewer.render()
     def rf_pregrasp(self, sim, viewer):
@@ -552,15 +614,15 @@ class ROBCTRL:
     #     # kinematic chain for all fingers
     #     robot = URDF.from_xml_file('../../robots/UR5_allegro_hand_right.urdf')
     #     # first finger
-    #     kdl_kin0 = KDLKinematics(robot, "palm_link", "link_3.0_tip")
+    #     kdl_kin_ff = KDLKinematics(robot, "palm_link", "link_3.0_tip")
     #     # middle finger
-    #     kdl_kin1 = KDLKinematics(robot, "palm_link", "link_7.0_tip")
+    #     kdl_kin_mf = KDLKinematics(robot, "palm_link", "link_7.0_tip")
     #     # ring finger
-    #     kdl_kin2 = KDLKinematics(robot, "palm_link", "link_11.0_tip")
+    #     kdl_kin_rf = KDLKinematics(robot, "palm_link", "link_11.0_tip")
     #     # thumb
-    #     kdl_kin3 = KDLKinematics(robot, "palm_link", "link_15.0_tip")
+    #     kdl_kin_th = KDLKinematics(robot, "palm_link", "link_15.0_tip")
     #     # kdl_tree = kdl_tree_from_urdf_model(robot)
-    #     return kdl_kin0, kdl_kin1, kdl_kin2, kdl_kin3
+    #     return kdl_kin_ff, kdl_kin_mf, kdl_kin_rf, kdl_kin_th
 
     def config_robot(self, taxel_name):
         # kinematic chain for all fingers
