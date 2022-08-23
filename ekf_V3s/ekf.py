@@ -42,6 +42,7 @@ class EKF:
         self.save_pose_GD_rpy = []
         self.save_error_xyz = []
         self.save_error_rpy = []
+        self.delta_angle = []
 
     def set_store_flag(self, flag):
         self.save_model = flag
@@ -50,7 +51,7 @@ class EKF:
         self.flag = flag
 
     def state_predictor(self, sim, model, hand_param, object_param, x_state, tacperception, \
-                        P_state_cov, cur_angles, last_angles,robctrl):
+                        P_state_cov, cur_angles, last_angles, robctrl):
         print("state prediction")
         Transfer_Fun_Matrix = np.mat(np.zeros([18, 18]))  # F
         Transfer_Fun_Matrix[:6, :6] = np.mat(np.eye(6))
@@ -63,21 +64,15 @@ class EKF:
         self.fin_tri = tacperception.fin_tri
 
         self.Grasping_matrix = np.zeros([6, 6 * 4])
+        ############### Form hand Jacobian matrix #################
+        self.J_fingers = np.zeros([6 * 4, 4 * 4])
         for i in range(4):
             # self.G_contact[i, :, :], self.J[i, :, :], self.u_t_tmp[i, :], self.angle_tmp[i, :]\
             #     = ug.contact_compute(sim, model, hand_param[i + 1][0], tacperception, x_state)
             self.G_contact[i, :, :], self.J[i, :, :] \
-                = ug.contact_compute(sim, model, hand_param[i + 1][0], tacperception, x_state, cur_angles,robctrl)
+                = ug.contact_compute(sim, model, hand_param[i + 1][0], \
+                                     tacperception, x_state, cur_angles, robctrl)
             self.Grasping_matrix[:, 0 + i * 6: 6 + i * 6] = self.G_contact[i, :, :]
-
-            # if tactile_allegro_mujo_const.GT_FLAG == '1G':
-            #     self.Grasping_matrix[:, 0 + i * 6: 6 + i * 6] = self.G_contact[i, :, :]
-            # elif tactile_allegro_mujo_const.GT_FLAG == '4G':
-            #     self.Grasping_matrix[:, 0 + i * 6: 6 + i * 6] = -self.G_contact[i, :, :].T
-
-        ############### Form hand Jacobian matrix #################
-        self.J_fingers = np.zeros([6 * 4, 4 * 4])
-        for i in range(4):
             self.J_fingers[0 + i * 6: 6 + i * 6, 0 + i * 4: 4 + i * 4] = self.J[i, :, :]
 
         # ############# form action - u_t #################
@@ -110,6 +105,9 @@ class EKF:
         # prediction = np.matmul(np.matmul(G_pinv, self.J_fingers), self.u_t)
         # delta_angles = self.angles - last_angle
         delta_angles = cur_angles - last_angles
+        self.delta_angle.append(delta_angles[4:8])
+        np.set_printoptions(suppress=True)
+        np.savetxt('delta_angles.txt', self.delta_angle)
         ju = np.matmul(self.J_fingers, delta_angles)
 
         """ Exchange z and x of ju_rotvec (must exchange rot matrix's 1th, 3rd col) """

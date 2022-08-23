@@ -37,7 +37,6 @@ for _ in range(500):
 rob_control.hand_pregrasp(sim, viewer)
 
 np.set_printoptions(suppress=True)
-
 angles = rob_control.get_cur_jnt(sim)
 
 print('current jnt ', angles)

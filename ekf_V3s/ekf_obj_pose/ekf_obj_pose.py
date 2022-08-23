@@ -37,6 +37,7 @@ for _ in range(50):
     sim.step()
     viewer.render()
 
+
 # start interaction
 rob_control.interaction(sim, model, viewer, \
                        hand_param, object_param, alg_param, grasping_ekf, tacperception)

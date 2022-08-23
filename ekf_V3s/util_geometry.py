@@ -736,121 +736,121 @@ def contact_compute(sim, model, fingername, tacperception, x_state, cur_angles, 
     # body jocobian matrix and velocity
     G_contact = np.zeros([6, 6])
     if not tactile_allegro_mujo_const.betterJ_FLAG:
-        # kdl_kin0, kdl_kin1, kdl_kin2, kdl_kin3 = robot_control.config_robot_tip_kin()
-        kdl_kin0 = robctrl.kdl_kin0
-        kdl_kin1 = robctrl.kdl_kin1
-        kdl_kin2 = robctrl.kdl_kin2
-        kdl_kin3 = robctrl.kdl_kin3
+        if fingername == 'ff':
+            cur_jnt = cur_angles[0:4]
+            # Get Jacobi J
+            Jac = robctrl.kdl_kin_ff.jacobian(cur_jnt)
+            if tacperception.is_ff_contact == True:
+                pos_contact = tacperception.get_contact_taxel_position(sim, model, fingername, "palm_link")
+                #    the G_contact is partial grasping matrix because the noised object pose, refer to:
+                #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
+                #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
+                G_contact = get_G_contact(pos_contact, x_state)
+                # G_contact = G_contact.transpose()
+            else:
+                G_contact = np.zeros([6, 6])
+        if fingername == 'mf':
+            cur_jnt = cur_angles[4:8]
+            # Get Jacobi J
+            Jac = robctrl.kdl_kin_mf.jacobian(cur_jnt)
+            if tacperception.is_mf_contact == True:
+                pos_contact = tacperception.get_contact_taxel_position(sim, \
+                                                                       model, fingername, "palm_link")
+                #    the G_contact is partial grasping matrix because the noised object pose, refer to:
+                #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
+                #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
+                G_contact = get_G_contact(pos_contact, x_state)
+                # G_contact = G_contact.transpose()
+            else:
+                G_contact = np.zeros([6, 6])
+        if fingername == 'rf':
+            cur_jnt = cur_angles[8:12]
+            # Get Jacobi J
+            Jac = robctrl.kdl_kin_rf.jacobian(cur_jnt)
+            if tacperception.is_rf_contact == True:
+                pos_contact = tacperception.get_contact_taxel_position(sim, \
+                                                                       model, fingername, "palm_link")
+                #    the G_contact is partial grasping matrix because the noised object pose, refer to:
+                #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
+                #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
+                G_contact = get_G_contact(pos_contact, x_state)
+                # G_contact = G_contact.transpose()
+            else:
+                G_contact = np.zeros([6, 6])
+        if fingername == 'th':
+            cur_jnt = cur_angles[12:16]
+            # Get Jacobi J
+            Jac = robctrl.kdl_kin_th.jacobian(cur_jnt)
+            if tacperception.is_th_contact == True:
+                pos_contact = tacperception.get_contact_taxel_position(sim, \
+                                                                       model, fingername, "palm_link")
+                #    the G_contact is partial grasping matrix because the noised object pose, refer to:
+                #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
+                #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
+                G_contact = get_G_contact(pos_contact, x_state)
+                # G_contact = G_contact.transpose()
+            else:
+                G_contact = np.zeros([6, 6])
+    else:
+        if fingername == 'ff':
+            taxel_name = tacperception.get_contact_taxel_name(sim, model, 'ff')
+            cur_jnt = cur_angles[0:4]
+            Jac = robctrl.robjac_offset(sim, fingername, cur_jnt, taxel_name)
+            if tacperception.is_ff_contact == True:
+                pos_contact = tacperception.get_contact_taxel_position_from_name(sim, \
+                                                model, fingername, "palm_link", taxel_name)
+                #    the G_contact is partial grasping matrix because the noised object pose, refer to:
+                #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
+                #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
+                G_contact = get_G_contact(pos_contact, x_state)
+                # G_contact = G_contact.transpose()
+            else:
+                G_contact = np.zeros([6, 6])
 
-    if fingername == 'ff':
-        if tactile_allegro_mujo_const.betterJ_FLAG:
-            taxel_name0 = tacperception.get_contact_taxel_name(sim, model, 'ff')
-            kdl_kin0 = robctrl.config_robot(taxel_name0)
-        cur_jnt = cur_angles[0:4]
-        # u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_1],
-        #                  sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_2],
-        #                  sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_3],
-        #                  sim.data.qvel[tactile_allegro_mujo_const.FF_MEA_4]])
-        # cur_jnt = np.array([sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_1],
-        #                     sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_2],
-        #                     sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_3],
-        #                     sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_4]])
-
-        # Get Jacobi J
-        Jac = kdl_kin0.jacobian(cur_jnt)
-        if tacperception.is_ff_contact == True:
-            pos_contact = tacperception.get_contact_taxel_position(sim, model, fingername, "palm_link")
-            #    the G_contact is partial grasping matrix because the noised object pose, refer to:
-            #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
-            #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
-            G_contact = get_G_contact(pos_contact, x_state)
-            # G_contact = G_contact.transpose()
-        else:
-            G_contact = np.zeros([6, 6])
-
-    if fingername == 'mf':
-        if tactile_allegro_mujo_const.betterJ_FLAG:
-            taxel_name1 = tacperception.get_contact_taxel_name(sim, model, 'mf')
-            kdl_kin1 = robctrl.config_robot(taxel_name1)
-        cur_jnt = cur_angles[4:8]
-        # u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_1], \
-        #                      sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_2], \
-        #                      sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_3], \
-        #                      sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_4]])
-        # cur_jnt = np.array([sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_1], \
-        #                      sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_2], \
-        #                      sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_3], \
-        #                      sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_4]])
-
-        # Get Jacobi J
-        Jac = kdl_kin1.jacobian(cur_jnt)
-        if tacperception.is_mf_contact == True:
-            pos_contact = tacperception.get_contact_taxel_position(sim, \
-                                                                   model, fingername, "palm_link")
-            #    the G_contact is partial grasping matrix because the noised object pose, refer to:
-            #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
-            #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
-            G_contact = get_G_contact(pos_contact, x_state)
-            # G_contact = G_contact.transpose()
-        else:
-            G_contact = np.zeros([6, 6])
-
-
-    if fingername == 'rf':
-        if tactile_allegro_mujo_const.betterJ_FLAG:
-            taxel_name2 = tacperception.get_contact_taxel_name(sim, model, 'rf')
-            kdl_kin2 = robctrl.config_robot(taxel_name2)
-        cur_jnt = cur_angles[8:12]
-        # u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_1], \
-        #                      sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_2], \
-        #                      sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_3], \
-        #                      sim.data.qvel[tactile_allegro_mujo_const.RF_MEA_4]])
-        # cur_jnt = np.array([sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_1], \
-        #                      sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_2], \
-        #                      sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_3], \
-        #                      sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_4]])
-        # Get Jacobi J
-        Jac = kdl_kin2.jacobian(cur_jnt)
-
-
-        if tacperception.is_rf_contact == True:
-            pos_contact = tacperception.get_contact_taxel_position(sim, \
-                                                                   model, fingername, "palm_link")
-            #    the G_contact is partial grasping matrix because the noised object pose, refer to:
-            #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
-            #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
-            G_contact = get_G_contact(pos_contact, x_state)
-            # G_contact = G_contact.transpose()
-        else:
-            G_contact = np.zeros([6, 6])
+        if fingername == 'mf':
+            taxel_name = tacperception.get_contact_taxel_name(sim, model, 'mf')
+            cur_jnt = cur_angles[4:8]
+            Jac = robctrl.robjac_offset(sim, fingername, cur_jnt, taxel_name)
+            if tacperception.is_mf_contact == True:
+                pos_contact = tacperception.get_contact_taxel_position_from_name(sim, \
+                                                                       model, fingername, "palm_link",taxel_name)
+                #    the G_contact is partial grasping matrix because the noised object pose, refer to:
+                #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
+                #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
+                G_contact = get_G_contact(pos_contact, x_state)
+                # G_contact = G_contact.transpose()
+            else:
+                G_contact = np.zeros([6, 6])
 
 
-    if fingername == 'th':
-        if tactile_allegro_mujo_const.betterJ_FLAG:
-            taxel_name3 = tacperception.get_contact_taxel_name(sim, model, 'th')
-            kdl_kin3 = robctrl.config_robot(taxel_name3)
-        cur_jnt = cur_angles[12:16]
-        # u_t0 = np.array([sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_1], \
-        #                      sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_2], \
-        #                      sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_3], \
-        #                      sim.data.qvel[tactile_allegro_mujo_const.TH_MEA_4]])
-        # cur_jnt = np.array([sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_1], \
-        #                      sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_2], \
-        #                      sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_3], \
-        #                      sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_4]])
-        # Get Jacobi J
-        Jac = kdl_kin3.jacobian(cur_jnt)
-
-        if tacperception.is_th_contact == True:
-            pos_contact = tacperception.get_contact_taxel_position(sim, \
-                                                                   model, fingername, "palm_link")
-            #    the G_contact is partial grasping matrix because the noised object pose, refer to:
-            #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
-            #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
-            G_contact = get_G_contact(pos_contact, x_state)
-            # G_contact = G_contact.transpose()
-        else:
-            G_contact = np.zeros([6, 6])
+        if fingername == 'rf':
+            taxel_name = tacperception.get_contact_taxel_name(sim, model, 'rf')
+            cur_jnt = cur_angles[8:12]
+            Jac = robctrl.robjac_offset(sim, fingername, cur_jnt, taxel_name)
+            if tacperception.is_rf_contact == True:
+                pos_contact = tacperception.get_contact_taxel_position_from_name(sim, \
+                                                                       model, fingername, "palm_link",taxel_name)
+                #    the G_contact is partial grasping matrix because the noised object pose, refer to:
+                #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
+                #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
+                G_contact = get_G_contact(pos_contact, x_state)
+                # G_contact = G_contact.transpose()
+            else:
+                G_contact = np.zeros([6, 6])
+        if fingername == 'th':
+            taxel_name = tacperception.get_contact_taxel_name(sim, model, 'th')
+            cur_jnt = cur_angles[12:16]
+            Jac = robctrl.robjac_offset(sim, fingername, cur_jnt, taxel_name)
+            if tacperception.is_th_contact == True:
+                pos_contact = tacperception.get_contact_taxel_position_from_name(sim, \
+                                                                       model, fingername, "palm_link",taxel_name)
+                #    the G_contact is partial grasping matrix because the noised object pose, refer to:
+                #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
+                #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
+                G_contact = get_G_contact(pos_contact, x_state)
+                # G_contact = G_contact.transpose()
+            else:
+                G_contact = np.zeros([6, 6])
 
     return G_contact, Jac
     # return G_contact, Jac, u_t0, cur_jnt
@@ -1414,11 +1414,16 @@ def vec2rot(vec):
     vec_normalize = normalize(vec)
     x = vec_normalize[0]
     y = vec_normalize[1]
-    rot_x[0] = y / (x**2 + y**2)**0.5
-    rot_x[1] = - x / (x**2 + y**2)**0.5
+    rot_x[0] = y / math.sqrt(x**2 + y**2)
+    rot_x[1] = - x / math.sqrt(x**2 + y**2)
     rot_y = np.cross(vec_normalize, rot_x)
     rot[:3, 0] = rot_x
     rot[:3, 1] = rot_y
     rot[:3, 2] = vec_normalize.T
     # print("    vec==rot:", rot)
     return rot
+
+
+def rolling_average(angle):
+
+    return avr

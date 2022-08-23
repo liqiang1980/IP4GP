@@ -6,7 +6,7 @@ import time
 
 class taxel_pose:
     def __init__(self):
-        self.position = [0, 0, 0]
+        self.position = np.array([0, 0, 0])
         self.orientation = np.identity(3)
 
 class cls_tactile_perception:
@@ -239,7 +239,16 @@ class cls_tactile_perception:
     # get the position of the contact taxel in the object frame
     def get_contact_taxel_position(self, sim, model, fingername, ref_frame):
         c_point_name = self.get_contact_taxel_name(sim, model, fingername)
-
+        # get the position
+        pos_contact = ug.get_relative_posquat(sim, ref_frame, c_point_name)
+        tmp_list = []
+        tmp_list.append(fingername)
+        tmp_list.append(ref_frame)
+        tmp_list.append(c_point_name)
+        tmp_list.append(pos_contact)
+        self.tuple_fin_ref_pose = tuple(tmp_list)
+        return pos_contact
+    def get_contact_taxel_position_from_name(self, sim, model, fingername, ref_frame, c_point_name):
         # get the position
         pos_contact = ug.get_relative_posquat(sim, ref_frame, c_point_name)
         tmp_list = []

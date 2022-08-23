@@ -7,11 +7,11 @@ def cor_frame_visual(viewer, position, mat_rot, length, frame_name):
     y_rot = ug.vec2rot(mat_rot[:, 1])
     z_rot = ug.vec2rot(mat_rot[:, 2])
     viewer.add_marker(pos=position, mat=x_rot, type=const.GEOM_ARROW, label=frame_name,
-                      size=np.array([0.001, 0.001, length]), rgba=np.array([1.0, 0.0, 0.0, 1.0]))
+                      size=np.array([0.0005, 0.0005, length]), rgba=np.array([1.0, 0.0, 0.0, 1.0]))
     viewer.add_marker(pos=position, mat=y_rot, type=const.GEOM_ARROW, label=frame_name,
-                      size=np.array([0.001, 0.001, length]), rgba=np.array([0.0, 1.0, 0.0, 1.0]))
+                      size=np.array([0.0005, 0.0005, length]), rgba=np.array([0.0, 1.0, 0.0, 1.0]))
     viewer.add_marker(pos=position, mat=z_rot, type=const.GEOM_ARROW, label=frame_name,
-                      size=np.array([0.001, 0.001, length]), rgba=np.array([0.0, 0.0, 1.0, 1.0]))
+                      size=np.array([0.0005, 0.0005, length]), rgba=np.array([0.0, 0.0, 1.0, 1.0]))
 
 def geo_visual(viewer, position, mat_rot, length, geo_type, finger_id, c_semantic):
     if geo_type == const.GEOM_ARROW:
@@ -29,11 +29,11 @@ def active_taxels_visual(viewer, taxels_pose, lbl):
     if lbl == 'gt':
         for i in range(len(taxels_pose)):
             viewer.add_marker(pos=taxels_pose[i].position, mat=taxels_pose[i].orientation, type=const.GEOM_BOX,label="",
-                          size=np.array([0.0003, 0.0003, 0.0003]), rgba=np.array([0.0, 1.0, 0.0, 1.0]))
+                          size=np.array([0.001, 0.001, 0.001]), rgba=np.array([0.0, 1.0, 0.0, 1.0]))
     if lbl == 'fk':
         for i in range(len(taxels_pose)):
             viewer.add_marker(pos=taxels_pose[i].position, mat=taxels_pose[i].orientation, type=const.GEOM_BOX,label="",
-                          size=np.array([0.0003, 0.0003, 0.0003]), rgba=np.array([0.0, 0.0, 1.0, 1.0]))
+                          size=np.array([0.001, 0.001, 0.001]), rgba=np.array([0.0, 0.0, 1.0, 1.0]))
 
 def touch_visual(sim, model, viewer, a):
     global max_size
