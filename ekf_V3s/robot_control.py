@@ -15,6 +15,8 @@ import PyKDL as kdl
 from mujoco_py import const
 from tactile_perception import taxel_pose
 from enum import Enum
+from sig_filter import lfilter
+
 
 class IK_type(Enum):
     IK_V_POSITION_ONLY = 1
@@ -43,6 +45,7 @@ class ROBCTRL:
         self.x_bar_all = [0, 0, 0, 0, 0, 0]
         self.x_gt = [0, 0, 0, 0, 0, 0]
         self.ju_all = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
 
     def robot_init(self, sim):
         sim.data.ctrl[tactile_allegro_mujo_const.UR_CTRL_1] = 0.8
@@ -945,6 +948,7 @@ class ROBCTRL:
                         th_first_contact_flag =True
 
                     last_angles = self.get_cur_jnt(sim)
+                    self.mea_filter_js = lfilter(9, 0.01, last_angles, 16)
                     # last_angles = np.zeros(tactile_allegro_mujo_const.FULL_FINGER_JNTS_NUM)
 
                     continue  # pass the first round
@@ -977,8 +981,8 @@ class ROBCTRL:
                 # x_state[:6] = gd_state
                 cur_angles_tmp = self.get_cur_jnt(sim)
                 #do a rolling average
-                cur_angles = ug.rolling_average(cur_angles_tmp)
-
+                cur_angles, self.mea_filter_js.z = \
+                    self.mea_filter_js.lp_filter(cur_angles_tmp, 16)
                 x_bar, P_state_cov, ju_all = ekf_grasping.state_predictor(sim, model, hand_param, object_param, \
                                                                   x_state, tacperception, P_state_cov, cur_angles, last_angles,self)
                 last_angles = cur_angles
@@ -1023,7 +1027,7 @@ class ROBCTRL:
                         #from vel generate frame
                         vel_frame = ug.vec2rot(np.matmul(T_palm_world[:3, :3], ju_all[6*i: 6*i+3]))
                         # print('vel_frame determinant ', np.linalg.det(vel_frame))
-                        viz.geo_visual(viewer, pos_zt_world, vel_frame, 0.1, tactile_allegro_mujo_const.GEOM_ARROW, i, "z_vel")
+                        # viz.geo_visual(viewer, pos_zt_world, vel_frame, 0.1, tactile_allegro_mujo_const.GEOM_ARROW, i, "z_vel")
 
                         self.ct_p_z_position = np.vstack((self.ct_p_z_position, pos_zt_palm))
                         self.ct_g_z_position = np.vstack((self.ct_g_z_position, pos_zt_world))
@@ -1040,7 +1044,7 @@ class ROBCTRL:
                         rot_ht_world = np.matmul(T_palm_world[:3, :3], rot_ht_palm)
                         # rot_h = np.array([[1, 0, 0], [0, 0, 1], [0, 1, 0]])
                         # viz.geo_visual(viewer, pos_ht_world, rot_ht_world, 0.1, tactile_allegro_mujo_const.GEOM_ARROW)
-                        viz.geo_visual(viewer, pos_ht_world, rot_ht_world, 0.001, tactile_allegro_mujo_const.GEOM_BOX, i, "h")
+                        # viz.geo_visual(viewer, pos_ht_world, rot_ht_world, 0.001, tactile_allegro_mujo_const.GEOM_BOX, i, "h")
                         # viewer.add_marker(pos=pos_ht_world, mat=rot_ht_world, type=tactile_allegro_mujo_const.GEOM_ARROW,
                         #           label="h", size=np.array([0.001, 0.001, 0.1]), rgba=np.array([0.34, 0.98, 1., 1.0]))
                 """ GD Visualization """
@@ -1048,7 +1052,7 @@ class ROBCTRL:
                 T_obj_world = ug.posquat2trans(posquat_obj_world)
                 pos_obj_world = T_obj_world[:3, 3].T
                 rot_obj_world = T_obj_world[:3, :3]
-                # viz.cor_frame_visual(viewer, pos_obj_world, rot_obj_world, 0.3, "Obj")
+                viz.cor_frame_visual(viewer, pos_obj_world, rot_obj_world, 0.2, "Obj")
                 # viewer.add_marker(pos=pos_obj_world, mat=rot_obj_world, type=tactile_allegro_mujo_const.GEOM_ARROW,
                 #                   label="obj", size=np.array([0.001, 0.001, 0.1]), rgba=np.array([0.34, 0.98, 1., 1.0]))
                 """ x_state Visualization """
