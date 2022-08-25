@@ -43,7 +43,9 @@ class ROBCTRL:
         self.ct_g_z_position = [0, 0, 0]
         self.ct_p_z_position = [0, 0, 0]
         self.x_bar_all = [0, 0, 0, 0, 0, 0]
-        self.x_gt = [0, 0, 0, 0, 0, 0]
+        self.x_state_all = [0, 0, 0, 0, 0, 0]
+        self.x_gt_palm = [0, 0, 0, 0, 0, 0]
+        self.x_gt_world = [0, 0, 0]
         self.ju_all = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
 
@@ -516,6 +518,7 @@ class ROBCTRL:
     def middle_finger(self, sim, input1, input2):
         if not (np.array(sim.data.sensordata[tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN: \
                 tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX]) > 0.0).any():  # 中指
+            print('..................')
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] = \
                 sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] + input1
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_3] = \
@@ -523,6 +526,7 @@ class ROBCTRL:
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_4] = \
                 sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_4] + input1
         else:
+
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] = \
                 sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] + input2
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_3] = \
@@ -934,7 +938,7 @@ class ROBCTRL:
 
                     x_all = x_state
                     gd_posquat = ug.get_relative_posquat(sim, "palm_link", "cup")
-                    gd_state = ug.posquat2posrotvec(gd_posquat)
+                    gd_state = ug.posquat2posrotvec_hacking(gd_posquat)
                     # gd_state = qg.posquat2posrotvec(gd_posquat)
                     gd_all = gd_state
                     first_contact_flag = True
@@ -974,8 +978,8 @@ class ROBCTRL:
 
                 x_state = np.ravel(x_state)
                 gd_posquat = ug.get_relative_posquat(sim, "palm_link", "cup")
-                gd_state = ug.posquat2posrotvec(gd_posquat)
-                # gd_state = qg.posquat2posrotvec(gd_posquat)
+                gd_state = ug.posquat2posrotvec_hacking(gd_posquat)
+
                 """ Prediction step in EKF """
                 # todo can not use ground truth update the state at every step
                 # x_state[:6] = gd_state
@@ -989,12 +993,9 @@ class ROBCTRL:
                 # print("+++xbar, xstate:", x_bar, "\n>>", x_state, "\n>>", x_bar[:6]-x_state[:6])
                 np.set_printoptions(suppress=True)
                 self.x_bar_all = np.vstack((self.x_bar_all, x_bar[0:6]))
-                self.x_gt = np.vstack((self.x_gt, gd_state))
+                self.x_gt_palm = np.vstack((self.x_gt_palm, gd_state))
                 self.ju_all = np.vstack((self.ju_all, ju_all[6:12]))
-                """ Save to txt """
-                np.savetxt('x_bar_all.txt', self.x_bar_all)
-                np.savetxt('x_gt.txt', self.x_gt)
-                np.savetxt('ju_all.txt', self.ju_all)
+
                 #
                 h_t_position, h_t_nv = ekf_grasping.observe_computation(x_bar, tacperception, sim)
                 #
@@ -1003,14 +1004,15 @@ class ROBCTRL:
                 #
                 z_t = np.concatenate((z_t_position, z_t_nv), axis=None)
                 h_t = np.concatenate((h_t_position, h_t_nv), axis=None)
-                print("++++z_t:", z_t)
-                print("++++h_t:", h_t)
+                print("++++z_t:", ii, z_t)
+                print("++++h_t:", ii, h_t)
                 """ z_t and h_t visualization """
                 posquat_palm_world = ug.get_relative_posquat(sim, "world", "palm_link")
                 T_palm_world = ug.posquat2trans(posquat_palm_world)
 
                 end1 = time.time()
                 print('time cost in forward compute ', end1 - start)
+                viz.vis_state()
 
                 for i in range(4):
                     if tacperception.fin_tri[i] == 1:
@@ -1021,11 +1023,12 @@ class ROBCTRL:
                         rot_zt_world = np.matmul(T_palm_world[:3, :3], rot_zt_palm)
                         #visualize coordinate frame of the global, palm
                         viz.cor_frame_visual(viewer, T_palm_world[:3, 3], T_palm_world[:3, :3], 0.3, "Palm")
-                        # viz.cor_frame_visual(viewer, [0, 0, 0], np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]]), 1, "Global")
                         viz.geo_visual(viewer, pos_zt_world, rot_zt_world, 0.001, tactile_allegro_mujo_const.GEOM_BOX, i, "z")
+                        viz.geo_visual(viewer, pos_zt_world, rot_zt_world, 0.1, tactile_allegro_mujo_const.GEOM_ARROW, i, "z")
+
                         #draw linear vel of contact point (part of twist from ju)
                         #from vel generate frame
-                        vel_frame = ug.vec2rot(np.matmul(T_palm_world[:3, :3], ju_all[6*i: 6*i+3]))
+                        # vel_frame = ug.vec2rot(np.matmul(T_palm_world[:3, :3], ju_all[6*i: 6*i+3]))
                         # print('vel_frame determinant ', np.linalg.det(vel_frame))
                         # viz.geo_visual(viewer, pos_zt_world, vel_frame, 0.1, tactile_allegro_mujo_const.GEOM_ARROW, i, "z_vel")
 
@@ -1044,17 +1047,26 @@ class ROBCTRL:
                         rot_ht_world = np.matmul(T_palm_world[:3, :3], rot_ht_palm)
                         # rot_h = np.array([[1, 0, 0], [0, 0, 1], [0, 1, 0]])
                         # viz.geo_visual(viewer, pos_ht_world, rot_ht_world, 0.1, tactile_allegro_mujo_const.GEOM_ARROW)
-                        # viz.geo_visual(viewer, pos_ht_world, rot_ht_world, 0.001, tactile_allegro_mujo_const.GEOM_BOX, i, "h")
+                        viz.geo_visual(viewer, pos_ht_world, rot_ht_world, 0.001, tactile_allegro_mujo_const.GEOM_BOX, i, "h")
+                        viz.geo_visual(viewer, pos_ht_world, rot_ht_world, 0.1, tactile_allegro_mujo_const.GEOM_ARROW, i, "h")
                         # viewer.add_marker(pos=pos_ht_world, mat=rot_ht_world, type=tactile_allegro_mujo_const.GEOM_ARROW,
                         #           label="h", size=np.array([0.001, 0.001, 0.1]), rgba=np.array([0.34, 0.98, 1., 1.0]))
+
                 """ GD Visualization """
                 posquat_obj_world = ug.get_relative_posquat(sim, "world", "cup")
                 T_obj_world = ug.posquat2trans(posquat_obj_world)
                 pos_obj_world = T_obj_world[:3, 3].T
                 rot_obj_world = T_obj_world[:3, :3]
-                viz.cor_frame_visual(viewer, pos_obj_world, rot_obj_world, 0.2, "Obj")
-                # viewer.add_marker(pos=pos_obj_world, mat=rot_obj_world, type=tactile_allegro_mujo_const.GEOM_ARROW,
-                #                   label="obj", size=np.array([0.001, 0.001, 0.1]), rgba=np.array([0.34, 0.98, 1., 1.0]))
+                rot_vec = ug.rm2rotvec(rot_obj_world)
+
+                self.x_gt_world = np.vstack((self.x_gt_world, rot_vec))
+
+                tmp_rm = ug.vec2rot(rot_vec)
+                # viz.cor_frame_visual(viewer, pos_obj_world, rot_obj_world, 0.2, "Obj")
+                # we use the axis angle
+                # viewer.add_marker(pos=pos_obj_world, mat=tmp_rm, type=tactile_allegro_mujo_const.GEOM_ARROW,
+                #                   label="o_rot", size=np.array([0.001, 0.001, 0.3]), rgba=np.array([0., 0., 1., 1.0]))
+
                 """ x_state Visualization """
                 pos_x_world = (T_palm_world[:3, 3] + np.matmul(T_palm_world[:3, :3], x_state[:3].T)).T
                 rot_x_palm = Rotation.from_rotvec(x_state[3:6]).as_matrix()
@@ -1068,18 +1080,16 @@ class ROBCTRL:
                                                                    P_state_cov, tacperception)
                 else:
                     x_state = x_bar
-                print('x_state posterior ', x_state)
+                self.x_state_all = np.vstack((self.x_state_all, np.ravel(x_state)[0:6]))
                 tacperception.fin_num = 0
                 tacperception.fin_tri = np.zeros(4)
 
-                """ Save data in one loop """
-                # print("   ???GD:\n", gd_state[:6])
-                # print("   ???x_state:\n", x_state[:6])
-                x_all = np.vstack((x_all, x_state))
-                gd_all = np.vstack((gd_all, gd_state))
-                """ Save to txt """
-                np.savetxt('../x_data.txt', x_all)
-                np.savetxt('../gd_data.txt', gd_all)
+                np.savetxt('x_gt_world.txt', self.x_gt_world)
+                np.savetxt('x_bar_all.txt', self.x_bar_all)
+                np.savetxt('x_state_all.txt', self.x_state_all)
+                np.savetxt('x_gt_palm.txt', self.x_gt_palm)
+                np.savetxt('ju_all.txt', self.ju_all)
+
                 """ Visualization h_t and z_t """
             end = time.time()
             print('time cost in one loop ', end - start)

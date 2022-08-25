@@ -161,12 +161,11 @@ class EKF:
         # print("}}}}}}}}}}}rot1, rot2:\n", _rot, "\n>", _euler, "\n", rot, '\n>', euler, "\n")
         for i in range(4):
             if tacperception.fin_tri[i] == 1:
-                print("\n")
-                contact_position.append(obj_position.T + np.matmul(rot, x_bar[6 + i * 3:6 + (i + 1) * 3]))
+                contact_position.append(_obj_position.T + np.matmul(_rot, x_bar[6 + i * 3:6 + (i + 1) * 3]))
                 ##########Get normal of contact point on the cup
                 nor_contact_in_cup, res = og.surface_cup(x_bar[6 + i * 3], x_bar[6 + i * 3 + 1],
                                                          x_bar[6 + i * 3 + 2])
-                nor_contact_in_world = np.matmul(rot, nor_contact_in_cup)
+                nor_contact_in_world = np.matmul(_rot, nor_contact_in_cup)
                 contact_nv.append(nor_contact_in_world / np.linalg.norm(nor_contact_in_world))
             else:
                 contact_position.append([0, 0, 0])

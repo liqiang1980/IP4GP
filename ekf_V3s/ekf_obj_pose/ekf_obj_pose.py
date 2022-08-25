@@ -8,7 +8,7 @@ import tactile_perception
 hand_param, object_param, alg_param = config_param.pass_arg()
 
 # init mujoco environment
-model, sim, viewer = mu_env.init_mujoco()
+model, sim, viewer = mu_env.init_mujoco("../../robots/UR5_tactile_allegro_hand_obj_frozen.xml")
 ctrl_wrist_pos, ctrl_wrist_quat = \
     mu_env.init_robot_object_mujoco(sim, object_param)
 mu_env.config_fcl("cup_1.obj", "fingertip_part.obj")

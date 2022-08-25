@@ -15,14 +15,18 @@ def cor_frame_visual(viewer, position, mat_rot, length, frame_name):
 
 def geo_visual(viewer, position, mat_rot, length, geo_type, finger_id, c_semantic):
     if geo_type == const.GEOM_ARROW:
-        viewer.add_marker(pos=position, mat=mat_rot, type=geo_type, label="vec " + str(finger_id) + c_semantic,
-                      size=np.array([0.001, 0.001, length]), rgba=np.array([1.0, 0.0, 0.0, 1.0]))
+        if c_semantic == 'h':
+            viewer.add_marker(pos=position, mat=mat_rot, type=geo_type, label=" ",
+                          size=np.array([0.001, 0.001, length]), rgba=np.array([0.0, 1.0, 0.0, 1.0]))
+        if c_semantic == 'z':
+            viewer.add_marker(pos=position, mat=mat_rot, type=geo_type, label=" ",
+                          size=np.array([0.001, 0.001, length]), rgba=np.array([0.0, 0.0, 1.0, 1.0]))
     if geo_type == const.GEOM_BOX:
         if c_semantic == 'h':
-            viewer.add_marker(pos=position, mat=mat_rot, type=geo_type, label="point" + str(finger_id) + c_semantic,
+            viewer.add_marker(pos=position, mat=mat_rot, type=geo_type, label=" ",
                       size=np.array([length, length, length]), rgba=np.array([0.0, 1.0, 0.0, 1.0]))
         if c_semantic == 'z':
-            viewer.add_marker(pos=position, mat=mat_rot, type=geo_type, label="point" + str(finger_id) + c_semantic,
+            viewer.add_marker(pos=position, mat=mat_rot, type=geo_type, label=" ",
                       size=np.array([length, length, length]), rgba=np.array([0.0, 0.0, 1.0, 1.0]))
 
 def active_taxels_visual(viewer, taxels_pose, lbl):

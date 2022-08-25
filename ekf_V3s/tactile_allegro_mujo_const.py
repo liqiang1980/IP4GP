@@ -31,7 +31,7 @@ TH_CTRL_4 = 21
 # if object (as a joint) is ball type, then OFF_SET = 3
 # if object (as a joint) is no type, then OFF_SET = 7
 
-OFF_SET = 0
+OFF_SET = 7
 FF_MEA_1 = 126-OFF_SET
 FF_MEA_2 = 127-OFF_SET
 FF_MEA_3 = 164-OFF_SET
@@ -68,8 +68,8 @@ FULL_FINGER_JNTS_NUM = 16
 
 PN_FLAG = 'pn'  # Observation controller: assign 'p' (position) or 'pn' (position and normal)
 GT_FLAG = '1G'  # G Matrix controller: assign '1G' (splice a big G, then pinv) or '4G' (inv 4 GT, then splice)
-posteriori_FLAG = False
+posteriori_FLAG = True
 # posteriori_FLAG = False
-initE_FLAG = False
+initE_FLAG = True
 betterJ_FLAG = True
 solver_ik_type_wdls = False

@@ -718,6 +718,32 @@ def posquat2posrotvec(posquat):
     posrotvec[3:] = Rotation.from_quat(_quat).as_rotvec()
     return posrotvec
 
+def posquat2posrotvec_hacking(posquat):
+    posrotvec = np.zeros(6)
+    posrotvec[:3] = posquat[:3]
+    _quat = np.hstack((posquat[4:], posquat[3]))
+    rm = Rotation.from_quat(_quat).as_matrix()
+    # compute rot_vec
+    theta_tmp = math.acos((np.trace(rm) - 1.0) / 2.0)
+    omega_tmp = np.array([0., 0., 0.])
+    omega_tmp[0] = (rm[2][1] - rm[1][2]) / (2 * math.sin(theta_tmp))
+    omega_tmp[1] = (rm[0][2] - rm[2][0]) / (2 * math.sin(theta_tmp))
+    omega_tmp[2] = (rm[1][0] - rm[0][1]) / (2 * math.sin(theta_tmp))
+    if omega_tmp[1] < 0.0:
+        omega = (-1.0) * omega_tmp
+        theta = 2.0 * math.pi - theta_tmp
+    else:
+        omega = omega_tmp
+        theta = theta_tmp
+
+    posrotvec[3:] = theta * omega
+    return posrotvec
+
+def getrotvecfromposquat(posquat):
+    posrotvec = np.zeros(6)
+    posrotvec[:3] = posquat[:3]
+    _quat = np.hstack((posquat[4:], posquat[3]))
+    return Rotation.from_quat(_quat).as_matrix()
 def posquat2pos_p_o(posquat):
     # pos_p = np.zeros(3)
     # pos_o = np.zeros(3, 3)
@@ -725,6 +751,11 @@ def posquat2pos_p_o(posquat):
     _quat = np.hstack((posquat[4:], posquat[3]))
     pos_o = Rotation.from_quat(_quat).as_matrix()
     return pos_p, pos_o
+
+def rm2rotvec(rm):
+    rmrotvec = Rotation.from_matrix(rm).as_rotvec()
+    return rmrotvec
+
 
 
 def joint_kdl_to_list(q):
