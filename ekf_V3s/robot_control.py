@@ -7,7 +7,6 @@ from urdf_parser_py.urdf import URDF
 import util_geometry as ug
 import time
 import fcl
-from scipy.spatial.transform import Rotation
 import math
 
 import viz
@@ -788,6 +787,7 @@ class ROBCTRL:
         # self.robot = URDF.from_xml_file("../../robots/allegro_hand_right_with_tactile.urdf")
         kdl_kin = KDLKinematics(self.robot, "palm_link", taxel_name)
         return kdl_kin
+
     def robjac_offset(self,sim, finger_name, q, taxel_name):
         if finger_name == 'ff':
             position_tip_inpalm, orien_tip_inpalm = self.kdl_kin_ff.FK(q)
@@ -929,9 +929,10 @@ class ROBCTRL:
 
                     x_state = ug.get_relative_posquat(sim, "palm_link", "cup")
                     # attention, here orientation we use the axis angle representation.
-                    x_state = np.array([ug.pos_quat2axis_angle(x_state)])
+                    # x_state = np.array([ug.pos_quat2axis_angle(x_state)])
+                    x_state = ug.pos_quat2axis_angle(x_state)
                     if tactile_allegro_mujo_const.initE_FLAG:
-                        x_state += init_e
+                        x_state = x_state + init_e
                     # augmented state with the contact position on the object surface described in the object frame
                     x_state = self.augmented_state(sim, model, hand_param, tacperception, x_state)
                     print('x_state from beginning ', x_state)
@@ -957,26 +958,26 @@ class ROBCTRL:
 
                     continue  # pass the first round
                 elif ((flag_ff == True) and (ff_first_contact_flag)== False) :
-                    x_state = np.ravel(x_state)
+                    # x_state = np.ravel(x_state)
                     x_state = self.update_augmented_state(sim, model, hand_param, tacperception, x_state)
                     ff_first_contact_flag =True
                 elif ((flag_mf == True) and (mf_first_contact_flag)== False) :
-                    x_state = np.ravel(x_state)
+                    # x_state = np.ravel(x_state)
                     x_state = self.update_augmented_state(sim, model, hand_param, tacperception, x_state)
                     mf_first_contact_flag =True
                 elif ((flag_rf == True) and (rf_first_contact_flag)== False) :
-                    x_state = np.ravel(x_state)
+                    # x_state = np.ravel(x_state)
                     x_state = self.update_augmented_state(sim, model, hand_param, tacperception, x_state)
                     rf_first_contact_flag =True
                 elif ((flag_th == True) and (th_first_contact_flag)== False) :
-                    x_state = np.ravel(x_state)
+                    # x_state = np.ravel(x_state)
                     x_state = self.update_augmented_state(sim, model, hand_param, tacperception, x_state)
                     th_first_contact_flag =True
                 else:
                     print('no else')
 
 
-                x_state = np.ravel(x_state)
+                # x_state = np.ravel(x_state)
                 gd_posquat = ug.get_relative_posquat(sim, "palm_link", "cup")
                 gd_state = ug.posquat2posrotvec_hacking(gd_posquat)
 
@@ -991,10 +992,10 @@ class ROBCTRL:
                                                                   x_state, tacperception, P_state_cov, cur_angles, last_angles,self)
                 last_angles = cur_angles
                 # print("+++xbar, xstate:", x_bar, "\n>>", x_state, "\n>>", x_bar[:6]-x_state[:6])
-                np.set_printoptions(suppress=True)
-                self.x_bar_all = np.vstack((self.x_bar_all, x_bar[0:6]))
-                self.x_gt_palm = np.vstack((self.x_gt_palm, gd_state))
-                self.ju_all = np.vstack((self.ju_all, ju_all[6:12]))
+                # np.set_printoptions(suppress=True)
+                # self.x_bar_all = np.vstack((self.x_bar_all, x_bar[0:6]))
+                # self.x_gt_palm = np.vstack((self.x_gt_palm, gd_state))
+                # self.ju_all = np.vstack((self.ju_all, ju_all[6:12]))
 
                 #
                 h_t_position, h_t_nv = ekf_grasping.observe_computation(x_bar, tacperception, sim)
@@ -1006,73 +1007,8 @@ class ROBCTRL:
                 h_t = np.concatenate((h_t_position, h_t_nv), axis=None)
                 print("++++z_t:", ii, z_t)
                 print("++++h_t:", ii, h_t)
-                """ z_t and h_t visualization """
-                posquat_palm_world = ug.get_relative_posquat(sim, "world", "palm_link")
-                T_palm_world = ug.posquat2trans(posquat_palm_world)
-
                 end1 = time.time()
                 print('time cost in forward compute ', end1 - start)
-                viz.vis_state()
-
-                for i in range(4):
-                    if tacperception.fin_tri[i] == 1:
-                        pos_zt_palm = z_t[3*i:3*i+3]
-                        pos_zt_world = T_palm_world[:3, 3] + np.matmul(T_palm_world[:3, :3], pos_zt_palm.T)
-                        pos_zt_world = np.ravel(pos_zt_world.T)
-                        rot_zt_palm = ug.vec2rot(z_t[3*i+12:3*i+15])
-                        rot_zt_world = np.matmul(T_palm_world[:3, :3], rot_zt_palm)
-                        #visualize coordinate frame of the global, palm
-                        viz.cor_frame_visual(viewer, T_palm_world[:3, 3], T_palm_world[:3, :3], 0.3, "Palm")
-                        viz.geo_visual(viewer, pos_zt_world, rot_zt_world, 0.001, tactile_allegro_mujo_const.GEOM_BOX, i, "z")
-                        viz.geo_visual(viewer, pos_zt_world, rot_zt_world, 0.1, tactile_allegro_mujo_const.GEOM_ARROW, i, "z")
-
-                        #draw linear vel of contact point (part of twist from ju)
-                        #from vel generate frame
-                        # vel_frame = ug.vec2rot(np.matmul(T_palm_world[:3, :3], ju_all[6*i: 6*i+3]))
-                        # print('vel_frame determinant ', np.linalg.det(vel_frame))
-                        # viz.geo_visual(viewer, pos_zt_world, vel_frame, 0.1, tactile_allegro_mujo_const.GEOM_ARROW, i, "z_vel")
-
-                        self.ct_p_z_position = np.vstack((self.ct_p_z_position, pos_zt_palm))
-                        self.ct_g_z_position = np.vstack((self.ct_g_z_position, pos_zt_world))
-                        np.set_printoptions(suppress=True)
-                        np.savetxt('ct_g_z_position.txt', self.ct_g_z_position)
-                        np.savetxt('ct_p_z_position.txt', self.ct_p_z_position)
-
-                for i in range(4):
-                    if tacperception.fin_tri[i] == 1:
-                        pos_ht_palm = h_t[3 * i:3 * i + 3]
-                        pos_ht_world = T_palm_world[:3, 3] + np.matmul(T_palm_world[:3, :3], pos_ht_palm.T)
-                        pos_ht_world = np.ravel(pos_ht_world.T)
-                        rot_ht_palm = ug.vec2rot(h_t[3 * i + 12:3 * i + 15])
-                        rot_ht_world = np.matmul(T_palm_world[:3, :3], rot_ht_palm)
-                        # rot_h = np.array([[1, 0, 0], [0, 0, 1], [0, 1, 0]])
-                        # viz.geo_visual(viewer, pos_ht_world, rot_ht_world, 0.1, tactile_allegro_mujo_const.GEOM_ARROW)
-                        viz.geo_visual(viewer, pos_ht_world, rot_ht_world, 0.001, tactile_allegro_mujo_const.GEOM_BOX, i, "h")
-                        viz.geo_visual(viewer, pos_ht_world, rot_ht_world, 0.1, tactile_allegro_mujo_const.GEOM_ARROW, i, "h")
-                        # viewer.add_marker(pos=pos_ht_world, mat=rot_ht_world, type=tactile_allegro_mujo_const.GEOM_ARROW,
-                        #           label="h", size=np.array([0.001, 0.001, 0.1]), rgba=np.array([0.34, 0.98, 1., 1.0]))
-
-                """ GD Visualization """
-                posquat_obj_world = ug.get_relative_posquat(sim, "world", "cup")
-                T_obj_world = ug.posquat2trans(posquat_obj_world)
-                pos_obj_world = T_obj_world[:3, 3].T
-                rot_obj_world = T_obj_world[:3, :3]
-                rot_vec = ug.rm2rotvec(rot_obj_world)
-
-                self.x_gt_world = np.vstack((self.x_gt_world, rot_vec))
-
-                tmp_rm = ug.vec2rot(rot_vec)
-                # viz.cor_frame_visual(viewer, pos_obj_world, rot_obj_world, 0.2, "Obj")
-                # we use the axis angle
-                # viewer.add_marker(pos=pos_obj_world, mat=tmp_rm, type=tactile_allegro_mujo_const.GEOM_ARROW,
-                #                   label="o_rot", size=np.array([0.001, 0.001, 0.3]), rgba=np.array([0., 0., 1., 1.0]))
-
-                """ x_state Visualization """
-                pos_x_world = (T_palm_world[:3, 3] + np.matmul(T_palm_world[:3, :3], x_state[:3].T)).T
-                rot_x_palm = Rotation.from_rotvec(x_state[3:6]).as_matrix()
-                rot_x_world = np.matmul(T_palm_world[:3, :3], rot_x_palm)
-                # viewer.add_marker(pos=pos_x_world, mat=rot_x_world, type=tactile_allegro_mujo_const.GEOM_ARROW,
-                #                   label="x_state", size=np.array([0.001, 0.001, 0.1]), rgba=np.array([0.34, 0.98, 1., 1.0]))
 
                 # # posterior estimation
                 if tactile_allegro_mujo_const.posteriori_FLAG:
@@ -1080,21 +1016,22 @@ class ROBCTRL:
                                                                    P_state_cov, tacperception)
                 else:
                     x_state = x_bar
-                self.x_state_all = np.vstack((self.x_state_all, np.ravel(x_state)[0:6]))
+
+                # self.x_state_all = np.vstack((self.x_state_all, np.ravel(x_state)[0:6]))
+                print(x_state)
+                viz.vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state)
+
                 tacperception.fin_num = 0
                 tacperception.fin_tri = np.zeros(4)
+                #
+                # np.savetxt('x_gt_world.txt', self.x_gt_world)
+                # np.savetxt('x_bar_all.txt', self.x_bar_all)
+                # np.savetxt('x_state_all.txt', self.x_state_all)
+                # np.savetxt('x_gt_palm.txt', self.x_gt_palm)
+                # np.savetxt('ju_all.txt', self.ju_all)
 
-                np.savetxt('x_gt_world.txt', self.x_gt_world)
-                np.savetxt('x_bar_all.txt', self.x_bar_all)
-                np.savetxt('x_state_all.txt', self.x_state_all)
-                np.savetxt('x_gt_palm.txt', self.x_gt_palm)
-                np.savetxt('ju_all.txt', self.ju_all)
-
-                """ Visualization h_t and z_t """
             end = time.time()
             print('time cost in one loop ', end - start)
-            # if not np.all(sim.data.sensordata == 0):
-            #     viz.touch_visual(sim, model, viewer, np.where(np.array(sim.data.sensordata) > 0.0))
             sim.step()
             viewer.render()
             del viewer._markers[:]

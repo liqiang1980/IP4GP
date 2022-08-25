@@ -268,6 +268,7 @@ class cls_tactile_perception:
 
         T_contact = ug.posquat2trans(pos_contact)
         # nv = T_contact[:3, 2]  # Get R of contact point
+        #attention here, normal direciton is x axis.
         nv = T_contact[:3, 0]  # Get R of contact point
         return nv
 

@@ -153,10 +153,10 @@ class EKF:
         _obj_position = x_bar[:3]  # position of object in palm
         _rot = ug.rotvec_2_Matrix(x_bar[3:6])  # rot of object in palm
         # _euler = Rotation.from_matrix(_rot).as_euler('xyz', degrees=True)
-        posquat_obj_p = ug.get_relative_posquat(sim, "palm_link", "cup")
-        obj_position = posquat_obj_p[:3]  # position of object in palm
-        quat = np.hstack((posquat_obj_p[4:], posquat_obj_p[3]))
-        rot = Rotation.from_quat(quat).as_matrix()  # rot of object in palm
+        # posquat_obj_p = ug.get_relative_posquat(sim, "palm_link", "cup")
+        # obj_position = posquat_obj_p[:3]  # position of object in palm
+        # quat = np.hstack((posquat_obj_p[4:], posquat_obj_p[3]))
+        # rot = Rotation.from_quat(quat).as_matrix()  # rot of object in palm
         # euler = Rotation.from_matrix(rot).as_euler('xyz', degrees=True)
         # print("}}}}}}}}}}}rot1, rot2:\n", _rot, "\n>", _euler, "\n", rot, '\n>', euler, "\n")
         for i in range(4):
@@ -248,9 +248,13 @@ class EKF:
         #                  np.linalg.pinv(np.matmul(np.matmul(J_h, P_state_cov), J_h.transpose()) + R_noi))
         K_t = P_state_cov @ J_h.transpose() @ \
               np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi)
-        h_t[:3] = -h_t[:3]
+        # print('Kt is ', K_t)
+        # h_t[:3] = -h_t[:3]
+        #normal direction of the object is oposite to the contact tacxel
+        h_t[12:] = -h_t[12:]
         Update = np.matmul(K_t, (z_t - h_t))
+        print('update is ', Update)
         # print("/////Check z, h:", z_t, h_t, "\ndis:", (z_t - h_t))
-        x_hat = x_bar + Update
+        x_hat = x_bar + np.ravel(Update)
         P_state_cov = (np.eye(6 + 4 * 3) - K_t @ J_h) @ P_state_cov
         return x_hat, P_state_cov
