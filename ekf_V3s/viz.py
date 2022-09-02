@@ -121,7 +121,7 @@ def vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state):
     # self.x_gt_world = np.vstack((self.x_gt_world, rot_vec))
 
     tmp_rm = ug.vec2rot(rot_vec)
-    # viz.cor_frame_visual(viewer, pos_obj_world, rot_obj_world, 0.2, "Obj")
+    cor_frame_visual(viewer, pos_obj_world, rot_obj_world, 0.2, "Obj")
     # we use the axis angle
     # viewer.add_marker(pos=pos_obj_world, mat=tmp_rm, type=tactile_allegro_mujo_const.GEOM_ARROW,
     #                   label="o_rot", size=np.array([0.001, 0.001, 0.3]), rgba=np.array([0., 0., 1., 1.0]))
@@ -129,6 +129,15 @@ def vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state):
     """ x_state Visualization """
     pos_x_world = (T_palm_world[:3, 3] + np.matmul(T_palm_world[:3, :3], x_state[:3].T)).T
     rot_x_palm = Rotation.from_rotvec(x_state[3:6]).as_matrix()
+
+    print('normalized rot ', ug.normalize(x_state[3:6]))
+
     rot_x_world = np.matmul(T_palm_world[:3, :3], rot_x_palm)
+    viewer.add_marker(pos=pos_x_world, mat=rot_x_world, type=7,
+                      label='cup', rgba=np.array([0.0, 0.0, 1.0, 1.0]), dataid=0)
     # viewer.add_marker(pos=pos_x_world, mat=rot_x_world, type=tactile_allegro_mujo_const.GEOM_ARROW,
     #                   label="x_state", size=np.array([0.001, 0.001, 0.1]), rgba=np.array([0.34, 0.98, 1., 1.0]))
+
+    iden_rot = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    position = [0.0, 0.0, 0.0]
+    cor_frame_visual(viewer, position, iden_rot, 0.3, 'frame')

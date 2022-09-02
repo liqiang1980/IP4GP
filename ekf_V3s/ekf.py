@@ -53,12 +53,12 @@ class EKF:
     def state_predictor(self, sim, model, hand_param, object_param, x_state, tacperception, \
                         P_state_cov, cur_angles, last_angles, robctrl):
         print("state prediction")
-        Transfer_Fun_Matrix = np.mat(np.zeros([18, 18]))  # F
-        Transfer_Fun_Matrix[:6, :6] = np.mat(np.eye(6))
-        # Q_state_noise_cov = 0.001 * np.identity(6 + 4 * 3)
-        Q_state_noise_cov = np.zeros([18, 18])
+        # Transfer_Fun_Matrix = np.mat(np.zeros([18, 18]))  # F
+        Transfer_Fun_Matrix = np.mat(np.eye(18))
+        Q_state_noise_cov = 0.005 * np.identity(6 + 4 * 3)
 
-        x_state = np.ravel(x_state)
+        # print('in state predict before', P_state_cov)
+        # x_state = np.ravel(x_state)
         # rot_obj_palm = Rotation.from_rotvec(x_state[3:6]).as_matrix()
         self.fin_num = tacperception.fin_num
         self.fin_tri = tacperception.fin_tri
@@ -92,6 +92,7 @@ class EKF:
         #         self.angles[0 + i * 4: 4 + i * 4] = np.zeros(4)
 
         inv_tmp = np.zeros([6, 6])
+        G_pinv = np.zeros([6, 24])
         if tactile_allegro_mujo_const.GT_FLAG == '1G':  # 4 G splice and calculate big GT_pinv
             G_pinv = np.linalg.pinv(self.Grasping_matrix.T)  # Get G_pinv
         elif tactile_allegro_mujo_const.GT_FLAG == '4G':
@@ -110,36 +111,19 @@ class EKF:
         np.savetxt('delta_angles.txt', self.delta_angle)
         ju = np.matmul(self.J_fingers, delta_angles)
 
-        """ Exchange z and x of ju_rotvec (must exchange rot matrix's 1th, 3rd col) """
-        # ju_rot1 = Rotation.from_rotvec(ju[3:6]).as_matrix()
-        # ju_rot2 = Rotation.from_rotvec(ju[9:12]).as_matrix()
-        # ju_rot3 = Rotation.from_rotvec(ju[15:18]).as_matrix()
-        # ju_rot4 = Rotation.from_rotvec(ju[21:24]).as_matrix()
-        # ju_tmp = np.array([[0, 0, 1],
-        #                    [0, 1, 0],
-        #                    [1, 0, 0]])
-        # ju_rot1 = np.matmul(ju_rot1, ju_tmp)
-        # ju_rot2 = np.matmul(ju_rot2, ju_tmp)
-        # ju_rot3 = np.matmul(ju_rot3, ju_tmp)
-        # ju_rot4 = np.matmul(ju_rot4, ju_tmp)
-        # ju[3:6] = Rotation.from_matrix(ju_rot1).as_rotvec()
-        # ju[9:12] = Rotation.from_matrix(ju_rot2).as_rotvec()
-        # ju[15:18] = Rotation.from_matrix(ju_rot3).as_rotvec()
-        # ju[21:24] = Rotation.from_matrix(ju_rot4).as_rotvec()
-        # prediction = np.matmul(np.matmul(G_pinv, self.J_fingers), self.u_t * 0.15)
         prediction = np.matmul(G_pinv, ju)
         if tactile_allegro_mujo_const.GT_FLAG == '4G':
-            Transfer_Fun_Matrix[:6, :6] = ug.F_calculator_4Ginv(ju=ju)
+            # F_calculator_4Ginv identity
+            Transfer_Fun_Matrix[:6, :6] = np.mat(np.eye(6)) + ug.F_calculator_4Ginv(ju=ju)
 
-        # prediction[:3] = (x_state[:3].T + np.matmul(rot_obj_palm, prediction[:3].T)).T
-        # prediction[3:6] = np.matmul(rot_obj_palm, prediction[3:6].T).T
-
+        # assume the contact positions on the object do not change.
         prediction = np.append(prediction, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
         x_bar = x_state + 1/tacperception.fin_num*prediction
-        x_bar = np.ravel(x_bar)
 
         P_state_cov = Transfer_Fun_Matrix * P_state_cov * \
                       Transfer_Fun_Matrix.transpose() + Q_state_noise_cov
+
+        # print('in state predict after', P_state_cov)
 
         #ju is only for debugging
         return x_bar, P_state_cov, ju
@@ -241,20 +225,24 @@ class EKF:
         # the covariance of measurement noise
         # R_noi = np.random.normal(0, 0.01, size=(6 * 4, 6 * 4))
         R_noi = 0.15 * np.eye(6*4)
-        R_noi[:3, :3] = np.mat([[0.001, 0.15, 0.2],
-                                [0.15, 0.001, 0.002],
-                                [0.2, 0.002, 0.001]])
+        # R_noi[:3, :3] = np.mat([[0.001, 0.15, 0.2],
+        #                         [0.15, 0.001, 0.002],
+        #                         [0.2, 0.002, 0.001]])
         # K_t =  np.matmul(np.matmul(P_state_cov, J_h.transpose()), \
         #                  np.linalg.pinv(np.matmul(np.matmul(J_h, P_state_cov), J_h.transpose()) + R_noi))
         K_t = P_state_cov @ J_h.transpose() @ \
               np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi)
         # print('Kt is ', K_t)
+        # print('in posteria P_state_cov before', P_state_cov)
+        # print('J_h ', J_h.transpose())
+        # print('pinv ', np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi))
         # h_t[:3] = -h_t[:3]
         #normal direction of the object is oposite to the contact tacxel
         h_t[12:] = -h_t[12:]
-        Update = np.matmul(K_t, (z_t - h_t))
-        print('update is ', Update)
-        # print("/////Check z, h:", z_t, h_t, "\ndis:", (z_t - h_t))
-        x_hat = x_bar + np.ravel(Update)
+        # print('zt - ht ', z_t - h_t)
+        Update = np.ravel(np.matmul(K_t, (z_t - h_t)))
+        # print('update is ', Update)
+        x_hat = x_bar + Update
         P_state_cov = (np.eye(6 + 4 * 3) - K_t @ J_h) @ P_state_cov
+        # print('in posteria P_state_cov after', P_state_cov)
         return x_hat, P_state_cov

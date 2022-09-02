@@ -919,8 +919,7 @@ class ROBCTRL:
                 # detect the first contact and initialize y_t_update with noise
                 if not first_contact_flag:
                     # initialize the co-variance matrix of state estimation
-                    P_state_cov = 0.01 * np.identity(6 + 4 * 3)
-                    # P_state_cov = 100 * np.ones([18, 18])
+                    P_state_cov = 1 * np.identity(6 + 4 * 3)
                     # noise +-5 mm, +-0.002 (axis angle vector)
                     # prepare object pose and relevant noise
                     init_e = np.hstack((np.random.uniform((-1) * float(object_param[1]), float(object_param[1]), \
@@ -976,9 +975,16 @@ class ROBCTRL:
                 else:
                     print('no else')
 
-
+                # print('P_state_cov ', P_state_cov)
                 # x_state = np.ravel(x_state)
                 gd_posquat = ug.get_relative_posquat(sim, "palm_link", "cup")
+
+                g1 = ug.get_relative_posquat(sim, "world", "cup")
+                g2 = ug.get_relative_posquat(sim, "world", "palm_link")
+
+                print("w 2 c", g1[:3])
+                print("w 2 p", g2[:3])
+
                 gd_state = ug.posquat2posrotvec_hacking(gd_posquat)
 
                 """ Prediction step in EKF """
@@ -993,9 +999,9 @@ class ROBCTRL:
                 last_angles = cur_angles
                 # print("+++xbar, xstate:", x_bar, "\n>>", x_state, "\n>>", x_bar[:6]-x_state[:6])
                 # np.set_printoptions(suppress=True)
-                # self.x_bar_all = np.vstack((self.x_bar_all, x_bar[0:6]))
-                # self.x_gt_palm = np.vstack((self.x_gt_palm, gd_state))
-                # self.ju_all = np.vstack((self.ju_all, ju_all[6:12]))
+                self.x_bar_all = np.vstack((self.x_bar_all, x_bar[0:6]))
+                self.x_gt_palm = np.vstack((self.x_gt_palm, gd_state))
+                self.ju_all = np.vstack((self.ju_all, ju_all[6:12]))
 
                 #
                 h_t_position, h_t_nv = ekf_grasping.observe_computation(x_bar, tacperception, sim)
@@ -1017,18 +1023,18 @@ class ROBCTRL:
                 else:
                     x_state = x_bar
 
-                # self.x_state_all = np.vstack((self.x_state_all, np.ravel(x_state)[0:6]))
+                self.x_state_all = np.vstack((self.x_state_all, np.ravel(x_state)[0:6]))
                 print(x_state)
                 viz.vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state)
 
                 tacperception.fin_num = 0
                 tacperception.fin_tri = np.zeros(4)
                 #
-                # np.savetxt('x_gt_world.txt', self.x_gt_world)
-                # np.savetxt('x_bar_all.txt', self.x_bar_all)
-                # np.savetxt('x_state_all.txt', self.x_state_all)
-                # np.savetxt('x_gt_palm.txt', self.x_gt_palm)
-                # np.savetxt('ju_all.txt', self.ju_all)
+                np.savetxt('x_gt_world.txt', self.x_gt_world)
+                np.savetxt('x_bar_all.txt', self.x_bar_all)
+                np.savetxt('x_state_all.txt', self.x_state_all)
+                np.savetxt('x_gt_palm.txt', self.x_gt_palm)
+                np.savetxt('ju_all.txt', self.ju_all)
 
             end = time.time()
             print('time cost in one loop ', end - start)

@@ -1425,13 +1425,13 @@ def F_calculator_4Ginv(ju):
         [0, 0, 0, 0, 1, 0],
         [0, 0, 0, 0, 0, 1]
     ])
-    print("  F_val(4 small_GT_inv)", F.shape, "\n",
-          F[0, :], "\n",
-          F[1, :], "\n",
-          F[2, :], "\n",
-          F[3, :], "\n",
-          F[4, :], "\n",
-          F[5, :])
+    # print("  F_val(4 small_GT_inv)", F.shape, "\n",
+    #       F[0, :], "\n",
+    #       F[1, :], "\n",
+    #       F[2, :], "\n",
+    #       F[3, :], "\n",
+    #       F[4, :], "\n",
+    #       F[5, :])
     return F
 
 def normalize(v):
@@ -1443,13 +1443,17 @@ def vec2rot(vec):
     rot = np.zeros([3, 3])
     rot_x = np.zeros(3)
     vec_normalize = normalize(vec)
-    x = vec_normalize[0]
-    y = vec_normalize[1]
-    rot_x[0] = y / math.sqrt(x**2 + y**2)
-    rot_x[1] = - x / math.sqrt(x**2 + y**2)
-    rot_y = np.cross(vec_normalize, rot_x)
-    rot[:3, 0] = rot_x
-    rot[:3, 1] = rot_y
+    if vec_normalize[2] != 1.0:
+        x = vec_normalize[0]
+        y = vec_normalize[1]
+        rot_x[0] = y / math.sqrt(x**2 + y**2)
+        rot_x[1] = - x / math.sqrt(x**2 + y**2)
+        rot_y = np.cross(vec_normalize, rot_x)
+        rot[:3, 0] = rot_x
+        rot[:3, 1] = rot_y
+    else:
+        rot[:3, 0] = [1.0, 0., 0.]
+        rot[:3, 1] = [0., 1.0, 0.0]
     rot[:3, 2] = vec_normalize.T
     # print("    vec==rot:", rot)
     return rot

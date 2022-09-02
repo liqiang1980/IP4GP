@@ -54,9 +54,9 @@ class EKF:
         Transfer_Fun_Matrix = np.mat(np.zeros([18, 18]))  # F
         Transfer_Fun_Matrix[:6, :6] = np.mat(np.eye(6))
         # Q_state_noise_cov = 0.001 * np.identity(6 + 4 * 3)
-        Q_state_noise_cov = np.zeros([18, 18])
+        Q_state_noise_cov = 0.1 * np.eye([18, 18])
 
-        x_state = np.ravel(x_state)
+        # x_state = np.ravel(x_state)
         rot_obj_palm = Rotation.from_rotvec(x_state[3:]).as_matrix()
         self.fin_num = tacperception.fin_num
         self.fin_tri = tacperception.fin_tri
