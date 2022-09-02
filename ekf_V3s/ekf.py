@@ -55,7 +55,7 @@ class EKF:
         print("state prediction")
         # Transfer_Fun_Matrix = np.mat(np.zeros([18, 18]))  # F
         Transfer_Fun_Matrix = np.mat(np.eye(18))
-        Q_state_noise_cov = 0.005 * np.identity(6 + 4 * 3)
+        Q_state_noise_cov = 0.00 * np.identity(6 + 4 * 3)
 
         # print('in state predict before', P_state_cov)
         # x_state = np.ravel(x_state)
@@ -123,7 +123,7 @@ class EKF:
         P_state_cov = Transfer_Fun_Matrix * P_state_cov * \
                       Transfer_Fun_Matrix.transpose() + Q_state_noise_cov
 
-        # print('in state predict after', P_state_cov)
+        print('in state predict after', P_state_cov)
 
         #ju is only for debugging
         return x_bar, P_state_cov, ju
@@ -212,6 +212,7 @@ class EKF:
                                              pos_CO_z=pos_c4[2])
             J_h[21:24, :6] = ug.H_calculator_pn(W1=W1, W2=W2, W3=W3, normal_CO_x=normal_c4[0], normal_CO_y=normal_c4[1],
                                                 normal_CO_z=normal_c4[2])
+            R_noi = np.random.normal(0, 0.15, size=(6 * 4, 6 * 4))
         elif pn_flag == 'p':  # use pos only as observation variable
             J_h = np.zeros([3 * 4, 6 + 4 * 3])
             J_h[:3, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c1[0], pos_CO_y=pos_c1[1],
@@ -222,9 +223,9 @@ class EKF:
                                            pos_CO_z=pos_c3[2])
             J_h[9:12, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c4[0], pos_CO_y=pos_c4[1],
                                             pos_CO_z=pos_c4[2])
+            R_noi = np.random.normal(0, 0.15, size=(3 * 4, 3 * 4))
         # the covariance of measurement noise
         # R_noi = np.random.normal(0, 0.01, size=(6 * 4, 6 * 4))
-        R_noi = 0.15 * np.eye(6*4)
         # R_noi[:3, :3] = np.mat([[0.001, 0.15, 0.2],
         #                         [0.15, 0.001, 0.002],
         #                         [0.2, 0.002, 0.001]])
@@ -238,7 +239,7 @@ class EKF:
         # print('pinv ', np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi))
         # h_t[:3] = -h_t[:3]
         #normal direction of the object is oposite to the contact tacxel
-        h_t[12:] = -h_t[12:]
+        # h_t[12:] = -h_t[12:]
         # print('zt - ht ', z_t - h_t)
         Update = np.ravel(np.matmul(K_t, (z_t - h_t)))
         # print('update is ', Update)

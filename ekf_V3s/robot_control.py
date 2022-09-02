@@ -919,7 +919,7 @@ class ROBCTRL:
                 # detect the first contact and initialize y_t_update with noise
                 if not first_contact_flag:
                     # initialize the co-variance matrix of state estimation
-                    P_state_cov = 1 * np.identity(6 + 4 * 3)
+                    P_state_cov = 0 * np.identity(6 + 4 * 3)
                     # noise +-5 mm, +-0.002 (axis angle vector)
                     # prepare object pose and relevant noise
                     init_e = np.hstack((np.random.uniform((-1) * float(object_param[1]), float(object_param[1]), \
@@ -930,6 +930,8 @@ class ROBCTRL:
                     # attention, here orientation we use the axis angle representation.
                     # x_state = np.array([ug.pos_quat2axis_angle(x_state)])
                     x_state = ug.pos_quat2axis_angle(x_state)
+                    np.set_printoptions(suppress=True)
+                    print('x_state from beginning before add noise', x_state)
                     if tactile_allegro_mujo_const.initE_FLAG:
                         x_state = x_state + init_e
                     # augmented state with the contact position on the object surface described in the object frame
@@ -939,6 +941,7 @@ class ROBCTRL:
                     x_all = x_state
                     gd_posquat = ug.get_relative_posquat(sim, "palm_link", "cup")
                     gd_state = ug.posquat2posrotvec_hacking(gd_posquat)
+                    print('x_state ground truth ', gd_state)
                     # gd_state = qg.posquat2posrotvec(gd_posquat)
                     gd_all = gd_state
                     first_contact_flag = True
@@ -1009,8 +1012,13 @@ class ROBCTRL:
                 z_t_position, z_t_nv = ekf_grasping.measure_fb(sim, model, hand_param, object_param, \
                                                            x_bar, tacperception)
                 #
-                z_t = np.concatenate((z_t_position, z_t_nv), axis=None)
-                h_t = np.concatenate((h_t_position, h_t_nv), axis=None)
+                if tactile_allegro_mujo_const.PN_FLAG=='p':
+                    z_t = np.ravel(z_t_position)
+                    h_t = np.ravel(h_t_position)
+                else:
+                    z_t = np.concatenate((z_t_position, z_t_nv), axis=None)
+                    h_t = np.concatenate((h_t_position, h_t_nv), axis=None)
+
                 print("++++z_t:", ii, z_t)
                 print("++++h_t:", ii, h_t)
                 end1 = time.time()
