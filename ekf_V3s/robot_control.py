@@ -737,14 +737,14 @@ class ROBCTRL:
             sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] = \
                 sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] + input1
             sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] = \
-                sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] + input1 * 5
+                sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] + input1
         else:
             sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_2] = \
                 sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_2] + input2
             sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] = \
                 sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] + input2
             sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] = \
-                sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] + input2 * 5
+                sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] + input2
     def get_cur_jnt(self, sim):
         cur_jnt = np.zeros(tactile_allegro_mujo_const.FULL_FINGER_JNTS_NUM)
         cur_jnt[0:4] = np.array([sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_1],
@@ -889,13 +889,13 @@ class ROBCTRL:
         # other fingers start moving with the different velocity (contact/without contact)
         for ii in range(1000):
             if hand_param[1][1] == '1':
-                self.index_finger(sim, 0.0055, 0.00001)
+                self.index_finger(sim, 0.005, 0.000001)
             if hand_param[2][1] == '1':
-                self.middle_finger(sim, 0.0016, 0.00001)
+                self.middle_finger(sim, 0.005, 0.000001)
             if hand_param[3][1] == '1':
-                self.ring_finger(sim, 0.02, 0.00001)
+                self.ring_finger(sim, 0.005, 0.000001)
             if hand_param[4][1] == '1':
-                self.thumb(sim, 0.0003, 0.00001)
+                self.thumb(sim, 0.002, 0.000001)
 
             start = time.time()
             flag_ff = tacperception.is_finger_contact(sim, hand_param[1][0])
