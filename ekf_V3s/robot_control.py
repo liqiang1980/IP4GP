@@ -46,6 +46,9 @@ class ROBCTRL:
         self.x_gt_palm = [0, 0, 0, 0, 0, 0, 0]
         self.x_gt_world = [0, 0, 0]
         self.ju_all = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.delta_ct = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.z_t = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.h_t = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
 
     def robot_init(self, sim):
@@ -517,7 +520,6 @@ class ROBCTRL:
     def middle_finger(self, sim, input1, input2):
         if not (np.array(sim.data.sensordata[tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN: \
                 tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX]) > 0.0).any():  # 中指
-            print('..................')
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] = \
                 sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] + input1
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_3] = \
@@ -916,6 +918,8 @@ class ROBCTRL:
                 if tacperception.is_th_contact == True:
                     tacperception.fin_num += 1
                     tacperception.fin_tri[3] = 1
+                # print('contacts num ', tacperception.fin_num)
+                # print('contacts id ', tacperception.fin_tri)
                 # detect the first contact and initialize y_t_update with noise
                 if not first_contact_flag:
                     # initialize the co-variance matrix of state estimation
@@ -937,12 +941,11 @@ class ROBCTRL:
                         x_state = x_state + init_e
                     # augmented state with the contact position on the object surface described in the object frame
                     x_state = self.augmented_state(sim, model, hand_param, tacperception, x_state)
-                    print('x_state from beginning ', x_state)
-
+                    # print('x_state from beginning ', x_state)
                     x_all = x_state
                     gd_posquat = ug.get_relative_posquat(sim, "palm_link", "cup")
                     gd_state = ug.posquat2posrotvec_hacking(gd_posquat)
-                    print('x_state ground truth ', gd_state)
+                    # print('x_state ground truth ', gd_state)
                     # gd_state = qg.posquat2posrotvec(gd_posquat)
                     gd_all = gd_state
                     first_contact_flag = True
@@ -997,8 +1000,9 @@ class ROBCTRL:
                     self.mea_filter_js.lp_filter(cur_angles_tmp, 16)
                 x_bar, P_state_cov, ju_all = ekf_grasping.state_predictor(sim, model, hand_param, object_param, \
                                                                   x_state, tacperception, P_state_cov, cur_angles, last_angles,self)
-                last_angles = cur_angles
 
+                last_angles = cur_angles
+                # last_angles = cur_angles_tmp
                 #compute the axis and angle for plot_data
                 x_bar_plot = [0., 0., 0., 0., 0., 0., 0.]
                 x_bar_plot[0:3] = x_bar[0:3]
@@ -1028,7 +1032,7 @@ class ROBCTRL:
 
                 # print("++++z_t:", ii, z_t)
                 # print("++++h_t:", ii, h_t)
-                end1 = time.time()
+                # end1 = time.time()
                 # print('time cost in forward compute ', end1 - start)
 
                 # # posterior estimation
@@ -1037,17 +1041,17 @@ class ROBCTRL:
                                                                    P_state_cov, tacperception)
                 else:
                     x_state = x_bar
-
+                delta_t = z_t - h_t
+                print('zt - ht ', delta_t)
+                self.delta_ct = np.vstack((self.delta_ct, delta_t))
+                self.z_t = np.vstack((self.z_t, z_t))
+                self.h_t = np.vstack((self.h_t, h_t))
                 x_state_plot = [0., 0., 0., 0., 0., 0., 0.]
                 x_state_plot[0:3] = x_state[0:3]
                 x_state_plot[3:6], x_state_plot[6] = ug.normalize_scale(x_state[3:6])
 
                 self.x_state_all = np.vstack((self.x_state_all, x_state_plot))
-                print(x_state)
                 viz.vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state)
-
-                print('contacts num ', tacperception.fin_num)
-                print('contacts id ', tacperception.fin_tri)
 
                 tacperception.fin_num = 0
                 tacperception.fin_tri = np.zeros(4)
@@ -1057,6 +1061,9 @@ class ROBCTRL:
                 np.savetxt('x_state_all.txt', self.x_state_all)
                 np.savetxt('x_gt_palm.txt', self.x_gt_palm)
                 np.savetxt('ju_all.txt', self.ju_all)
+                np.savetxt('delta_ct.txt', self.delta_ct)
+                np.savetxt('z_t.txt', self.z_t)
+                np.savetxt('h_t.txt', self.h_t)
 
             end = time.time()
             print('time cost in one loop ', end - start)
