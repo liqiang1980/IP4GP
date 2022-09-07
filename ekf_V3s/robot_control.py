@@ -41,9 +41,9 @@ class ROBCTRL:
 
         self.ct_g_z_position = [0, 0, 0]
         self.ct_p_z_position = [0, 0, 0]
-        self.x_bar_all = [0, 0, 0, 0, 0, 0]
-        self.x_state_all = [0, 0, 0, 0, 0, 0]
-        self.x_gt_palm = [0, 0, 0, 0, 0, 0]
+        self.x_bar_all = [0, 0, 0, 0, 0, 0, 0]
+        self.x_state_all = [0, 0, 0, 0, 0, 0, 0]
+        self.x_gt_palm = [0, 0, 0, 0, 0, 0, 0]
         self.x_gt_world = [0, 0, 0]
         self.ju_all = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
@@ -919,6 +919,7 @@ class ROBCTRL:
                 # detect the first contact and initialize y_t_update with noise
                 if not first_contact_flag:
                     # initialize the co-variance matrix of state estimation
+                    # P_state_cov = np.random.normal(0, 0.01) * np.identity(6 + 4 * 3)
                     P_state_cov = 0 * np.identity(6 + 4 * 3)
                     # noise +-5 mm, +-0.002 (axis angle vector)
                     # prepare object pose and relevant noise
@@ -981,12 +982,9 @@ class ROBCTRL:
                 # print('P_state_cov ', P_state_cov)
                 # x_state = np.ravel(x_state)
                 gd_posquat = ug.get_relative_posquat(sim, "palm_link", "cup")
-
                 g1 = ug.get_relative_posquat(sim, "world", "cup")
                 g2 = ug.get_relative_posquat(sim, "world", "palm_link")
 
-                print("w 2 c", g1[:3])
-                print("w 2 p", g2[:3])
 
                 gd_state = ug.posquat2posrotvec_hacking(gd_posquat)
 
@@ -1000,10 +998,19 @@ class ROBCTRL:
                 x_bar, P_state_cov, ju_all = ekf_grasping.state_predictor(sim, model, hand_param, object_param, \
                                                                   x_state, tacperception, P_state_cov, cur_angles, last_angles,self)
                 last_angles = cur_angles
-                # print("+++xbar, xstate:", x_bar, "\n>>", x_state, "\n>>", x_bar[:6]-x_state[:6])
-                # np.set_printoptions(suppress=True)
-                self.x_bar_all = np.vstack((self.x_bar_all, x_bar[0:6]))
-                self.x_gt_palm = np.vstack((self.x_gt_palm, gd_state))
+
+                #compute the axis and angle for plot_data
+                x_bar_plot = [0., 0., 0., 0., 0., 0., 0.]
+                x_bar_plot[0:3] = x_bar[0:3]
+                x_bar_plot[3:6], x_bar_plot[6] = ug.normalize_scale(x_bar[3:6])
+
+                gd_state_plot = [0., 0., 0., 0., 0., 0., 0.]
+                gd_state_plot[0:3] = gd_state[0:3]
+                gd_state_plot[3:6], gd_state_plot[6] = ug.normalize_scale(gd_state[3:6])
+
+
+                self.x_bar_all = np.vstack((self.x_bar_all, x_bar_plot))
+                self.x_gt_palm = np.vstack((self.x_gt_palm, gd_state_plot))
                 self.ju_all = np.vstack((self.ju_all, ju_all[6:12]))
 
                 #
@@ -1019,10 +1026,10 @@ class ROBCTRL:
                     z_t = np.concatenate((z_t_position, z_t_nv), axis=None)
                     h_t = np.concatenate((h_t_position, h_t_nv), axis=None)
 
-                print("++++z_t:", ii, z_t)
-                print("++++h_t:", ii, h_t)
+                # print("++++z_t:", ii, z_t)
+                # print("++++h_t:", ii, h_t)
                 end1 = time.time()
-                print('time cost in forward compute ', end1 - start)
+                # print('time cost in forward compute ', end1 - start)
 
                 # # posterior estimation
                 if tactile_allegro_mujo_const.posteriori_FLAG:
@@ -1031,9 +1038,16 @@ class ROBCTRL:
                 else:
                     x_state = x_bar
 
-                self.x_state_all = np.vstack((self.x_state_all, np.ravel(x_state)[0:6]))
+                x_state_plot = [0., 0., 0., 0., 0., 0., 0.]
+                x_state_plot[0:3] = x_state[0:3]
+                x_state_plot[3:6], x_state_plot[6] = ug.normalize_scale(x_state[3:6])
+
+                self.x_state_all = np.vstack((self.x_state_all, x_state_plot))
                 print(x_state)
                 viz.vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state)
+
+                print('contacts num ', tacperception.fin_num)
+                print('contacts id ', tacperception.fin_tri)
 
                 tacperception.fin_num = 0
                 tacperception.fin_tri = np.zeros(4)

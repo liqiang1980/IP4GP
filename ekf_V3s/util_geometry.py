@@ -1439,6 +1439,12 @@ def normalize(v):
     if norm == 0:
        return v
     return v / norm
+
+def normalize_scale(v):
+    norm = np.linalg.norm(v)
+    if norm == 0:
+       return v
+    return v / norm, norm
 def vec2rot(vec):
     rot = np.zeros([3, 3])
     rot_x = np.zeros(3)

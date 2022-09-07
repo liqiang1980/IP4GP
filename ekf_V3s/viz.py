@@ -134,10 +134,11 @@ def vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state):
     """ x_state Visualization """
     pos_x_world = (T_palm_world[:3, 3] + np.matmul(T_palm_world[:3, :3], x_state[:3].T)).T
     rot_x_palm = Rotation.from_rotvec(x_state[3:6]).as_matrix()
-
-    print('normalized rot ', ug.normalize(x_state[3:6]))
+    v, s = ug.normalize_scale(x_state[3:6])
+    print('normalized rot and scale', v, s)
 
     rot_x_world = np.matmul(T_palm_world[:3, :3], rot_x_palm)
+    print('rot vec in world', Rotation.from_matrix(rot_x_world).as_rotvec())
     viewer.add_marker(pos=pos_x_world, mat=rot_x_world, type=7,
                       label='cup', rgba=np.array([0.0, 0.0, 1.0, 1.0]), dataid=0)
     # viewer.add_marker(pos=pos_x_world, mat=rot_x_world, type=tactile_allegro_mujo_const.GEOM_ARROW,

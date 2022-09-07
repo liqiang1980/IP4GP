@@ -11,6 +11,7 @@ x_bar_all3 = x_bar_all[3:, 2]
 x_bar_all4 = x_bar_all[3:, 3]
 x_bar_all5 = x_bar_all[3:, 4]
 x_bar_all6 = x_bar_all[3:, 5]
+x_bar_all7 = x_bar_all[3:, 6]
 
 x_state_all1 = x_state_all[3:, 0]
 x_state_all2 = x_state_all[3:, 1]
@@ -18,6 +19,7 @@ x_state_all3 = x_state_all[3:, 2]
 x_state_all4 = x_state_all[3:, 3]
 x_state_all5 = x_state_all[3:, 4]
 x_state_all6 = x_state_all[3:, 5]
+x_state_all7 = x_state_all[3:, 6]
 
 x_gt_plam1 = x_gt_plam[3:, 0]
 x_gt_plam2 = x_gt_plam[3:, 1]
@@ -25,11 +27,12 @@ x_gt_plam3 = x_gt_plam[3:, 2]
 x_gt_plam4 = x_gt_plam[3:, 3]
 x_gt_plam5 = x_gt_plam[3:, 4]
 x_gt_plam6 = x_gt_plam[3:, 5]
+x_gt_plam7 = x_gt_plam[3:, 6]
 
 
 t = np.arange(0, x_gt_plam1.shape[0], 1)
 
-fig, ax = plt.subplots(3, 2, figsize=(12, 6), sharex='all', dpi=100)
+fig, ax = plt.subplots(4, 2, figsize=(12, 6), sharex='all', dpi=100)
 fig.subplots_adjust(hspace=0.1, wspace=0.2)
 
 ax1 = ax[0,0]
@@ -82,6 +85,15 @@ ax3.set_ylabel('z', {'size': 13})
 ax3.set_xlabel('Count', {'size': 13})
 ax3.grid(axis="both")
 ax3.tick_params(labelsize=13)
+
+ax4 = ax[3,1]
+ax4.plot(t, x_bar_all7, color='black')
+ax4.plot(t, x_state_all7, color='blue')
+ax4.plot(t, x_gt_plam7, color='red')
+ax4.set_ylabel('z', {'size': 13})
+ax4.set_xlabel('Count', {'size': 13})
+ax4.grid(axis="both")
+ax4.tick_params(labelsize=13)
 
 
 plt.show()
