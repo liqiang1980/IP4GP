@@ -220,8 +220,9 @@ class EKF:
                 J_h[21:24, :6] = ug.H_calculator_pn(W1=W1, W2=W2, W3=W3, normal_CO_x=normal_c4[0], normal_CO_y=normal_c4[1],
                                                 normal_CO_z=normal_c4[2])
                 R_noi[18:24, 18:24] = np.random.normal(0, 0.002) * np.identity(6)
-            K_t = P_state_cov @ J_h.transpose() @ \
-                  np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi)
+            # K_t = P_state_cov @ J_h.transpose() @ \
+            #       np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi)
+            K_t = np.linalg.pinv(J_h)
 
         elif pn_flag == 'p':  # use pos only as observation variable
             J_h = np.zeros([3 * 4, 6 + 4 * 3])
@@ -242,8 +243,9 @@ class EKF:
                 J_h[9:12, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c4[0], pos_CO_y=pos_c4[1],
                                             pos_CO_z=pos_c4[2])
                 R_noi[9:12, 9:12] = np.random.normal(0, 0.002) * np.identity(3)
-            K_t = P_state_cov @ J_h.transpose() @ \
-                  np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi)
+            # K_t = P_state_cov @ J_h.transpose() @ \
+            #       np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi)
+            K_t = 0.02 * np.linalg.pinv(J_h)
         # the covariance of measurement noise
         # R_noi = np.random.normal(0, 0.01, size=(6 * 4, 6 * 4))
         # R_noi[:3, :3] = np.mat([[0.001, 0.15, 0.2],
@@ -252,10 +254,10 @@ class EKF:
         # K_t =  np.matmul(np.matmul(P_state_cov, J_h.transpose()), \
         #                  np.linalg.pinv(np.matmul(np.matmul(J_h, P_state_cov), J_h.transpose()) + R_noi))
 
-        # print('Kt is ', K_t)
-        # print('in posteria P_state_cov before', P_state_cov)
-        # print('J_h ', J_h)
-        # print('pinv ', np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi))
+        print('Kt is ', K_t)
+        print('in posteria P_state_cov before', P_state_cov)
+        print('J_h ', J_h)
+        print('pinv ', np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi))
         # h_t[:3] = -h_t[:3]
         #normal direction of the object is oposite to the contact tacxel
         # h_t[12:] = -h_t[12:]

@@ -889,6 +889,7 @@ class ROBCTRL:
         # Thumb root movement
         self.pre_thumb(sim, viewer)
         # other fingers start moving with the different velocity (contact/without contact)
+        counter_in_loop = 0
         for ii in range(1000):
             if hand_param[1][1] == '1':
                 self.index_finger(sim, 0.005, 0.000001)
@@ -981,7 +982,8 @@ class ROBCTRL:
                     th_first_contact_flag =True
                 else:
                     print('no else')
-
+                counter_in_loop = counter_in_loop + 1
+                print('counter_in_loop is************************************************************* ', counter_in_loop)
                 # print('P_state_cov ', P_state_cov)
                 # x_state = np.ravel(x_state)
                 gd_posquat = ug.get_relative_posquat(sim, "palm_link", "cup")
@@ -1041,6 +1043,10 @@ class ROBCTRL:
                                                                    P_state_cov, tacperception)
                 else:
                     x_state = x_bar
+
+                x_state[3:6] = gd_state[3:6]
+                print('x_bar ',x_bar)
+                print('x_state', x_state)
                 delta_t = z_t - h_t
                 print('zt - ht ', delta_t)
                 self.delta_ct = np.vstack((self.delta_ct, delta_t))
