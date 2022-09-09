@@ -245,7 +245,9 @@ class EKF:
                 R_noi[9:12, 9:12] = np.random.normal(0, 0.002) * np.identity(3)
             # K_t = P_state_cov @ J_h.transpose() @ \
             #       np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi)
-            K_t = 0.02 * np.linalg.pinv(J_h)
+            K_t = np.linalg.pinv(J_h)
+            K_t[0:3, :] = np.linalg.pinv(J_h)[0:3, :]
+            K_t[3:6, :] = 0.01 * np.linalg.pinv(J_h)[3:6, :]
         # the covariance of measurement noise
         # R_noi = np.random.normal(0, 0.01, size=(6 * 4, 6 * 4))
         # R_noi[:3, :3] = np.mat([[0.001, 0.15, 0.2],

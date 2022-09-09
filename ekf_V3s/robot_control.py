@@ -239,6 +239,51 @@ class ROBCTRL:
             viewer.render()
             del viewer._markers[:]
 
+    def inc_finger_jnt(self, sim, finger_name, inc):
+        if(finger_name == 'ff'):
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] = \
+                sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] + inc
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] = \
+                sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] + inc
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] = \
+                sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] + inc
+        if(finger_name == 'mf'):
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] = \
+                sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] + inc
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_3] = \
+                sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_3] + inc
+            sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_4] = \
+                sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_4] + inc
+        if(finger_name == 'rf'):
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_2] = \
+                sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_2] + inc
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_3] = \
+                sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_3] + inc
+            sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_4] = \
+                sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_4] + inc
+        if(finger_name == 'th'):
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_2] = \
+                sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_2] + inc
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] = \
+                sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] + inc
+            sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] = \
+                sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] + inc
+
+
+    def finger_contact(self, sim, viewer, finger_name, tacperception):
+        while (tacperception.is_finger_contact(sim, finger_name) != True):
+            self.inc_finger_jnt(sim, finger_name, 0.001)
+            sim.step()
+            viewer.render()
+
+
+
+    def fingers_contact(self, sim, viewer, tacperception):
+        self.finger_contact(sim, viewer, 'ff', tacperception)
+        self.finger_contact(sim, viewer, 'mf', tacperception)
+        self.finger_contact(sim, viewer, 'rf', tacperception)
+        self.finger_contact(sim, viewer, 'th', tacperception)
+
     def moveto_jnt(self, sim, viewer, finger_name, q_est, usedtime):
         if finger_name == 'ff':
             for _ in range(usedtime):
@@ -1044,7 +1089,7 @@ class ROBCTRL:
                 else:
                     x_state = x_bar
 
-                x_state[3:6] = gd_state[3:6]
+                # x_state[3:6] = gd_state[3:6]
                 print('x_bar ',x_bar)
                 print('x_state', x_state)
                 delta_t = z_t - h_t
