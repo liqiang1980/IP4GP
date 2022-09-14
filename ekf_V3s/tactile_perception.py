@@ -22,6 +22,16 @@ class cls_tactile_perception:
         self.is_mf_contact = False
         self.is_rf_contact = False
         self.is_th_contact = False
+        self.fftip_center_taxel_pose = [0., 0., 0., 0., 0., 0., 0.]
+        self.mftip_center_taxel_pose = [0., 0., 0., 0., 0., 0., 0.]
+        self.rftip_center_taxel_pose = [0., 0., 0., 0., 0., 0., 0.]
+        self.thtip_center_taxel_pose = [0., 0., 0., 0., 0., 0., 0.]
+
+    def get_hand_tip_center_pose(self, sim, model, ref_frame):
+        self.get_tip_center_pose(sim, model, 'ff_tip', ref_frame)
+        self.get_tip_center_pose(sim, model, 'mf_tip', ref_frame)
+        self.get_tip_center_pose(sim, model, 'rf_tip', ref_frame)
+        self.get_tip_center_pose(sim, model, 'th_tip', ref_frame)
 
     def is_finger_contact(self, sim, finger_name):
         if finger_name == 'ff':
@@ -72,6 +82,97 @@ class cls_tactile_perception:
             return np.where(sim.data.sensordata[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN: \
                                              tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX] > 0.0)
 
+    def get_contact_taxel_name_pressure(self, sim, model, finger_name):
+        taxels_id = self.get_contact_taxel_id(sim, finger_name)
+
+        if finger_name == 'ff':
+            c_points = taxels_id[0]
+            # print(">>c_points_ff:", c_points)
+        if finger_name == 'mf':
+            c_points = taxels_id[0] + 144
+            # print(">>c_points_mf:", c_points)
+        if finger_name == 'rf':
+            c_points = taxels_id[0] + 288
+            # print(">>c_points_rf:", c_points)
+        if finger_name == 'th':
+            c_points = taxels_id[0] + 432
+            # print(">>c_points_th:", c_points)
+
+        actived_tmp_position = np.zeros((3, len(c_points)))
+        active_taxel_presssure = []
+        taxel_position = np.zeros((3, 72))
+        active_taxel_name = []
+        dev_taxel_value = []
+        if len(c_points) > 1:
+            for i in range(len(c_points)):
+                active_taxel_presssure.append(sim.data.sensordata[c_points[i]])
+                active_taxel_name.append(model._sensor_id2name[c_points[i]])
+                actived_tmp_position[:, i] = ug.get_relative_posquat(sim, "palm_link", active_taxel_name[i])[:3]
+            avg_position = actived_tmp_position.mean(1)
+        else:
+            avg_position = ug.get_relative_posquat(sim, "palm_link", model._sensor_id2name[c_points[0]])[:3]
+        c_avr_pressure = sum(active_taxel_presssure) / len(active_taxel_presssure)
+        if len(c_points) > 1:
+            for i in range(len(c_points)):
+                taxel_position[:, i] = ug.get_relative_posquat(sim, "palm_link", active_taxel_name[i])[:3]
+                dev_taxel_value.append(np.linalg.norm(taxel_position[:, i] - avg_position))
+            min_value = min(dev_taxel_value)
+            c_point_name = model._sensor_id2name[c_points[dev_taxel_value.index(min_value)]]
+        else:
+            c_point_name = model._sensor_id2name[c_points[0]]
+
+        return c_point_name, c_avr_pressure
+
+    def get_contact_feature(self, sim, model, finger_name):
+        taxels_id = self.get_contact_taxel_id(sim, finger_name)
+
+        if finger_name == 'ff':
+            c_points = taxels_id[0]
+            # print(">>c_points_ff:", c_points)
+        if finger_name == 'mf':
+            c_points = taxels_id[0] + 144
+            # print(">>c_points_mf:", c_points)
+        if finger_name == 'rf':
+            c_points = taxels_id[0] + 288
+            # print(">>c_points_rf:", c_points)
+        if finger_name == 'th':
+            c_points = taxels_id[0] + 432
+            # print(">>c_points_th:", c_points)
+
+        actived_tmp_position = np.zeros((3, len(c_points)))
+        active_taxel_presssure = []
+        taxel_position = np.zeros((3, 72))
+        active_taxel_name = []
+        dev_taxel_value = []
+        if len(c_points) > 1:
+            for i in range(len(c_points)):
+                active_taxel_presssure.append(sim.data.sensordata[c_points[i]])
+                active_taxel_name.append(model._sensor_id2name[c_points[i]])
+                actived_tmp_position[:, i] = ug.get_relative_posquat(sim, "palm_link", active_taxel_name[i])[:3]
+            avg_position = actived_tmp_position.mean(1)
+        else:
+            avg_position = ug.get_relative_posquat(sim, "palm_link", model._sensor_id2name[c_points[0]])[:3]
+        c_avr_pressure = sum(active_taxel_presssure) / len(active_taxel_presssure)
+        if len(c_points) > 1:
+            for i in range(len(c_points)):
+                taxel_position[:, i] = ug.get_relative_posquat(sim, "palm_link", active_taxel_name[i])[:3]
+                dev_taxel_value.append(np.linalg.norm(taxel_position[:, i] - avg_position))
+            min_value = min(dev_taxel_value)
+            c_point_name = model._sensor_id2name[c_points[dev_taxel_value.index(min_value)]]
+        else:
+            c_point_name = model._sensor_id2name[c_points[0]]
+
+        if finger_name == 'ff':
+            c_point_pose = ug.get_relative_posquat(sim, "link_3.0_tip", c_point_name)
+        if finger_name == 'mf':
+            c_point_pose = ug.get_relative_posquat(sim, "link_7.0_tip", c_point_name)
+        if finger_name == 'rf':
+            c_point_pose = ug.get_relative_posquat(sim, "link_11.0_tip", c_point_name)
+        if finger_name == 'th':
+            c_point_pose = ug.get_relative_posquat(sim, "link_15.0_tip", c_point_name)
+
+        return c_point_pose, c_point_name, c_avr_pressure
+
     def get_normal(self, sim, model, c_points, trans_cup2palm):
         pos_contact_avg_cupX = np.empty([1, 0])
         pos_contact_avg_cupY = np.empty([1, 0])
@@ -97,6 +198,70 @@ class cls_tactile_perception:
         print("normal after normalization:", nn_nor_contact_in_p)
 
         return nn_nor_contact_in_p, res
+
+    def get_tip_center_pose(self, sim, model, fingertipname, ref_frame):
+        taxels_position = np.zeros((3, 72))
+        taxels_name = []
+        dev_taxel_value = []
+
+        if fingertipname == 'ff_tip':
+            for i in range(72):
+                taxels_name.append(model._sensor_id2name[i])
+                taxels_position[:, i] = ug.get_relative_posquat(sim, "palm_link", taxels_name[i])[:3]
+            avg_position = taxels_position.mean(1)
+
+            for i in range(72):
+                dev_taxel_value.append(np.linalg.norm(taxels_position[:, i] - avg_position))
+            min_value = min(dev_taxel_value)
+            center_taxel_name = model._sensor_id2name[dev_taxel_value.index(min_value)]
+            self.fftip_center_taxel_pose = ug.get_relative_posquat(sim, ref_frame, center_taxel_name)
+
+
+
+        if fingertipname == 'mf_tip':
+            for i in range(72):
+                taxels_name.append(model._sensor_id2name[tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN + i])
+                taxels_position[:, i] = ug.get_relative_posquat(sim, "palm_link", taxels_name[i])[:3]
+            avg_position = taxels_position.mean(1)
+
+
+            for i in range(72):
+                dev_taxel_value.append(np.linalg.norm(taxels_position[:, i] - avg_position))
+            min_value = min(dev_taxel_value)
+            center_taxel_name = model._sensor_id2name[tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN \
+                                                      + dev_taxel_value.index(min_value)]
+            self.mftip_center_taxel_pose = ug.get_relative_posquat(sim, ref_frame, center_taxel_name)
+
+        if fingertipname == 'rf_tip':
+            for i in range(72):
+                taxels_name.append(model._sensor_id2name[tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN + i])
+                taxels_position[:, i] = ug.get_relative_posquat(sim, "palm_link", taxels_name[i])[:3]
+            avg_position = taxels_position.mean(1)
+
+
+            for i in range(72):
+                dev_taxel_value.append(np.linalg.norm(taxels_position[:, i] - avg_position))
+            min_value = min(dev_taxel_value)
+            center_taxel_name = model._sensor_id2name[tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN + \
+                                                      dev_taxel_value.index(min_value)]
+            self.rftip_center_taxel_pose = ug.get_relative_posquat(sim, ref_frame, center_taxel_name)
+
+        if fingertipname == 'th_tip':
+            for i in range(72):
+                taxels_name.append(model._sensor_id2name[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN + i])
+                taxels_position[:, i] = ug.get_relative_posquat(sim, "palm_link", taxels_name[i])[:3]
+            avg_position = taxels_position.mean(1)
+
+
+            for i in range(72):
+                dev_taxel_value.append(np.linalg.norm(taxels_position[:, i] - avg_position))
+            min_value = min(dev_taxel_value)
+            center_taxel_name = model._sensor_id2name[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN + \
+                                                      dev_taxel_value.index(min_value)]
+
+            self.thtip_center_taxel_pose = ug.get_relative_posquat(sim, ref_frame, center_taxel_name)
+
+        return ug.get_relative_posquat(sim, ref_frame, center_taxel_name)
 
     def get_contact_taxel_id_withoffset(self, sim, fingername):
         taxels_id = self.get_contact_taxel_id(sim, fingername)

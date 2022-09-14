@@ -24,6 +24,9 @@ def geo_visual(viewer, position, mat_rot, length, geo_type, finger_id, c_semanti
             viewer.add_marker(pos=position, mat=mat_rot, type=geo_type, label=" ",
                           size=np.array([0.001, 0.001, length]), rgba=np.array([0.0, 0.0, 1.0, 1.0]))
     if geo_type == const.GEOM_BOX:
+        if c_semantic == 'r':
+            viewer.add_marker(pos=position, mat=mat_rot, type=geo_type, label=" ",
+                      size=np.array([length, length, length]), rgba=np.array([1.0, 0.0, 0.0, 1.0]))
         if c_semantic == 'h':
             viewer.add_marker(pos=position, mat=mat_rot, type=geo_type, label=" ",
                       size=np.array([length, length, length]), rgba=np.array([0.0, 1.0, 0.0, 1.0]))
