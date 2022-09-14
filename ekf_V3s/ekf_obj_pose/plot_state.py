@@ -31,6 +31,7 @@ x_gt_plam7 = x_gt_plam[3:, 6]
 
 
 t = np.arange(0, x_gt_plam1.shape[0], 1)
+print('length is ', x_gt_plam1.shape[0])
 
 fig, ax = plt.subplots(4, 2, figsize=(12, 6), sharex='all', dpi=100)
 fig.subplots_adjust(hspace=0.1, wspace=0.2)

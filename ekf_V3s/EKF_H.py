@@ -195,6 +195,8 @@ def get_H_symbols():
     CO: contact point in object frame
     CH: contact point in hand frame
     """
+    # R_OH object's orientation from Eq.2.14 in "A Mathematical Introduction to
+    # Robotic Manipulation"
     R_OH = sy.Matrix(sy.eye(3)) + w_mat * sy.sin(theta) + ww_mat * (1 - sy.cos(theta))
     print("R_OH", R_OH)
 
@@ -206,6 +208,8 @@ def get_H_symbols():
     H = sy.Matrix(
         [[sy.diff(pos_CH, pos_OH_x), sy.diff(pos_CH, pos_OH_y), sy.diff(pos_CH, pos_OH_z), sy.diff(pos_CH, W1),
           sy.diff(pos_CH, W2), sy.diff(pos_CH, W3)]])
+
+    print ('H is ', H)
 
     print("ww_mat:", ww_mat)
     print("H:", H.shape, "\n",

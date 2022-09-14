@@ -1039,7 +1039,7 @@ class ROBCTRL:
         self.pre_thumb(sim, viewer)
         # other fingers start moving with the different velocity (contact/without contact)
         counter_in_loop = 0
-        for ii in range(1000):
+        for ii in range(500):
             if hand_param[1][1] == '1':
                 self.index_finger(sim, 0.005, 0.000001)
             if hand_param[2][1] == '1':
@@ -1074,7 +1074,7 @@ class ROBCTRL:
                 if not first_contact_flag:
                     # initialize the co-variance matrix of state estimation
                     # P_state_cov = np.random.normal(0, 0.01) * np.identity(6 + 4 * 3)
-                    P_state_cov = 0 * np.identity(6 + 4 * 3)
+                    P_state_cov = 0.1 * np.identity(6 + 4 * 3)
                     # noise +-5 mm, +-0.002 (axis angle vector)
                     # prepare object pose and relevant noise
                     init_e = np.hstack((np.random.uniform((-1) * float(object_param[1]), float(object_param[1]), \
@@ -1089,12 +1089,31 @@ class ROBCTRL:
                     print('x_state from beginning before add noise', x_state)
                     if tactile_allegro_mujo_const.initE_FLAG:
                         x_state = x_state + init_e
+                        x_state_plot = [0., 0., 0., 0., 0., 0., 0.]
+                        x_state_plot[0:3] = np.ravel(x_state)[0:3]
+                        x_state_plot[3:6], x_state_plot[6] = ug.normalize_scale(np.ravel(x_state)[3:6])
+                        self.x_state_all = np.vstack((self.x_state_all, x_state_plot))
+                        x_bar_plot = [0., 0., 0., 0., 0., 0., 0.]
+                        x_bar_plot[0:3] = np.ravel(x_state)[0:3]
+                        x_bar_plot[3:6], x_bar_plot[6] = ug.normalize_scale(np.ravel(x_state)[3:6])
+
+                        self.x_bar_all = np.vstack((self.x_bar_all, x_bar_plot))
+
+
                     # augmented state with the contact position on the object surface described in the object frame
                     x_state = self.augmented_state(sim, model, hand_param, tacperception, x_state)
                     # print('x_state from beginning ', x_state)
                     x_all = x_state
+
                     gd_posquat = ug.get_relative_posquat(sim, "palm_link", "cup")
                     gd_state = ug.posquat2posrotvec_hacking(gd_posquat)
+
+                    gd_state_plot = [0., 0., 0., 0., 0., 0., 0.]
+                    gd_state_plot[0:3] = gd_state[0:3]
+                    gd_state_plot[3:6], gd_state_plot[6] = ug.normalize_scale(gd_state[3:6])
+
+                    self.x_gt_palm = np.vstack((self.x_gt_palm, gd_state_plot))
+
                     # print('x_state ground truth ', gd_state)
                     # gd_state = qg.posquat2posrotvec(gd_posquat)
                     gd_all = gd_state

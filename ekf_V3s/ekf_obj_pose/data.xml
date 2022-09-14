@@ -40,7 +40,7 @@
         <object>
             <name>cup</name>
             <noise_position>0.1</noise_position>
-            <noise_orientation>0.1</noise_orientation>
+            <noise_orientation>0.3</noise_orientation>
         </object>
     <alg>
         <store_data>1</store_data>
