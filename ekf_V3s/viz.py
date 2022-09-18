@@ -89,6 +89,8 @@ def vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state):
                 rot_zt_world = np.matmul(T_palm_world[:3, :3], rot_zt_palm)
                 geo_visual(viewer, pos_zt_world, rot_zt_world, 0.001, tactile_allegro_mujo_const.GEOM_BOX, i, "z")
                 geo_visual(viewer, pos_zt_world, rot_zt_world, 0.1, tactile_allegro_mujo_const.GEOM_ARROW, i, "z")
+            else:
+                geo_visual(viewer, pos_zt_world, np.eye(3), 0.003, tactile_allegro_mujo_const.GEOM_BOX, i, "z")
 
             # draw linear vel of contact point (part of twist from ju)
             # from vel generate frame
@@ -116,6 +118,8 @@ def vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state):
                 # viz.geo_visual(viewer, pos_ht_world, rot_ht_world, 0.1, tactile_allegro_mujo_const.GEOM_ARROW)
                 geo_visual(viewer, pos_ht_world, rot_ht_world, 0.001, tactile_allegro_mujo_const.GEOM_BOX, i, "h")
                 geo_visual(viewer, pos_ht_world, rot_ht_world, 0.1, tactile_allegro_mujo_const.GEOM_ARROW, i, "h")
+            else:
+                geo_visual(viewer, pos_ht_world, np.eye(3), 0.003, tactile_allegro_mujo_const.GEOM_BOX, i, "h")
                 # viewer.add_marker(pos=pos_ht_world, mat=rot_ht_world, type=tactile_allegro_mujo_const.GEOM_ARROW,
                 #           label="h", size=np.array([0.001, 0.001, 0.1]), rgba=np.array([0.34, 0.98, 1., 1.0]))
 

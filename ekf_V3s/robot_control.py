@@ -46,9 +46,21 @@ class ROBCTRL:
         self.x_gt_palm = [0, 0, 0, 0, 0, 0, 0]
         self.x_gt_world = [0, 0, 0]
         self.ju_all = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        self.delta_ct = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        self.z_t = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        self.h_t = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        if tactile_allegro_mujo_const.PN_FLAG == 'pn':
+            self.delta_ct = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,\
+                         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        else:
+            self.delta_ct = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        if tactile_allegro_mujo_const.PN_FLAG == 'pn':
+            self.z_t = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,\
+                         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        else:
+            self.z_t = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        if tactile_allegro_mujo_const.PN_FLAG == 'pn':
+            self.h_t = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,\
+                         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        else:
+            self.h_t = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
 
     def robot_init(self, sim):
@@ -960,7 +972,7 @@ class ROBCTRL:
     def update_augmented_state(self, sim, model, hand_param, tacperception, x_state):
         if tacperception.is_finger_contact(sim, hand_param[1][0]) == True:
             c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[1][0])
-            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.00, size=(1, 3))
+            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.01, size=(1, 3))
             x_state[6] = pos_contact0[0][0]
             x_state[7] = pos_contact0[0][1]
             x_state[8] = pos_contact0[0][2]
@@ -968,7 +980,7 @@ class ROBCTRL:
 
         if tacperception.is_finger_contact(sim, hand_param[2][0]) == True:
             c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[2][0])
-            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.00, size=(1, 3))
+            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.01, size=(1, 3))
             x_state[9] = pos_contact0[0][0]
             x_state[10] = pos_contact0[0][1]
             x_state[11] = pos_contact0[0][2]
@@ -976,7 +988,7 @@ class ROBCTRL:
 
         if tacperception.is_finger_contact(sim, hand_param[3][0]) == True:
             c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[3][0])
-            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.00, size=(1, 3))
+            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.01, size=(1, 3))
             x_state[12] = pos_contact0[0][0]
             x_state[13] = pos_contact0[0][1]
             x_state[14] = pos_contact0[0][2]
@@ -984,7 +996,7 @@ class ROBCTRL:
 
         if tacperception.is_finger_contact(sim, hand_param[4][0]) == True:
             c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[4][0])
-            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.00, size=(1, 3))
+            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.01, size=(1, 3))
             print('x_state ', x_state)
             x_state[15] = pos_contact0[0][0]
             x_state[16] = pos_contact0[0][1]
@@ -995,28 +1007,28 @@ class ROBCTRL:
     def augmented_state(self, sim, model, hand_param, tacperception, x_state):
         if tacperception.is_finger_contact(sim, hand_param[1][0]) == True:
             c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[1][0])
-            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.00, size=(1, 3))
+            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.01, size=(1, 3))
             x_state = np.append(x_state, [pos_contact0])
         else:
             x_state = np.append(x_state, [0, 0, 0])
 
         if tacperception.is_finger_contact(sim, hand_param[2][0]) == True:
             c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[2][0])
-            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.00, size=(1, 3))
+            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.01, size=(1, 3))
             x_state = np.append(x_state, [pos_contact0])
         else:
             x_state = np.append(x_state, [0, 0, 0])
 
         if tacperception.is_finger_contact(sim, hand_param[3][0]) == True:
             c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[3][0])
-            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.00, size=(1, 3))
+            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.01, size=(1, 3))
             x_state = np.append(x_state, [pos_contact0])
         else:
             x_state = np.append(x_state, [0, 0, 0])
 
         if tacperception.is_finger_contact(sim, hand_param[4][0]) == True:
             c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[4][0])
-            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.00, size=(1, 3))
+            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.01, size=(1, 3))
             x_state = np.append(x_state, [pos_contact0])
         else:
             x_state = np.append(x_state, [0, 0, 0])
@@ -1039,7 +1051,7 @@ class ROBCTRL:
         self.pre_thumb(sim, viewer)
         # other fingers start moving with the different velocity (contact/without contact)
         counter_in_loop = 0
-        for ii in range(500):
+        for ii in range(2000):
             if hand_param[1][1] == '1':
                 self.index_finger(sim, 0.005, 0.000001)
             if hand_param[2][1] == '1':
