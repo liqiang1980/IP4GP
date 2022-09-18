@@ -70,7 +70,15 @@
   cd ekf_obj_pose
   python3 verification_main.py data.xml
   ```
+- want to answer the following questions
 
+  --how many fingers are needed in order to estimate the pose correctly
+  -- some parameters in the estimation 
+     1. initialized error (object pose error and contact error in the object frame)
+     2. measurement noise contact position/normal(taxel)
+     3. is force controller of fingers helpful for the estimation procedure?
+  -- how to track the pose of movable object (pushed by fingers)
+  -- how to control fingers in order to grasp object robustly.
 
 
 
