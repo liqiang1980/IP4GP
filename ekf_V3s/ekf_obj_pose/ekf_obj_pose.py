@@ -3,6 +3,7 @@ import robot_control as robcontrol
 import mujoco_environment as mu_env
 import ekf
 import tactile_perception
+import numpy as np
 
 # load task-related parameters
 hand_param, object_param, alg_param = config_param.pass_arg()
@@ -42,7 +43,26 @@ for _ in range(50):
     sim.step()
     viewer.render()
 
+    # start interaction
+    # number of triggered fingers
+tacperception.fin_num = 0
+    # The fingers which are triggered are Marked them with "1"
+tacperception.fin_tri = np.zeros(4)
 
-# start interaction
-rob_control.interaction(sim, model, viewer, \
-                       hand_param, object_param, alg_param, grasping_ekf, tacperception)
+    # Thumb root movement
+rob_control.pre_thumb(sim, viewer)
+    # other fingers start moving with the different velocity (contact/without contact)
+for ii in range(2000):
+    if hand_param[1][1] == '1':
+        rob_control.index_finger(sim, 0.005, 0.000001)
+    if hand_param[2][1] == '1':
+        rob_control.middle_finger(sim, 0.005, 0.000001)
+    if hand_param[3][1] == '1':
+        rob_control.ring_finger(sim, 0.005, 0.000001)
+    if hand_param[4][1] == '1':
+        rob_control.thumb(sim, 0.002, 0.000001)
+    rob_control.interaction(sim, model, viewer, \
+                        hand_param, object_param, alg_param, grasping_ekf, tacperception)
+    sim.step()
+    viewer.render()
+    del viewer._markers[:]

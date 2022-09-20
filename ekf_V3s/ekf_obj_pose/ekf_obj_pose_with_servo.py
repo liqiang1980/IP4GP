@@ -3,7 +3,7 @@ import robot_control as robcontrol
 import mujoco_environment as mu_env
 import tactile_perception
 import mujoco_py
-
+import ekf
 import util_geometry as ug
 import viz
 from mujoco_py import const
@@ -16,6 +16,11 @@ hand_param, object_param, alg_param = config_param.pass_arg()
 model, sim, viewer = mu_env.init_mujoco("../../robots/UR5_tactile_allegro_hand_obj_frozen.xml")
 ctrl_wrist_pos, ctrl_wrist_quat = \
     mu_env.init_robot_object_mujoco(sim, object_param)
+
+# instantiate ekf class
+grasping_ekf = ekf.EKF()
+grasping_ekf.set_contact_flag(False)
+grasping_ekf.set_store_flag(alg_param[0])
 
 tacperception = tactile_perception.cls_tactile_perception()
 
@@ -109,5 +114,8 @@ for i in range(1000):
     th_tran_cur_pose_tip = ug.posquat2trans(th_cur_pose_tip)
     rob_control.tip_servo_control(sim, viewer, model, 'th', th_tran_cur_pose_tip, th_cur_taxel_name, \
                                       th_des_pose_tip, des_press - th_cur_press_tip)
+
+    rob_control.interaction(sim, model, viewer, \
+                        hand_param, object_param, alg_param, grasping_ekf, tacperception)
     sim.step()
     viewer.render()
