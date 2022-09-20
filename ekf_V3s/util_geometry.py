@@ -104,6 +104,15 @@ def get_relative_posquat_geom(sim, src, tgt):
     srcHtgt = np.matmul(np.linalg.inv(trans_src), trans_tgt)
     return trans2posquat(srcHtgt)
 
+def pose_trans_part_to_world(sim, part_name, position, orien):
+    quat = sim.data.get_body_xquat(part_name)
+    quat = np.hstack((quat[1:], quat[0]))  # Change to x y z w
+    palm_rot = Rotation.from_quat(quat).as_matrix()
+    palm_position = sim.data.get_body_xpos(part_name)
+    p_ret = palm_position + np.ravel(np.matmul(palm_rot, position))
+    o_ret = np.matmul(palm_rot, orien)
+    return p_ret, o_ret
+
 def pose_trans_palm_to_world(sim, position, orien):
     quat = sim.data.get_body_xquat("palm_link")
     quat = np.hstack((quat[1:], quat[0]))  # Change to x y z w
@@ -1463,7 +1472,7 @@ def normalize_scale(v):
 def vec2rot(vec):
     rot = np.zeros([3, 3])
     rot_x = np.zeros(3)
-    vec_normalize = normalize(vec)
+    vec_normalize = np.ravel(normalize(vec))
     if vec_normalize[2] != 1.0:
         x = vec_normalize[0]
         y = vec_normalize[1]

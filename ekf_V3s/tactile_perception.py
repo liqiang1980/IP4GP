@@ -145,14 +145,19 @@ class cls_tactile_perception:
         active_taxel_name = []
         dev_taxel_value = []
         if len(c_points) > 1:
+            print('num points ', len(c_points))
             for i in range(len(c_points)):
+                print('c_points[i ] ', c_points[i])
                 active_taxel_presssure.append(sim.data.sensordata[c_points[i]])
+                print('c_points[i ] pressure ', sim.data.sensordata[c_points[i]])
                 active_taxel_name.append(model._sensor_id2name[c_points[i]])
+                print('c_points[i ] name ', model._sensor_id2name[c_points[i]])
                 actived_tmp_position[:, i] = ug.get_relative_posquat(sim, "palm_link", active_taxel_name[i])[:3]
             avg_position = actived_tmp_position.mean(1)
+            c_avr_pressure = sum(active_taxel_presssure) / len(active_taxel_presssure)
         else:
             avg_position = ug.get_relative_posquat(sim, "palm_link", model._sensor_id2name[c_points[0]])[:3]
-        c_avr_pressure = sum(active_taxel_presssure) / len(active_taxel_presssure)
+            c_avr_pressure = 0.0
         if len(c_points) > 1:
             for i in range(len(c_points)):
                 taxel_position[:, i] = ug.get_relative_posquat(sim, "palm_link", active_taxel_name[i])[:3]
@@ -205,9 +210,10 @@ class cls_tactile_perception:
         dev_taxel_value = []
 
         if fingertipname == 'ff_tip':
+            # attention avg_position is varied because the taxels_position is changing.
             for i in range(72):
                 taxels_name.append(model._sensor_id2name[i])
-                taxels_position[:, i] = ug.get_relative_posquat(sim, "palm_link", taxels_name[i])[:3]
+                taxels_position[:, i] = ug.get_relative_posquat(sim, "link_3.0_tip", taxels_name[i])[:3]
             avg_position = taxels_position.mean(1)
 
             for i in range(72):
@@ -221,7 +227,7 @@ class cls_tactile_perception:
         if fingertipname == 'mf_tip':
             for i in range(72):
                 taxels_name.append(model._sensor_id2name[tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN + i])
-                taxels_position[:, i] = ug.get_relative_posquat(sim, "palm_link", taxels_name[i])[:3]
+                taxels_position[:, i] = ug.get_relative_posquat(sim, "link_7.0_tip", taxels_name[i])[:3]
             avg_position = taxels_position.mean(1)
 
 
@@ -235,7 +241,7 @@ class cls_tactile_perception:
         if fingertipname == 'rf_tip':
             for i in range(72):
                 taxels_name.append(model._sensor_id2name[tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN + i])
-                taxels_position[:, i] = ug.get_relative_posquat(sim, "palm_link", taxels_name[i])[:3]
+                taxels_position[:, i] = ug.get_relative_posquat(sim, "link_11.0_tip", taxels_name[i])[:3]
             avg_position = taxels_position.mean(1)
 
 
@@ -249,7 +255,7 @@ class cls_tactile_perception:
         if fingertipname == 'th_tip':
             for i in range(72):
                 taxels_name.append(model._sensor_id2name[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN + i])
-                taxels_position[:, i] = ug.get_relative_posquat(sim, "palm_link", taxels_name[i])[:3]
+                taxels_position[:, i] = ug.get_relative_posquat(sim, "link_15.0_tip", taxels_name[i])[:3]
             avg_position = taxels_position.mean(1)
 
 

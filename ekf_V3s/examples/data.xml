@@ -2,15 +2,6 @@
     <hand>
         <name>allegro</name>
         <finger name= 'ff'>
-            <used>0</used>
-            <init_posture>
-                <j1>5</j1>
-                <j2>6</j2>
-                <j3>7</j3>
-                <j4>8</j4>
-            </init_posture>
-        </finger>
-        <finger name= 'mf'>
             <used>1</used>
             <init_posture>
                 <j1>5</j1>
@@ -19,7 +10,7 @@
                 <j4>8</j4>
             </init_posture>
         </finger>
-        <finger name= 'rf'>
+        <finger name= 'mf'>
             <used>0</used>
             <init_posture>
                 <j1>5</j1>
@@ -28,8 +19,17 @@
                 <j4>8</j4>
             </init_posture>
         </finger>
+        <finger name= 'rf'>
+            <used>1</used>
+            <init_posture>
+                <j1>5</j1>
+                <j2>6</j2>
+                <j3>7</j3>
+                <j4>8</j4>
+            </init_posture>
+        </finger>
         <finger name= 'th'>
-            <used>0</used>
+            <used>1</used>
             <init_posture>
                 <j1>5</j1>
                 <j2>6</j2>
@@ -39,8 +39,9 @@
         </finger>
         <object>
             <name>cup</name>
-            <noise_position>0.005</noise_position>
-            <noise_orientation>0.002</noise_orientation>
+            <noise_position>0.1</noise_position>
+            <noise_orientation>0.3</noise_orientation>
+            <static>1</static>
         </object>
     <alg>
         <store_data>1</store_data>

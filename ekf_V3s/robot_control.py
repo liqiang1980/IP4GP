@@ -196,34 +196,58 @@ class ROBCTRL:
 
     def tip_servo_control(self, sim, viewer, model, finger_name, cur_tac_p, tac_name, goal_tac_p, delta_press):
         #compute the tactile feature errors
-        vel = 0.01 * delta_press
+        vel = delta_press
         #transfer to the palm frame
-        vel_tip = np.array([vel, 0., 0.])
+        vel_tip = np.array([vel, 0.0, 0.0])
         p, o = self.fk_offset(sim, finger_name, tac_name, 'palm')
+
+        p_w, o_w = ug.pose_trans_palm_to_world(sim, p, o)
+        viz.cor_frame_visual(viewer, p_w, o_w, 0.1, 'ccc')
+
         vel_palm = np.matmul(o, vel_tip)
+        print('v_palm ', vel_palm)
         #call hand v inv control
         self.instant_v_ik_control(sim, viewer, finger_name, vel_palm, tac_name)
 
-    def instant_v_ik_control(self, sim, finger_name, vel, tac_name):
-        jac = self.robjac_offset(sim, finger_name, self.get_cur_jnt(sim)[0:4], tac_name)
-        jac_position = jac[:3, :4]
-        # does not consider the contribution from first joint
-        jac_position[0, 0] = 0.
-        jac_position[1, 0] = 0.
-        jac_position[2, 0] = 0.
-        q_dot = np.matmul(np.linalg.pinv(jac_position), vel)
-        q_dot = np.ravel(q_dot)
+    def instant_v_ik_control(self, sim, viewer, finger_name, vel, tac_name):
         if finger_name == 'ff':
-            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_1] = \
-                sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_1] + q_dot[0]
+            jac = self.robjac_offset(sim, finger_name, self.get_cur_jnt(sim)[0:4], tac_name)
+            jac_position = jac[:3, :4]
+            # does not consider the contribution from first joint
+            jac_position[0, 0] = 0.
+            jac_position[1, 0] = 0.
+            jac_position[2, 0] = 0.
+            q_dot = np.matmul(np.linalg.pinv(jac_position), vel.transpose())
+            q_dot = 3 * np.ravel(q_dot)
+            print('q_dot ', q_dot)
+
+            sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_1] = 0.0
+
             sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] = \
                 sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_2] + q_dot[1]
             sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] = \
                 sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_3] + q_dot[2]
             sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] = \
                 sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_4] + q_dot[3]
+            print('mea angle ', sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_1], \
+                  sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_2], \
+                  sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_3], \
+                  sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_4])
+
+            print('ctrl angle ', sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_1], \
+                  sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2], \
+                  sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3], \
+                  sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4])
 
         if finger_name == 'mf':
+            jac = self.robjac_offset(sim, finger_name, self.get_cur_jnt(sim)[4:8], tac_name)
+            jac_position = jac[:3, :4]
+            # does not consider the contribution from first joint
+            jac_position[0, 0] = 0.
+            jac_position[1, 0] = 0.
+            jac_position[2, 0] = 0.
+            q_dot = np.matmul(np.linalg.pinv(jac_position), vel.transpose())
+            q_dot = np.ravel(q_dot)
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_1] = \
                 sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_1] + q_dot[0]
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] = \
@@ -234,6 +258,14 @@ class ROBCTRL:
                 sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_4] + q_dot[3]
 
         if finger_name == 'rf':
+            jac = self.robjac_offset(sim, finger_name, self.get_cur_jnt(sim)[8:12], tac_name)
+            jac_position = jac[:3, :4]
+            # does not consider the contribution from first joint
+            jac_position[0, 0] = 0.
+            jac_position[1, 0] = 0.
+            jac_position[2, 0] = 0.
+            q_dot = np.matmul(np.linalg.pinv(jac_position), vel.transpose())
+            q_dot = np.ravel(q_dot)
             sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_1] = \
                 sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_1] + q_dot[0]
             sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_2] = \
@@ -244,6 +276,14 @@ class ROBCTRL:
                 sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_4] + q_dot[3]
 
         if finger_name == 'th':
+            jac = self.robjac_offset(sim, finger_name, self.get_cur_jnt(sim)[12:16], tac_name)
+            jac_position = jac[:3, :4]
+            # does not consider the contribution from first joint
+            jac_position[0, 0] = 0.
+            jac_position[1, 0] = 0.
+            jac_position[2, 0] = 0.
+            q_dot = np.matmul(np.linalg.pinv(jac_position), vel.transpose())
+            q_dot = np.ravel(q_dot)
             sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_1] = \
                 sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_1] + q_dot[0]
             sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_2] = \
@@ -252,6 +292,7 @@ class ROBCTRL:
                 sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_3] + q_dot[2]
             sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] = \
                 sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_4] + q_dot[3]
+
     def ik_control(self, sim, viewer, kin_finger, vel, kdl):
         angles = [0, 0.2, 0.2, 0.8]
         ff_q_start = angles[0:4]
@@ -349,9 +390,9 @@ class ROBCTRL:
 
     def fingers_contact(self, sim, viewer, tacperception):
         self.finger_contact(sim, viewer, 'ff', tacperception)
-        # self.finger_contact(sim, viewer, 'mf', tacperception)
-        # self.finger_contact(sim, viewer, 'rf', tacperception)
-        # self.finger_contact(sim, viewer, 'th', tacperception)
+        self.finger_contact(sim, viewer, 'mf', tacperception)
+        self.finger_contact(sim, viewer, 'rf', tacperception)
+        self.finger_contact(sim, viewer, 'th', tacperception)
 
     def moveto_jnt(self, sim, viewer, finger_name, q_est, usedtime):
         if finger_name == 'ff':
@@ -946,8 +987,12 @@ class ROBCTRL:
         if finger_name == 'ff':
             position_tip_inpalm, orien_tip_inpalm = self.kdl_kin_ff.FK(q)
             pose_taxels_intip = ug.get_relative_posquat(sim, "link_3.0_tip", taxel_name)
+            print('active taxel name, ', taxel_name)
             pos_p_intip, pos_o_intip = ug.posquat2pos_p_o(pose_taxels_intip)
-            position_taxel_inpalm = position_tip_inpalm + (np.matmul(orien_tip_inpalm, pos_p_intip)).transpose()
+            print('p ', pos_p_intip)
+            print('o ', pos_o_intip)
+            position_taxel_inpalm = position_tip_inpalm + \
+                                    (np.matmul(orien_tip_inpalm, pos_p_intip)).transpose()
             jac = self.kdl_kin_ff.jacobian(q, position_taxel_inpalm)
         if finger_name == 'mf':
             position_tip_inpalm, orien_tip_inpalm = self.kdl_kin_mf.FK(q)
