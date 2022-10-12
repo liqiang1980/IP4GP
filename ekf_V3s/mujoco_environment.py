@@ -31,7 +31,7 @@ def init_robot_object_mujoco(sim, object_param):
                                [-1, 0, 0, 0.05],
                                [0, 0, 0, 1]])
     else:
-        trans_pregrasp = np.array([[0, 0, 1, 0.1],
+        trans_pregrasp = np.array([[0, 0, 1, 0.08],
                                    [0, 1, 0, -0.23],
                                    [-1, 0, 0, 0.02],
                                    [0, 0, 0, 1]])

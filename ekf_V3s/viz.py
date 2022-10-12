@@ -71,6 +71,11 @@ def touch_visual(sim, model, viewer, a):
     # max_size = max(save_point_use.shape[0], max_size)
     viewer.render()
 
+def vis_frame_in_world(sim, viewer,part_name):
+    posquat_part_world = ug.get_relative_posquat(sim, "world", part_name)
+    T_part_world = ug.posquat2trans(posquat_part_world)
+    cor_frame_visual(viewer, T_part_world[:3, 3], T_part_world[:3, :3], 0.2, part_name)
+
 def vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state):
     """ z_t and h_t visualization """
     posquat_palm_world = ug.get_relative_posquat(sim, "world", "palm_link")
@@ -90,7 +95,7 @@ def vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state):
                 geo_visual(viewer, pos_zt_world, rot_zt_world, 0.001, tactile_allegro_mujo_const.GEOM_BOX, i, "z")
                 geo_visual(viewer, pos_zt_world, rot_zt_world, 0.1, tactile_allegro_mujo_const.GEOM_ARROW, i, "z")
             else:
-                geo_visual(viewer, pos_zt_world, np.eye(3), 0.003, tactile_allegro_mujo_const.GEOM_BOX, i, "z")
+                geo_visual(viewer, pos_zt_world, np.eye(3), 0.001, tactile_allegro_mujo_const.GEOM_BOX, i, "z")
 
             # draw linear vel of contact point (part of twist from ju)
             # from vel generate frame
@@ -119,7 +124,7 @@ def vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state):
                 geo_visual(viewer, pos_ht_world, rot_ht_world, 0.001, tactile_allegro_mujo_const.GEOM_BOX, i, "h")
                 geo_visual(viewer, pos_ht_world, rot_ht_world, 0.1, tactile_allegro_mujo_const.GEOM_ARROW, i, "h")
             else:
-                geo_visual(viewer, pos_ht_world, np.eye(3), 0.003, tactile_allegro_mujo_const.GEOM_BOX, i, "h")
+                geo_visual(viewer, pos_ht_world, np.eye(3), 0.001, tactile_allegro_mujo_const.GEOM_BOX, i, "h")
                 # viewer.add_marker(pos=pos_ht_world, mat=rot_ht_world, type=tactile_allegro_mujo_const.GEOM_ARROW,
                 #           label="h", size=np.array([0.001, 0.001, 0.1]), rgba=np.array([0.34, 0.98, 1., 1.0]))
 

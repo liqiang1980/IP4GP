@@ -11,7 +11,7 @@
             </init_posture>
         </finger>
         <finger name= 'mf'>
-            <used>0</used>
+            <used>1</used>
             <init_posture>
                 <j1>5</j1>
                 <j2>6</j2>
@@ -20,7 +20,7 @@
             </init_posture>
         </finger>
         <finger name= 'rf'>
-            <used>1</used>
+            <used>0</used>
             <init_posture>
                 <j1>5</j1>
                 <j2>6</j2>

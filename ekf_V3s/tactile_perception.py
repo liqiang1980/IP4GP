@@ -145,13 +145,9 @@ class cls_tactile_perception:
         active_taxel_name = []
         dev_taxel_value = []
         if len(c_points) > 1:
-            print('num points ', len(c_points))
             for i in range(len(c_points)):
-                print('c_points[i ] ', c_points[i])
                 active_taxel_presssure.append(sim.data.sensordata[c_points[i]])
-                print('c_points[i ] pressure ', sim.data.sensordata[c_points[i]])
                 active_taxel_name.append(model._sensor_id2name[c_points[i]])
-                print('c_points[i ] name ', model._sensor_id2name[c_points[i]])
                 actived_tmp_position[:, i] = ug.get_relative_posquat(sim, "palm_link", active_taxel_name[i])[:3]
             avg_position = actived_tmp_position.mean(1)
             c_avr_pressure = sum(active_taxel_presssure) / len(active_taxel_presssure)
