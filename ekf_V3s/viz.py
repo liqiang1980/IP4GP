@@ -29,7 +29,7 @@ def geo_visual(viewer, position, mat_rot, length, geo_type, finger_id, c_semanti
                       size=np.array([length, length, length]), rgba=np.array([1.0, 0.0, 0.0, 1.0]))
         if c_semantic == 'h':
             viewer.add_marker(pos=position, mat=mat_rot, type=geo_type, label=" ",
-                      size=np.array([length, length, length]), rgba=np.array([0.0, 1.0, 0.0, 1.0]))
+                      size=np.array([length, length, length]), rgba=np.array([1.0, 0.0, 0.0, 1.0]))
         if c_semantic == 'z':
             viewer.add_marker(pos=position, mat=mat_rot, type=geo_type, label=" ",
                       size=np.array([length, length, length]), rgba=np.array([0.0, 0.0, 1.0, 1.0]))
@@ -37,11 +37,11 @@ def geo_visual(viewer, position, mat_rot, length, geo_type, finger_id, c_semanti
 def active_taxels_visual(viewer, taxels_pose, lbl):
     if lbl == 'gt':
         for i in range(len(taxels_pose)):
-            viewer.add_marker(pos=taxels_pose[i].position, mat=taxels_pose[i].orientation, type=const.GEOM_BOX,label="",
-                          size=np.array([0.001, 0.001, 0.001]), rgba=np.array([0.0, 1.0, 0.0, 1.0]))
+            viewer.add_marker(pos=taxels_pose[i].position, mat=taxels_pose[i].orientation, type=const.GEOM_SPHERE,label="",
+                          size=np.array([0.0005, 0.0005, 0.0005]), rgba=np.array([0.3, 0.3, 0.3, 1.0]))
     if lbl == 'fk':
         for i in range(len(taxels_pose)):
-            viewer.add_marker(pos=taxels_pose[i].position, mat=taxels_pose[i].orientation, type=const.GEOM_BOX,label="",
+            viewer.add_marker(pos=taxels_pose[i].position, mat=taxels_pose[i].orientation, type=const.GEOM_SPHERE,label="",
                           size=np.array([0.001, 0.001, 0.001]), rgba=np.array([0.0, 0.0, 1.0, 1.0]))
 
 def touch_visual(sim, model, viewer, a):
@@ -76,18 +76,18 @@ def vis_frame_in_world(sim, viewer,part_name):
     T_part_world = ug.posquat2trans(posquat_part_world)
     cor_frame_visual(viewer, T_part_world[:3, 3], T_part_world[:3, :3], 0.2, part_name)
 
-def vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state):
+def vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state, char):
     """ z_t and h_t visualization """
     posquat_palm_world = ug.get_relative_posquat(sim, "world", "palm_link")
     T_palm_world = ug.posquat2trans(posquat_palm_world)
+    # visualize coordinate frame of the global, palm
+    # cor_frame_visual(viewer, T_palm_world[:3, 3], T_palm_world[:3, :3], 0.3, "Palm")
 
     for i in range(4):
         if tacperception.fin_tri[i] == 1:
             pos_zt_palm = z_t[3 * i:3 * i + 3]
             pos_zt_world = T_palm_world[:3, 3] + np.matmul(T_palm_world[:3, :3], pos_zt_palm.T)
             pos_zt_world = np.ravel(pos_zt_world.T)
-            # visualize coordinate frame of the global, palm
-            cor_frame_visual(viewer, T_palm_world[:3, 3], T_palm_world[:3, :3], 0.3, "Palm")
             # rendering only vector is considered
             if tactile_allegro_mujo_const.PN_FLAG == 'pn':
                 rot_zt_palm = ug.vec2rot(z_t[3 * i + 12:3 * i + 15])
@@ -123,8 +123,8 @@ def vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state):
                 # viz.geo_visual(viewer, pos_ht_world, rot_ht_world, 0.1, tactile_allegro_mujo_const.GEOM_ARROW)
                 geo_visual(viewer, pos_ht_world, rot_ht_world, 0.001, tactile_allegro_mujo_const.GEOM_BOX, i, "h")
                 geo_visual(viewer, pos_ht_world, rot_ht_world, 0.1, tactile_allegro_mujo_const.GEOM_ARROW, i, "h")
-            else:
-                geo_visual(viewer, pos_ht_world, np.eye(3), 0.001, tactile_allegro_mujo_const.GEOM_BOX, i, "h")
+            # else:
+            #     geo_visual(viewer, pos_ht_world, np.eye(3), 0.001, tactile_allegro_mujo_const.GEOM_BOX, i, "h")
                 # viewer.add_marker(pos=pos_ht_world, mat=rot_ht_world, type=tactile_allegro_mujo_const.GEOM_ARROW,
                 #           label="h", size=np.array([0.001, 0.001, 0.1]), rgba=np.array([0.34, 0.98, 1., 1.0]))
 
@@ -135,10 +135,8 @@ def vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state):
     rot_obj_world = T_obj_world[:3, :3]
     rot_vec = ug.rm2rotvec(rot_obj_world)
 
-    # self.x_gt_world = np.vstack((self.x_gt_world, rot_vec))
-
     tmp_rm = ug.vec2rot(rot_vec)
-    cor_frame_visual(viewer, pos_obj_world, rot_obj_world, 0.2, "Obj")
+    cor_frame_visual(viewer, pos_obj_world, rot_obj_world, 0.2, "real_Obj")
     # we use the axis angle
     # viewer.add_marker(pos=pos_obj_world, mat=tmp_rm, type=tactile_allegro_mujo_const.GEOM_ARROW,
     #                   label="o_rot", size=np.array([0.001, 0.001, 0.3]), rgba=np.array([0., 0., 1., 1.0]))
@@ -147,12 +145,13 @@ def vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state):
     pos_x_world = (T_palm_world[:3, 3] + np.matmul(T_palm_world[:3, :3], x_state[:3].T)).T
     rot_x_palm = Rotation.from_rotvec(x_state[3:6]).as_matrix()
     v, s = ug.normalize_scale(x_state[3:6])
-    # print('normalized rot and scale', v, s)
-
     rot_x_world = np.matmul(T_palm_world[:3, :3], rot_x_palm)
-    # print('rot vec in world', Rotation.from_matrix(rot_x_world).as_rotvec())
-    viewer.add_marker(pos=pos_x_world, mat=rot_x_world, type=7,
-                      label='cup', rgba=np.array([0.0, 0.0, 1.0, 1.0]), dataid=0)
+    cor_frame_visual(viewer, pos_x_world, rot_x_world, 0.2, "est_Obj")
+
+    if(char == "v"):
+        viewer.add_marker(pos=pos_x_world, mat=rot_x_world, type=7,
+                          label=' ', rgba=np.array([0.0, 0.0, 1.0, 1.0]), dataid=0)
+
     # viewer.add_marker(pos=pos_x_world, mat=rot_x_world, type=tactile_allegro_mujo_const.GEOM_ARROW,
     #                   label="x_state", size=np.array([0.001, 0.001, 0.1]), rgba=np.array([0.34, 0.98, 1., 1.0]))
 

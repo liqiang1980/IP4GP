@@ -44,6 +44,7 @@ class EKF:
         self.save_error_xyz = []
         self.save_error_rpy = []
         self.delta_angle = []
+        self.scale_kp = 0.3
 
     def set_store_flag(self, flag):
         self.save_model = flag
@@ -53,7 +54,7 @@ class EKF:
 
     def state_predictor(self, sim, model, hand_param, object_param, x_state, tacperception, \
                         P_state_cov, cur_angles, last_angles, robctrl):
-        print("state prediction")
+        # print("state prediction")
         # Transfer_Fun_Matrix = np.mat(np.zeros([18, 18]))  # F
         Transfer_Fun_Matrix = np.mat(np.zeros((18, 18)))
         Q_state_noise_cov = np.zeros((18, 18))
@@ -135,7 +136,7 @@ class EKF:
         return x_bar, P_state_cov, ju
 
     def observe_computation(self, x_bar, tacperception, sim):
-        print('measurement equation computation')
+        # print('measurement equation computation')
         contact_position = []
         contact_nv = []
         self.fin_num = tacperception.fin_num
@@ -158,7 +159,7 @@ class EKF:
 
     def measure_fb(self, sim, model, hand_param, object_param, \
                    x_bar, tacperception):
-        print('measurement feedback from sensing (ground truth + noise in simulation)')
+        # print('measurement feedback from sensing (ground truth + noise in simulation)')
         contact_position = []
         contact_nv = []
         self.fin_num = tacperception.fin_num
@@ -180,7 +181,7 @@ class EKF:
         return np.array(contact_position), np.array(contact_nv)
 
     def ekf_posteriori(self, sim, model, viewer, x_bar, z_t, h_t, P_state_cov, tacperception):
-        print('posterior computation')
+        # print('posterior computation')
         # the jocobian matrix of measurement equation
         [W1, W2, W3] = x_bar[3:6]  # the rotvec of object in palm frame {P}
         pos_c1 = x_bar[6:9]  # the pos of contact point in object frame {O}
@@ -226,11 +227,11 @@ class EKF:
                 R_noi[18:24, 18:24] = np.random.normal(0, 0.002) * np.identity(6)
             # K_t = P_state_cov @ J_h.transpose() @ \
             #       np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi)
-            K_t = 0.03 * np.linalg.pinv(J_h)
+            K_t = self.scale_kp * np.linalg.pinv(J_h)
             # K_t[0:3, :] = 0.08 * np.linalg.pinv(J_h)[0:3, :]
             # K_t[3:6, :] = 0.001 * np.linalg.pinv(J_h)[3:6, :]
             u, s, v = np.linalg.svd(J_h)
-            print('s is ', s)
+            # print('s is ', s)
             # print('in posteria P_state_cov before', P_state_cov)
             # print('J_h ', J_h)
             # print('pinv ', np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi))
@@ -246,7 +247,7 @@ class EKF:
             for i in range(len(nonzeroind)):
                 if math.fabs(s[nonzeroind[i]] > 0.00001):
                     b.append(s[nonzeroind[i]])
-            print(b)
+            # print(b)
             c = np.array(b)
             if np.amin(c) > 0.01:
                 x_hat = x_bar + Update
@@ -275,9 +276,9 @@ class EKF:
                 R_noi[9:12, 9:12] = np.random.normal(0, 0.002) * np.identity(3)
             # K_t = P_state_cov @ J_h.transpose() @ \
             #       np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi)
-            K_t = 0.03 * np.linalg.pinv(J_h)
+            K_t = self.scale_kp * np.linalg.pinv(J_h)
             u, s, v = np.linalg.svd(J_h)
-            print('s is ', s)
+            # print('s is ', s)
             # print('in posteria P_state_cov before', P_state_cov)
             # print('J_h ', J_h)
             # print('pinv ', np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi))
@@ -291,7 +292,7 @@ class EKF:
             for i in range(len(nonzeroind)):
                 if math.fabs(s[nonzeroind[i]] > 0.00001):
                     b.append(s[nonzeroind[i]])
-            print(b)
+            # print(b)
             c = np.array(b)
             if np.amin(c) > 0.01:
                 x_hat = x_bar + Update

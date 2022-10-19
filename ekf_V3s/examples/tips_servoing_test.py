@@ -52,20 +52,12 @@ rob_control.pre_thumb(sim, viewer)
 rob_control.fingers_contact(sim, viewer, tacperception)
 
 for i in range(1000):
-    # tacperception.get_hand_tip_center_pose(sim, model, 'world')
-
     tacperception.get_tip_center_pose(sim, model, 'ff_tip', 'link_3.0_tip')
-
-    # tacperception.get_tip_center_pose(sim, model, 'mf_tip', 'link_7.0_tip')
-    # tacperception.get_tip_center_pose(sim, model, 'rf_tip', 'link_11.0_tip')
-    # tacperception.get_tip_center_pose(sim, model, 'th_tip', 'link_15.0_tip')
-
-    # rob_control.active_fingers_taxels_render(sim, viewer, tacperception)
 
     if tacperception.is_finger_contact(sim, 'ff') == True:
         cur_pose_tip, cur_taxel_name, cur_press_tip = tacperception.get_contact_feature(sim, model, 'ff')
-        # print('pose ', cur_pose_tip, i)
-        # print('press ', cur_press_tip, i)
+        print('pose ', cur_pose_tip, i)
+        print('press ', cur_press_tip, i)
     else:
         cur_press_tip = 0.0
 
@@ -86,11 +78,14 @@ for i in range(1000):
     # viz.cor_frame_visual(viewer,cur_position_world,cur_rot_world,0.2,'cf')
     rob_control.tip_servo_control(sim, viewer, model, 'ff', tran_cur_pose_tip, cur_taxel_name, \
                                       des_pose_tip, des_press - cur_press_tip)
+
     print('delta_pressure ', des_press - cur_press_tip)
     posquat_palm_world = ug.get_relative_posquat(sim, "world", "palm_link")
     T_palm_world = ug.posquat2trans(posquat_palm_world)
     # visualize coordinate frame of the global, palm
     viz.cor_frame_visual(viewer, T_palm_world[:3, 3], T_palm_world[:3, :3], 0.3, "Palm")
+    sim.step()
+    viewer.render()
 
     # if tacperception.is_finger_contact(sim, 'mf') == True:
     #     cur_tac_p = ug.posquat2trans(tacperception.get_contact_taxel_position(sim, model, 'mf', "link_7.0_tip"))

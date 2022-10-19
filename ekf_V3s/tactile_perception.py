@@ -314,10 +314,13 @@ class cls_tactile_perception:
         active_taxel_name = []
         dev_taxel_value = []
         if len(c_points) > 1:
+            print(fingername + "pose compute taxels: ", end='')
             for i in range(len(c_points)):
                 active_taxel_name.append(model._sensor_id2name[c_points[i]])
+                print(model._sensor_id2name[c_points[i]]+' ', end='')
                 actived_tmp_position[:, i] = ug.get_relative_posquat(sim, "palm_link", active_taxel_name[i])[:3]
             avg_position = actived_tmp_position.mean(1)
+            print('')
         else:
             avg_position = ug.get_relative_posquat(sim, "palm_link", model._sensor_id2name[c_points[0]])[:3]
 
@@ -403,7 +406,7 @@ class cls_tactile_perception:
         c_point_name = model._sensor_id2name[dev_taxel_value.index(min_value) + min_taxel_id]
         return c_point_name
 
-    # get the position of the contact taxel in the object frame
+    # get the position of the contact taxel in the reference frame
     def get_contact_taxel_position(self, sim, model, fingername, ref_frame):
         c_point_name = self.get_contact_taxel_name(sim, model, fingername)
         # get the position

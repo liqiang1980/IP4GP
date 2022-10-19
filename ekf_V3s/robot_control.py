@@ -780,13 +780,16 @@ class ROBCTRL:
         self.active_finger_taxels_render(sim, viewer, 'mf', tacperception)
         self.active_finger_taxels_render(sim, viewer, 'rf', tacperception)
         self.active_finger_taxels_render(sim, viewer, 'th', tacperception)
+        print('........................................\n')
     def active_finger_taxels_render(self, sim, viewer, finger_name, tacperception):
         if tacperception.is_finger_contact(sim, finger_name) == True:
             taxels_id = tacperception.get_contact_taxel_id_withoffset(sim, finger_name)
             taxels_pose_gt = []
             taxels_pose_fk = []
+            print(finger_name + "viz taxels: ", end='')
             for i in taxels_id:
                 active_taxel_name = sim.model._sensor_id2name[i]
+                print(active_taxel_name+' ', end='')
                 # compute ground truth taxels
                 taxel_pose_gt = taxel_pose()
                 pose_taxels_w = ug.get_relative_posquat(sim, "world", active_taxel_name)
@@ -794,6 +797,7 @@ class ROBCTRL:
                 taxel_pose_gt.position = pos_p_world
                 taxel_pose_gt.orien = pos_o_world
                 taxels_pose_gt.append(taxel_pose_gt)
+            print('')
             viz.active_taxels_visual(viewer, taxels_pose_gt, 'gt')
 
     def rf_move_taxels_render(self, sim, model, viewer, hand_param, tacperception):
@@ -1028,7 +1032,7 @@ class ROBCTRL:
         if tacperception.is_finger_contact(sim, hand_param[4][0]) == True:
             c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[4][0])
             pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0, size=(1, 3))
-            print('x_state ', x_state)
+            # print('x_state ', x_state)
             x_state[15] = pos_contact0[0][0]
             x_state[16] = pos_contact0[0][1]
             x_state[17] = pos_contact0[0][2]
@@ -1066,7 +1070,7 @@ class ROBCTRL:
         return x_state
 
     def interaction(self, sim, model, viewer, hand_param, object_param, alg_param, \
-                    ekf_grasping, tacperception):
+                    ekf_grasping, tacperception, char):
         global first_contact_flag, x_all, gd_all, ff_first_contact_flag, \
             mf_first_contact_flag, rf_first_contact_flag, th_first_contact_flag, \
         P_state_cov, x_state, last_angles, x_bar, z_t, h_t
@@ -1092,7 +1096,7 @@ class ROBCTRL:
             # print('contacts num ', tacperception.fin_num)
             # print('contacts id ', tacperception.fin_tri)
             # detect the first contact and initialize y_t_update with noise
-            print('get into contact procedure')
+            # print('get into contact procedure')
             if not first_contact_flag:
                 # initialize the co-variance matrix of state estimation
                 # P_state_cov = np.random.normal(0, 0.01) * np.identity(6 + 4 * 3)
@@ -1168,8 +1172,8 @@ class ROBCTRL:
                 # x_state = np.ravel(x_state)
                 x_state = self.update_augmented_state(sim, model, hand_param, tacperception, x_state)
                 th_first_contact_flag = True
-            else:
-                print('no else')
+            # else:
+            #     print('no else')
 
             # print('P_state_cov ', P_state_cov)
             # x_state = np.ravel(x_state)
@@ -1231,11 +1235,11 @@ class ROBCTRL:
             else:
                 x_state = x_bar
 
-            # x_state[3:6] = gd_state[3:6]
-            print('x_bar ', x_bar)
-            print('x_state', x_state)
+            x_state[3:6] = gd_state[3:6]
+            # print('x_bar ', x_bar)
+            # print('x_state', x_state)
             delta_t = z_t - h_t
-            print('zt - ht ', delta_t)
+            # print('zt - ht ', delta_t)
             self.delta_ct = np.vstack((self.delta_ct, delta_t))
             self.z_t = np.vstack((self.z_t, z_t))
             self.h_t = np.vstack((self.h_t, h_t))
@@ -1244,10 +1248,6 @@ class ROBCTRL:
             x_state_plot[3:6], x_state_plot[6] = ug.normalize_scale(x_state[3:6])
 
             self.x_state_all = np.vstack((self.x_state_all, x_state_plot))
-
-
-            tacperception.fin_num = 0
-            tacperception.fin_tri = np.zeros(4)
             #
             np.savetxt('x_gt_world.txt', self.x_gt_world)
             np.savetxt('x_bar_all.txt', self.x_bar_all)
@@ -1257,10 +1257,13 @@ class ROBCTRL:
             np.savetxt('delta_ct.txt', self.delta_ct)
             np.savetxt('z_t.txt', self.z_t)
             np.savetxt('h_t.txt', self.h_t)
-        else:
-            print('no contact')
+        # else:
+        #     print('no contact')
         if first_contact_flag:
-            viz.vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state)
+            viz.vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state, char)
+            self.active_fingers_taxels_render(sim, viewer, tacperception)
+            tacperception.fin_num = 0
+            tacperception.fin_tri = np.zeros(4)
 
 first_contact_flag = False
 ff_first_contact_flag = False

@@ -20,7 +20,7 @@
             </init_posture>
         </finger>
         <finger name= 'rf'>
-            <used>0</used>
+            <used>1</used>
             <init_posture>
                 <j1>5</j1>
                 <j2>6</j2>
@@ -40,8 +40,8 @@
         <object>
             <name>cup</name>
             <noise_position>0.1</noise_position>
-            <noise_orientation>0.3</noise_orientation>
-            <static>1</static>
+            <noise_orientation>0.5</noise_orientation>
+            <static>0</static>
         </object>
     <alg>
         <store_data>1</store_data>

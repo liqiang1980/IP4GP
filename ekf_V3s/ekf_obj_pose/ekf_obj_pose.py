@@ -4,6 +4,30 @@ import mujoco_environment as mu_env
 import ekf
 import tactile_perception
 import numpy as np
+from threading import Thread
+import sys, termios, tty, os, time
+
+
+def getch():
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+    try:
+        tty.setraw(sys.stdin.fileno())
+        ch = sys.stdin.read(1)
+
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+    return ch
+
+button_delay = 0.2
+def function02(arg,name):
+    global char
+    while True:
+        char = getch()
+
+        if (char == "p"):
+            print("Stop!")
+            exit(0)
 
 # load task-related parameters
 hand_param, object_param, alg_param = config_param.pass_arg()
@@ -51,6 +75,9 @@ tacperception.fin_tri = np.zeros(4)
 
     # Thumb root movement
 rob_control.pre_thumb(sim, viewer)
+# thread2 = Thread(target=function02, args=(50, 'thread2'))
+# thread2.start()
+char = "i"
     # other fingers start moving with the different velocity (contact/without contact)
 for ii in range(2000):
     if hand_param[1][1] == '1':
@@ -62,7 +89,10 @@ for ii in range(2000):
     if hand_param[4][1] == '1':
         rob_control.thumb(sim, 0.002, 0.000001)
     rob_control.interaction(sim, model, viewer, \
-                        hand_param, object_param, alg_param, grasping_ekf, tacperception)
+                        hand_param, object_param, alg_param, grasping_ekf, tacperception, char)
     sim.step()
     viewer.render()
     del viewer._markers[:]
+thread2.join()
+
+
