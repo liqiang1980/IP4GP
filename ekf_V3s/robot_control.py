@@ -1127,7 +1127,6 @@ class ROBCTRL:
 
                 # augmented state with the contact position on the object surface described in the object frame
                 x_state = self.augmented_state(sim, model, hand_param, tacperception, x_state)
-                # print('x_state from beginning ', x_state)
                 x_all = x_state
 
                 gd_posquat = ug.get_relative_posquat(sim, "palm_link", "cup")
@@ -1153,23 +1152,18 @@ class ROBCTRL:
 
                 last_angles = self.get_cur_jnt(sim)
                 self.mea_filter_js = lfilter(9, 0.01, last_angles, 16)
-                # last_angles = np.zeros(tactile_allegro_mujo_const.FULL_FINGER_JNTS_NUM)
                 print('return early')
                 return
             elif ((flag_ff == True) and (ff_first_contact_flag) == False):
-                # x_state = np.ravel(x_state)
                 x_state = self.update_augmented_state(sim, model, hand_param, tacperception, x_state)
                 ff_first_contact_flag = True
             elif ((flag_mf == True) and (mf_first_contact_flag) == False):
-                # x_state = np.ravel(x_state)
                 x_state = self.update_augmented_state(sim, model, hand_param, tacperception, x_state)
                 mf_first_contact_flag = True
             elif ((flag_rf == True) and (rf_first_contact_flag) == False):
-                # x_state = np.ravel(x_state)
                 x_state = self.update_augmented_state(sim, model, hand_param, tacperception, x_state)
                 rf_first_contact_flag = True
             elif ((flag_th == True) and (th_first_contact_flag) == False):
-                # x_state = np.ravel(x_state)
                 x_state = self.update_augmented_state(sim, model, hand_param, tacperception, x_state)
                 th_first_contact_flag = True
             # else:
@@ -1178,9 +1172,6 @@ class ROBCTRL:
             # print('P_state_cov ', P_state_cov)
             # x_state = np.ravel(x_state)
             gd_posquat = ug.get_relative_posquat(sim, "palm_link", "cup")
-            g1 = ug.get_relative_posquat(sim, "world", "cup")
-            g2 = ug.get_relative_posquat(sim, "world", "palm_link")
-
             gd_state = ug.posquat2posrotvec_hacking(gd_posquat)
 
             """ Prediction step in EKF """

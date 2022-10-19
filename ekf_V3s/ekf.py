@@ -55,7 +55,6 @@ class EKF:
     def state_predictor(self, sim, model, hand_param, object_param, x_state, tacperception, \
                         P_state_cov, cur_angles, last_angles, robctrl):
         # print("state prediction")
-        # Transfer_Fun_Matrix = np.mat(np.zeros([18, 18]))  # F
         Transfer_Fun_Matrix = np.mat(np.zeros((18, 18)))
         Q_state_noise_cov = np.zeros((18, 18))
 
@@ -64,8 +63,6 @@ class EKF:
             Q_state_noise_cov[i, i] = math.fabs(np.random.normal(0, 0.001))
 
         # print('in state predict before', P_state_cov)
-        # x_state = np.ravel(x_state)
-        # rot_obj_palm = Rotation.from_rotvec(x_state[3:6]).as_matrix()
         self.fin_num = tacperception.fin_num
         self.fin_tri = tacperception.fin_tri
 
@@ -73,29 +70,11 @@ class EKF:
         ############### Form hand Jacobian matrix #################
         self.J_fingers = np.zeros([6 * 4, 4 * 4])
         for i in range(4):
-            # self.G_contact[i, :, :], self.J[i, :, :], self.u_t_tmp[i, :], self.angle_tmp[i, :]\
-            #     = ug.contact_compute(sim, model, hand_param[i + 1][0], tacperception, x_state)
             self.G_contact[i, :, :], self.J[i, :, :] \
                 = ug.contact_compute(sim, model, hand_param[i + 1][0], \
                                      tacperception, x_state, cur_angles, robctrl)
             self.Grasping_matrix[:, 0 + i * 6: 6 + i * 6] = self.G_contact[i, :, :]
             self.J_fingers[0 + i * 6: 6 + i * 6, 0 + i * 4: 4 + i * 4] = self.J[i, :, :]
-
-        # ############# form action - u_t #################
-        # self.u_t = np.zeros(4 * 4)
-        # for i in range(4):
-        #     if tacperception.fin_tri[i] == 1:
-        #         self.u_t[0 + i * 4: 4 + i * 4] = self.u_t_tmp[i]
-        #     else:
-        #         self.u_t[0 + i * 4: 4 + i * 4] = np.zeros(4)
-
-        # ############# form action - angles #################
-        # self.angles = np.zeros(4 * 4)
-        # for i in range(4):
-        #     if tacperception.fin_tri[i] == 1:
-        #         self.angles[0 + i * 4: 4 + i * 4] = self.angle_tmp[i]
-        #     else:
-        #         self.angles[0 + i * 4: 4 + i * 4] = np.zeros(4)
 
         inv_tmp = np.zeros([6, 6])
         G_pinv = np.zeros([6, 24])

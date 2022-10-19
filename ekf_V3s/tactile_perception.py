@@ -314,7 +314,7 @@ class cls_tactile_perception:
         active_taxel_name = []
         dev_taxel_value = []
         if len(c_points) > 1:
-            print(fingername + "pose compute taxels: ", end='')
+            print(fingername + " pose compute taxels: ", end='')
             for i in range(len(c_points)):
                 active_taxel_name.append(model._sensor_id2name[c_points[i]])
                 print(model._sensor_id2name[c_points[i]]+' ', end='')
@@ -332,79 +332,56 @@ class cls_tactile_perception:
             c_point_name = model._sensor_id2name[c_points[dev_taxel_value.index(min_value)]]
         else:
             c_point_name = model._sensor_id2name[c_points[0]]
-
-        # compare the whole fingertip taxel cost more time
-        # if fingername == 'ff':
-        #     min_taxel_id = tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN
-        #     max_taxel_id = tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX
-        # if fingername == 'mf':
-        #     min_taxel_id = tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN
-        #     max_taxel_id = tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX
-        # if fingername == 'rf':
-        #     min_taxel_id = tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN
-        #     max_taxel_id = tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX
-        # if fingername == 'th':
-        #     min_taxel_id = tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN
-        #     max_taxel_id = tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX
-        #
-        # for i in range(min_taxel_id, max_taxel_id):
-        #     # taxel_array_name.append()
-        #     # print(model._sensor_id2name[i])
-        #     taxel_position[:, i - min_taxel_id] = ug.get_relative_posquat(sim, "palm_link", model._sensor_id2name[i])[:3]
-        #     dev_taxel_value.append(np.linalg.norm(taxel_position[:, i - min_taxel_id] - avg_position))
-        #
-        # min_value = min(dev_taxel_value)
-        # c_point_name = model._sensor_id2name[dev_taxel_value.index(min_value) + min_taxel_id]
         return c_point_name
 
     # get the median of all contact_nums, and translate to contact_name
-    def get_c_point_name(self, model, c_points):
-        if len(c_points) % 2 == 0:  # even number of contact points
-            c_points = np.hstack((-1, c_points))  # change to odd
-            #todo why the median of taxels are the contact point?
-            c_point_name = model._sensor_id2name[int(np.median(c_points))]  # use median to get the contact_point name
-            print(np.median(c_points))
-        else:
-            c_point_name = model._sensor_id2name[int(np.median(c_points))]  # use median to get the contact_point name
-            print(np.median(c_points))
-
-        return c_point_name
+    # def get_c_point_name(self, model, c_points):
+    #     if len(c_points) % 2 == 0:  # even number of contact points
+    #         c_points = np.hstack((-1, c_points))  # change to odd
+    #         #todo why the median of taxels are the contact point?
+    #         c_point_name = model._sensor_id2name[int(np.median(c_points))]  # use median to get the contact_point name
+    #         print(np.median(c_points))
+    #     else:
+    #         c_point_name = model._sensor_id2name[int(np.median(c_points))]  # use median to get the contact_point name
+    #         print(np.median(c_points))
+    #
+    #     return c_point_name
 
     # get contact_name using the average contact position and min distance to the taxel
-    def get_avg_c_point(self, sim, model, c_points, fingername):
-        actived_tmp_position = np.zeros((3, len(c_points)))
-        taxel_position = np.zeros((3, 72))
-        active_taxel_name = []
-        dev_taxel_value = []
-        for i in range(len(c_points)):
-            active_taxel_name.append(model._sensor_id2name[c_points[i]])
-            print(active_taxel_name[i])
-            actived_tmp_position[:, i] = ug.get_relative_posquat(sim, "palm_link", active_taxel_name[i])[:3]
-        avg_pressure = actived_tmp_position.mean(1)
-
-        if fingername == 'ff':
-            min_taxel_id = tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN
-            max_taxel_id = tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX
-        if fingername == 'mf':
-            min_taxel_id = tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN
-            max_taxel_id = tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX
-        if fingername == 'rf':
-            min_taxel_id = tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN
-            max_taxel_id = tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX
-        if fingername == 'th':
-            min_taxel_id = tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN
-            max_taxel_id = tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX
-
-        for i in range(min_taxel_id, max_taxel_id):
-            # taxel_array_name.append()
-            print(model._sensor_id2name[i])
-            taxel_position[:, i - min_taxel_id] = ug.get_relative_posquat(sim, "palm_link", model._sensor_id2name[i])[:3]
-            dev_taxel_value.append(np.linalg.norm(taxel_position[:, i - min_taxel_id] - avg_pressure))
-
-        min_value = min(dev_taxel_value)
-        print(dev_taxel_value.index(min_value))
-        c_point_name = model._sensor_id2name[dev_taxel_value.index(min_value) + min_taxel_id]
-        return c_point_name
+    # def get_avg_c_point(self, sim, model, c_points, fingername):
+    #     actived_tmp_position = np.zeros((3, len(c_points)))
+    #     taxel_position = np.zeros((3, 72))
+    #     active_taxel_name = []
+    #     dev_taxel_value = []
+    #     for i in range(len(c_points)):
+    #         active_taxel_name.append(model._sensor_id2name[c_points[i]])
+    #         print(active_taxel_name[i])
+    #         actived_tmp_position[:, i] = ug.get_relative_posquat(sim, "palm_link", active_taxel_name[i])[:3]
+    #     avg_pressure = actived_tmp_position.mean(1)
+    #
+    #     if fingername == 'ff':
+    #         min_taxel_id = tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN
+    #         max_taxel_id = tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX
+    #     if fingername == 'mf':
+    #         min_taxel_id = tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN
+    #         max_taxel_id = tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX
+    #     if fingername == 'rf':
+    #         min_taxel_id = tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN
+    #         max_taxel_id = tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX
+    #     if fingername == 'th':
+    #         min_taxel_id = tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN
+    #         max_taxel_id = tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX
+    #
+    #     for i in range(min_taxel_id, max_taxel_id):
+    #         # taxel_array_name.append()
+    #         print(model._sensor_id2name[i])
+    #         taxel_position[:, i - min_taxel_id] = ug.get_relative_posquat(sim, "palm_link", model._sensor_id2name[i])[:3]
+    #         dev_taxel_value.append(np.linalg.norm(taxel_position[:, i - min_taxel_id] - avg_pressure))
+    #
+    #     min_value = min(dev_taxel_value)
+    #     print(dev_taxel_value.index(min_value))
+    #     c_point_name = model._sensor_id2name[dev_taxel_value.index(min_value) + min_taxel_id]
+    #     return c_point_name
 
     # get the position of the contact taxel in the reference frame
     def get_contact_taxel_position(self, sim, model, fingername, ref_frame):
