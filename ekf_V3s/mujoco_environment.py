@@ -14,12 +14,14 @@ def Camera_set(viewer, model):
     viewer.cam.elevation = -0
     viewer.cam.azimuth = 0
 
-def init_mujoco(filename = "../../robots/UR5_tactile_allegro_hand.xml"):
+
+def init_mujoco(filename="../../robots/UR5_tactile_allegro_hand.xml"):
     xml_path = filename
     model = load_model_from_path(xml_path)
     sim = MjSim(model)
     viewer = MjViewer(sim)
     return model, sim, viewer
+
 
 def init_robot_object_mujoco(sim, object_param):
     pose_cup = ug.get_body_posquat(sim, object_param[0])
@@ -27,9 +29,9 @@ def init_robot_object_mujoco(sim, object_param):
     # pregrasping related pose ref:cup
     if int(object_param[3]) == 0:
         trans_pregrasp = np.array([[0, 0, 1, 0.1],
-                               [0, 1, 0, -0.23],
-                               [-1, 0, 0, 0.05],
-                               [0, 0, 0, 1]])
+                                   [0, 1, 0, -0.23],
+                                   [-1, 0, 0, 0.05],
+                                   [0, 0, 0, 1]])
     else:
         trans_pregrasp = np.array([[0, 0, 1, 0.08],
                                    [0, 1, 0, -0.23],
@@ -41,6 +43,7 @@ def init_robot_object_mujoco(sim, object_param):
     ctrl_wrist_pos = posequat[:3]
     ctrl_wrist_quat = posequat[3:]
     return ctrl_wrist_pos, ctrl_wrist_quat
+
 
 def config_fcl(obj1_name, obj2_name):
     # obj_cup = fcl_python.OBJ("cup_1.obj")
@@ -69,12 +72,6 @@ def config_fcl(obj1_name, obj2_name):
     mesh_fingertip.endModel()
 
 
-
-
-
-
-
-
 # def move_interperate_point(sim, desire_pos_quat, curr_posquat, viewer=None):
 #     # curr_posquat = get_relative_posquat(sim, "palm_link", "link_3.0_tip")
 #     delta_k = 5
@@ -96,7 +93,7 @@ def config_fcl(obj1_name, obj2_name):
 #             viewer.render()
 #         count_execute = 0
 
-#对这里进行修正，进行修改即可
+# 对这里进行修正，进行修改即可
 # def force_control(sim, force_set, cur_force):
 # 	kp, ki, kd = 0.0, 0.3, 0.0
 # 	pid = pid.PID(kp, ki, kd)
@@ -122,5 +119,3 @@ def execute_grasp(sim, viewer=None):
         sim.data.ctrl[7] = sim.data.qpos[7] - 0.01
         sim.step()
         viewer.render()
-
-

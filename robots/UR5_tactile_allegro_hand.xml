@@ -106,13 +106,15 @@ Control Engineering / Automation Engineering
 <!--        <texture name="wood"        type="cube"     file="wood2.png"/>-->
         <texture name="wood"        type="2d"     file="wood2.png"/>
 <!--        <texture name="metal"        type="cube"     file="metal2.png"/>-->
-        <texture name="metal"        type="2d"     file="metal2.png"/>
+        <texture name="metal"        type="2d"     file="metal.png"/>
+        <texture name="QGmetal"        type="2d"     file="QGmetal.png"/>
         <!--Materials-->
         <material name="ur5_mat"        texture="ur5_tex"   shininess="0.9" specular="0.75" reflectance="0.3"/>
         <material name="gripper_mat"    texture="gripper_tex"   shininess="0.9" specular="0.75" reflectance="0.4" />
         <material name='floor_mat'      texture="floor_tex"  shininess="0.8" texrepeat="10 10" specular="0.7"  reflectance="0.5" />
         <material name='geom'           texture="texgeom"   texuniform="true" />
         <material name="bench_mat"      texture="metal"   shininess="0.1" specular="0.5" reflectance="0.2"/>
+        <material name="bench_mat_qg"      texture="QGmetal"   shininess="0.1" specular="0.5" reflectance="0.2"/>
         <material name="tablecube"      texture="wood" rgba=".8 .8 .8 1"/>
     </asset>
 
@@ -165,7 +167,9 @@ Control Engineering / Automation Engineering
             <joint type="free"/>
 <!-- 	    <joint type="hinge" axis="0 0 1"/> -->
             <site name="cup" pos="0 0 0 " euler="0 0 0"/>
-            <geom type="mesh" material="gripper_mat" mesh="cup" euler="0 0 0" friction="1 0.1 0.5"/>
+<!--            <geom type="mesh" material="gripper_mat" mesh="cup" euler="0 0 0" friction="1 0.1 0.5"/>  -->
+<!--            <geom type="mesh" material="tablecube" mesh="cup" euler="0 0 0" friction="1 0.1 0.5"/>  -->
+            <geom type="mesh" material="bench_mat_qg" mesh="cup" euler="0 0 0" friction="1 0.1 0.5"/>
             <inertial pos="0 0 0" mass="0.3" diaginertia="0.0035 0.0035 0.0035" />
         </body>
 

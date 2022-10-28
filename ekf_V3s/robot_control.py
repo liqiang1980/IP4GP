@@ -645,6 +645,8 @@ class ROBCTRL:
     #     move_ik_kdl_finger_wdls(sim, desire_pos_quat_in_force)
 
     def index_finger(self, sim, input1, input2):
+        # print("|||shape||||ctrl: ", len(sim.data.ctrl))
+
         if not (np.array(sim.data.sensordata[tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN: \
                 tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX]) > 0.0).any():
             sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] = \
@@ -934,6 +936,8 @@ class ROBCTRL:
             sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] = \
                 sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] + input2
     def get_cur_jnt(self, sim):
+        # print("|||shape||||qpos: ", len(sim.data.qpos))
+
         cur_jnt = np.zeros(tactile_allegro_mujo_const.FULL_FINGER_JNTS_NUM)
         cur_jnt[0:4] = np.array([sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_1],
                             sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_2],
@@ -1151,7 +1155,7 @@ class ROBCTRL:
                     th_first_contact_flag = True
 
                 last_angles = self.get_cur_jnt(sim)
-                self.mea_filter_js = lfilter(9, 0.01, last_angles, 16)
+                self.mea_filter_js = lfilter(9, 0.01, last_angles, 16)  # wave filter of jnt angles
                 print('return early')
                 return
             elif ((flag_ff == True) and (ff_first_contact_flag) == False):
@@ -1166,6 +1170,7 @@ class ROBCTRL:
             elif ((flag_th == True) and (th_first_contact_flag) == False):
                 x_state = self.update_augmented_state(sim, model, hand_param, tacperception, x_state)
                 th_first_contact_flag = True
+
             # else:
             #     print('no else')
 
@@ -1180,7 +1185,7 @@ class ROBCTRL:
             cur_angles_tmp = self.get_cur_jnt(sim)
             # do a rolling average
             cur_angles, self.mea_filter_js.z = \
-                self.mea_filter_js.lp_filter(cur_angles_tmp, 16)
+                self.mea_filter_js.lp_filter(cur_angles_tmp, 16)    # wave filter of jnt angles
             x_bar, P_state_cov, ju_all = \
                 ekf_grasping.state_predictor(sim, model, hand_param, object_param, \
                                       x_state, tacperception, P_state_cov, cur_angles,\
@@ -1226,7 +1231,9 @@ class ROBCTRL:
             else:
                 x_state = x_bar
 
-            x_state[3:6] = gd_state[3:6]
+            """Give gd if necessary"""
+            # x_state[3:6] = gd_state[3:6]
+
             # print('x_bar ', x_bar)
             # print('x_state', x_state)
             delta_t = z_t - h_t

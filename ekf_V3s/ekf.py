@@ -103,7 +103,9 @@ class EKF:
             # Transfer_Fun_Matrix[:6, :6] = np.mat(np.eye(6)) + ug.F_calculator_4Ginv(ju=ju)
 
         # assume the contact positions on the object do not change.
-        prediction = np.append(prediction, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        # print("???shape of pre: ", prediction.shape, prediction, G_pinv.shape, ju.shape)
+        prediction = np.append(prediction, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])  # 6*1 to 18*1
+        # print("???shape of pre: ", prediction.shape, prediction, (1.0/tacperception.fin_num*prediction).shape, (1.0/tacperception.fin_num*prediction))
         x_bar = x_state + 1.0/tacperception.fin_num*prediction
 
         P_state_cov = Transfer_Fun_Matrix * P_state_cov * \

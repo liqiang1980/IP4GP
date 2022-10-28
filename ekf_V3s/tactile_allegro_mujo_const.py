@@ -1,3 +1,26 @@
+"""
+IN 'UR5_tactile_allegro_hand.xml' :
+len(sim.data.ctrl) = 22
+    Defined in the end of xml: <actuator> --> 6*<motor>,16*<position>
+
+len(sim.data.sensordata) = 653
+    Defined in the end of xml: <sensor> --> 653*<touch>
+
+len(sim.data.qpos) = 682 (653+22+7, cup is a freejoint)
+    <freejoint> use 7 qpos (Attention: )
+    <joint> use 1 qpos
+
+
+IN 'UR5_tactile_allegro_hand_obj_frozen.xml' :
+len(sim.data.ctrl) = 22
+    Defined in the end of xml: <actuator> --> 6*<motor>,16*<position>
+
+len(sim.data.sensordata) = 653
+    Defined in the end of xml: <sensor> --> 653*<touch>
+
+len(sim.data.qpos) = 675 (653+22)
+"""
+
 UR_CTRL_1 = 0
 UR_CTRL_2 = 1
 UR_CTRL_3 = 2
