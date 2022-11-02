@@ -52,7 +52,7 @@ class EKF:
     def set_contact_flag(self, flag):
         self.flag = flag
 
-    def state_predictor(self, sim, model, hand_param, object_param, x_state, tacperception, \
+    def state_predictor(self, sim, model, hand_param, object_param, x_state, tacperception,
                         P_state_cov, cur_angles, last_angles, robctrl):
         # print("state prediction")
         Transfer_Fun_Matrix = np.mat(np.zeros((18, 18)))
@@ -71,8 +71,7 @@ class EKF:
         self.J_fingers = np.zeros([6 * 4, 4 * 4])
         for i in range(4):
             self.G_contact[i, :, :], self.J[i, :, :] \
-                = ug.contact_compute(sim, model, hand_param[i + 1][0], \
-                                     tacperception, x_state, cur_angles, robctrl)
+                = ug.contact_compute(sim, model, hand_param[i + 1][0], tacperception, x_state, cur_angles, robctrl)
             self.Grasping_matrix[:, 0 + i * 6: 6 + i * 6] = self.G_contact[i, :, :]
             self.J_fingers[0 + i * 6: 6 + i * 6, 0 + i * 4: 4 + i * 4] = self.J[i, :, :]
 
@@ -106,14 +105,14 @@ class EKF:
         # print("???shape of pre: ", prediction.shape, prediction, G_pinv.shape, ju.shape)
         prediction = np.append(prediction, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])  # 6*1 to 18*1
         # print("???shape of pre: ", prediction.shape, prediction, (1.0/tacperception.fin_num*prediction).shape, (1.0/tacperception.fin_num*prediction))
-        x_bar = x_state + 1.0/tacperception.fin_num*prediction
+        x_bar = x_state + 1.0 / tacperception.fin_num * prediction
 
         P_state_cov = Transfer_Fun_Matrix * P_state_cov * \
                       Transfer_Fun_Matrix.transpose() + Q_state_noise_cov
 
         # print('in state predict after', P_state_cov)
 
-        #ju is only for debugging
+        # ju is only for debugging
         return x_bar, P_state_cov, ju
 
     def observe_computation(self, x_bar, tacperception, sim):
@@ -138,8 +137,7 @@ class EKF:
 
         return np.array(contact_position), np.array(contact_nv),
 
-    def measure_fb(self, sim, model, hand_param, object_param, \
-                   x_bar, tacperception):
+    def measure_fb(self, sim, model, hand_param, object_param, x_bar, tacperception):
         # print('measurement feedback from sensing (ground truth + noise in simulation)')
         contact_position = []
         contact_nv = []
@@ -148,11 +146,10 @@ class EKF:
 
         for i in range(4):
             if tacperception.fin_tri[i] == 1:
-                contact_position.append((tacperception.get_contact_taxel_position(sim, model, \
-                                                                                  hand_param[i + 1][0], "palm_link"))[
-                                        :3] \
-                                        + np.random.normal(0.00, 0.0, 3))
-                contact_nv.append(tacperception.get_contact_taxel_nv(sim, model, \
+                contact_position.append(
+                    (tacperception.get_contact_taxel_position(sim, model, hand_param[i + 1][0], "palm_link"))[:3] \
+                    + np.random.normal(0.00, 0.0, 3))
+                contact_nv.append(tacperception.get_contact_taxel_nv(sim, model,
                                                                      hand_param[i + 1][0], "palm_link") \
                                   + np.random.normal(0, 0., 3))
             else:
@@ -178,32 +175,36 @@ class EKF:
         if pn_flag == 'pn':  # use pos and normal as observation variable
             J_h = np.zeros([6 * 4, 6 + 4 * 3])
             R_noi = np.zeros([24, 24])
-            if tacperception.is_ff_contact == True:
+            if tacperception.is_ff_contact:
                 J_h[:3, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c1[0], pos_CO_y=pos_c1[1],
-                                          pos_CO_z=pos_c1[2])
-                J_h[12:15, :6] = ug.H_calculator_pn(W1=W1, W2=W2, W3=W3, normal_CO_x=normal_c1[0], normal_CO_y=normal_c1[1],
-                                              normal_CO_z=normal_c1[2])
+                                              pos_CO_z=pos_c1[2])
+                J_h[12:15, :6] = ug.H_calculator_pn(W1=W1, W2=W2, W3=W3, normal_CO_x=normal_c1[0],
+                                                    normal_CO_y=normal_c1[1],
+                                                    normal_CO_z=normal_c1[2])
                 J_h[12:15, :6] = np.zeros([3, 6])
                 R_noi[:6, :6] = np.random.normal(0, 0.002) * np.identity(6)
-            if tacperception.is_mf_contact == True:
+            if tacperception.is_mf_contact:
                 J_h[3:6, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c2[0], pos_CO_y=pos_c2[1],
-                                           pos_CO_z=pos_c2[2])
-                J_h[15:18, :6] = ug.H_calculator_pn(W1=W1, W2=W2, W3=W3, normal_CO_x=normal_c2[0], normal_CO_y=normal_c2[1],
-                                               normal_CO_z=normal_c2[2])
+                                               pos_CO_z=pos_c2[2])
+                J_h[15:18, :6] = ug.H_calculator_pn(W1=W1, W2=W2, W3=W3, normal_CO_x=normal_c2[0],
+                                                    normal_CO_y=normal_c2[1],
+                                                    normal_CO_z=normal_c2[2])
                 J_h[15:18, :6] = np.zeros([3, 6])
                 R_noi[6:12, 6:12] = np.random.normal(0, 0.002) * np.identity(6)
-            if tacperception.is_rf_contact == True:
+            if tacperception.is_rf_contact:
                 J_h[6:9, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c3[0], pos_CO_y=pos_c3[1],
-                                             pos_CO_z=pos_c3[2])
-                J_h[18:21, :6] = ug.H_calculator_pn(W1=W1, W2=W2, W3=W3, normal_CO_x=normal_c3[0], normal_CO_y=normal_c3[1],
-                                                normal_CO_z=normal_c3[2])
+                                               pos_CO_z=pos_c3[2])
+                J_h[18:21, :6] = ug.H_calculator_pn(W1=W1, W2=W2, W3=W3, normal_CO_x=normal_c3[0],
+                                                    normal_CO_y=normal_c3[1],
+                                                    normal_CO_z=normal_c3[2])
                 J_h[18:21, :6] = np.zeros([3, 6])
                 R_noi[12:18, 12:18] = np.random.normal(0, 0.002) * np.identity(6)
-            if tacperception.is_th_contact == True:
+            if tacperception.is_th_contact:
                 J_h[9:12, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c4[0], pos_CO_y=pos_c4[1],
-                                             pos_CO_z=pos_c4[2])
-                J_h[21:24, :6] = ug.H_calculator_pn(W1=W1, W2=W2, W3=W3, normal_CO_x=normal_c4[0], normal_CO_y=normal_c4[1],
-                                                normal_CO_z=normal_c4[2])
+                                                pos_CO_z=pos_c4[2])
+                J_h[21:24, :6] = ug.H_calculator_pn(W1=W1, W2=W2, W3=W3, normal_CO_x=normal_c4[0],
+                                                    normal_CO_y=normal_c4[1],
+                                                    normal_CO_z=normal_c4[2])
                 J_h[21:24, :6] = np.zeros([3, 6])
                 R_noi[18:24, 18:24] = np.random.normal(0, 0.002) * np.identity(6)
             # K_t = P_state_cov @ J_h.transpose() @ \
@@ -241,19 +242,19 @@ class EKF:
             R_noi = np.zeros([12, 12])
             if tacperception.is_ff_contact == True:
                 J_h[:3, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c1[0], pos_CO_y=pos_c1[1],
-                                          pos_CO_z=pos_c1[2])
+                                              pos_CO_z=pos_c1[2])
                 R_noi[:3, :3] = np.random.normal(0, 0.002) * np.identity(3)
             if tacperception.is_mf_contact == True:
                 J_h[3:6, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c2[0], pos_CO_y=pos_c2[1],
-                                           pos_CO_z=pos_c2[2])
+                                               pos_CO_z=pos_c2[2])
                 R_noi[3:6, 3:6] = np.random.normal(0, 0.002) * np.identity(3)
             if tacperception.is_rf_contact == True:
                 J_h[6:9, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c3[0], pos_CO_y=pos_c3[1],
-                                           pos_CO_z=pos_c3[2])
+                                               pos_CO_z=pos_c3[2])
                 R_noi[6:9, 6:9] = np.random.normal(0, 0.002) * np.identity(3)
             if tacperception.is_th_contact == True:
                 J_h[9:12, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c4[0], pos_CO_y=pos_c4[1],
-                                            pos_CO_z=pos_c4[2])
+                                                pos_CO_z=pos_c4[2])
                 R_noi[9:12, 9:12] = np.random.normal(0, 0.002) * np.identity(3)
             # K_t = P_state_cov @ J_h.transpose() @ \
             #       np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi)
@@ -280,7 +281,6 @@ class EKF:
                 P_state_cov = (np.eye(6 + 4 * 3) - K_t @ J_h) @ P_state_cov
             else:
                 x_hat = x_bar
-
 
             # K_t[0:3, :] = np.linalg.pinv(J_h)[0:3, :]
             # K_t[3:6, :] = 0.01 * np.linalg.pinv(J_h)[3:6, :]

@@ -27,6 +27,8 @@ class ROBCTRL:
 
     def __init__(self):
         self.robot = URDF.from_xml_file('../../robots/allegro_hand_right_with_tactile.urdf')
+        # self.robot = URDF.from_xml_file('../../robots/UR5_allegro_hand_right.urdf')
+        # self.robot = URDF.from_xml_file('../../robots/allegro_hand_tactile_v1.4.urdf')
         # first finger
         self.kdl_kin_ff = KDLKinematics(self.robot, "palm_link", "link_3.0_tip")
         # middle finger
@@ -47,21 +49,20 @@ class ROBCTRL:
         self.x_gt_world = [0, 0, 0]
         self.ju_all = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         if tactile_allegro_mujo_const.PN_FLAG == 'pn':
-            self.delta_ct = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,\
-                         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+            self.delta_ct = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, \
+                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         else:
             self.delta_ct = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         if tactile_allegro_mujo_const.PN_FLAG == 'pn':
-            z_t = self.z_t = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,\
-                         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+            z_t = self.z_t = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, \
+                              0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         else:
             z_t = self.z_t = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         if tactile_allegro_mujo_const.PN_FLAG == 'pn':
-            h_t = self.h_t = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,\
-                         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+            h_t = self.h_t = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, \
+                              0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         else:
             h_t = self.h_t = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-
 
     def robot_init(self, sim):
         sim.data.ctrl[tactile_allegro_mujo_const.UR_CTRL_1] = 0.8
@@ -104,18 +105,18 @@ class ROBCTRL:
             l_delta_p = np.ravel(delta_p)
             delta_p_save.append([l_delta_p[0], l_delta_p[1], l_delta_p[2]])
             delta_o = np.array(np.matmul(p_start.orientation.transpose(), taxel_o))
-            theta = math.acos((np.trace(delta_o) - 1.0)/2.0)
+            theta = math.acos((np.trace(delta_o) - 1.0) / 2.0)
             omega = np.array([0., 0., 0.])
-            omega[0] = (delta_o[2][1]-delta_o[1][2]) / (2 * math.sin(theta))
-            omega[1] = (delta_o[0][2]-delta_o[2][0]) / (2 * math.sin(theta))
-            omega[2] = (delta_o[1][0]-delta_o[0][1]) / (2 * math.sin(theta))
+            omega[0] = (delta_o[2][1] - delta_o[1][2]) / (2 * math.sin(theta))
+            omega[1] = (delta_o[0][2] - delta_o[2][0]) / (2 * math.sin(theta))
+            omega[2] = (delta_o[1][0] - delta_o[0][1]) / (2 * math.sin(theta))
             # print('theta ', theta)
             # print('omega is ', omega[0], omega[1], omega[2] )
             # print('local rx ')
             # print(ug.vec2rot(theta * np.array(omega)))
             taxel_p_g, taxel_rot_ax_g = ug.pose_trans_palm_to_world(sim, taxel_p, ug.vec2rot(theta * np.array(omega)))
             viewer.add_marker(pos=taxel_p_g, mat=np.array(taxel_rot_ax_g), type=const.GEOM_ARROW, label='rot',
-                      size=np.array([0.001, 0.001, 0.1]), rgba=np.array([1.0, 0.0, 0.0, 1.0]))
+                              size=np.array([0.001, 0.001, 0.1]), rgba=np.array([1.0, 0.0, 0.0, 1.0]))
 
             kp_delta_o = kp * theta * np.array(omega)
 
@@ -140,14 +141,14 @@ class ROBCTRL:
 
             print('ik_type ', ik_type)
             if ik_type == IK_type.IK_V_FULL:
-                #pinv solution
+                # pinv solution
                 # print('cur jnt is ', self.get_cur_jnt(sim)[4:8])
                 succ = self.kdl_kin_taxel._ik_v_kdl.CartToJnt(q_pos_input, vel_twist, q_dot)
                 print("succ:", succ)
                 q_dot = np.array(joint_kdl_to_list(q_dot))
                 jnt_dot.append(q_dot)
             if ik_type == IK_type.IK_V_WDLS:
-                #wdls solution
+                # wdls solution
                 _ik_wdls_v_kdl = kdl.ChainIkSolverVel_wdls(self.kdl_kin_taxel.chain)
                 for i, q_i in enumerate(self.get_cur_jnt(sim)[4:8]):
                     q_pos_input[i] = q_i
@@ -173,7 +174,6 @@ class ROBCTRL:
                 print('q is ', self.get_cur_jnt(sim)[4:8])
                 print('q_dot[0] ', q_dot[0])
 
-
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_1] = \
                 sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_1] + q_dot[0]
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_1] = -0.00146
@@ -184,7 +184,7 @@ class ROBCTRL:
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_4] = \
                 sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_4] + q_dot[3]
 
-            #compute deviation
+            # compute deviation
             dev = np.linalg.norm(delta_p)
             print('dev ', dev)
             sim.step()
@@ -195,9 +195,9 @@ class ROBCTRL:
         np.savetxt("jnt_dot.txt", jnt_dot)
 
     def tip_servo_control(self, sim, viewer, model, finger_name, cur_tac_p, tac_name, goal_tac_p, delta_press):
-        #compute the tactile feature errors
+        # compute the tactile feature errors
         vel = delta_press
-        #transfer to the palm frame
+        # transfer to the palm frame
         vel_tip = np.array([vel, 0.0, 0.0])
         p, o = self.fk_offset(sim, finger_name, tac_name, 'palm')
 
@@ -206,7 +206,7 @@ class ROBCTRL:
 
         vel_palm = np.matmul(o, vel_tip)
         print(finger_name, 'v_palm ', vel_palm)
-        #call hand v inv control
+        # call hand v inv control
         self.instant_v_ik_control(sim, viewer, finger_name, vel_palm, tac_name)
 
     def instant_v_ik_control(self, sim, viewer, finger_name, vel, tac_name):
@@ -218,7 +218,7 @@ class ROBCTRL:
             jac_position[1, 0] = 0.
             jac_position[2, 0] = 0.
             q_dot = np.matmul(np.linalg.pinv(jac_position), vel.transpose())
-            q_dot = 5*np.ravel(q_dot)
+            q_dot = 5 * np.ravel(q_dot)
 
             sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_1] = 0.0
 
@@ -237,7 +237,7 @@ class ROBCTRL:
             jac_position[1, 0] = 0.
             jac_position[2, 0] = 0.
             q_dot = np.matmul(np.linalg.pinv(jac_position), vel.transpose())
-            q_dot = 5*np.ravel(q_dot)
+            q_dot = 5 * np.ravel(q_dot)
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_1] = 0
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] = \
                 sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_2] + q_dot[1]
@@ -254,7 +254,7 @@ class ROBCTRL:
             jac_position[1, 0] = 0.
             jac_position[2, 0] = 0.
             q_dot = np.matmul(np.linalg.pinv(jac_position), vel.transpose())
-            q_dot = 5*np.ravel(q_dot)
+            q_dot = 5 * np.ravel(q_dot)
             sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_1] = 0
             sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_2] = \
                 sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_2] + q_dot[1]
@@ -271,7 +271,7 @@ class ROBCTRL:
             jac_position[1, 0] = 0.
             jac_position[2, 0] = 0.
             q_dot = np.matmul(np.linalg.pinv(jac_position), vel.transpose())
-            q_dot = 5*np.ravel(q_dot)
+            q_dot = 5 * np.ravel(q_dot)
             sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_1] = \
                 sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_1] + q_dot[0]
             sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_2] = \
@@ -338,7 +338,7 @@ class ROBCTRL:
             del viewer._markers[:]
 
     def inc_finger_jnt(self, sim, finger_name, inc):
-        if(finger_name == 'ff'):
+        if (finger_name == 'ff'):
             sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] = \
                 sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2] + inc
             sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3] = \
@@ -348,21 +348,21 @@ class ROBCTRL:
         # print('cmd ff ', sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_2],\
         #       sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_3],\
         #      sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] )
-        if(finger_name == 'mf'):
+        if (finger_name == 'mf'):
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] = \
                 sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_2] + inc
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_3] = \
                 sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_3] + inc
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_4] = \
                 sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_4] + inc
-        if(finger_name == 'rf'):
+        if (finger_name == 'rf'):
             sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_2] = \
                 sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_2] + inc
             sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_3] = \
                 sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_3] + inc
             sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_4] = \
                 sim.data.ctrl[tactile_allegro_mujo_const.RF_CTRL_4] + inc
-        if(finger_name == 'th'):
+        if (finger_name == 'th'):
             sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_2] = \
                 sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_2] + inc
             sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] = \
@@ -370,13 +370,12 @@ class ROBCTRL:
             sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] = \
                 sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] + inc
 
-
     def finger_contact(self, sim, viewer, finger_name, tacperception):
         while (tacperception.is_finger_contact(sim, finger_name) != True):
             self.inc_finger_jnt(sim, finger_name, 0.001)
             sim.step()
             viewer.render()
-        print(finger_name+'contact')
+        print(finger_name + 'contact')
 
     def fingers_contact(self, sim, viewer, tacperception):
         self.finger_contact(sim, viewer, 'ff', tacperception)
@@ -417,6 +416,7 @@ class ROBCTRL:
                 sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] = q_est[3]
                 sim.step()
                 viewer.render()
+
     def move_ik_finger(self, sim, kdl_kin, ee_tget_posquat, gripper_action=0.04, viewer=None):
         # ee_target is in world frame
         ee_curr_posquat = ug.get_relative_posquat(sim, "palm_link", "link_3.0_tip")
@@ -663,7 +663,6 @@ class ROBCTRL:
             sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] = \
                 sim.data.ctrl[tactile_allegro_mujo_const.FF_CTRL_4] + input2
 
-
     def middle_finger(self, sim, input1, input2):
         if not (np.array(sim.data.sensordata[tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN: \
                 tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX]) > 0.0).any():  # 中指
@@ -682,7 +681,6 @@ class ROBCTRL:
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_4] = \
                 sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_4] + input2
 
-
     def middle_finger_vel(self, sim, input1, input2):
         print(sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_1])
         if not (np.array(sim.data.sensordata[tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN: \
@@ -694,7 +692,6 @@ class ROBCTRL:
             sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_1] = input2
             sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_1] = input2
             sim.data.qvel[tactile_allegro_mujo_const.MF_MEA_1] = input2
-
 
     def ring_finger(self, sim, input1, input2):
         if not (np.array(sim.data.sensordata[tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN: \
@@ -715,6 +712,7 @@ class ROBCTRL:
 
     def thumb_zero(self, sim, viewer):
         self.moveto_jnt(self, sim, viewer, 'th', [0., 0., 0., 0.], 200)
+
     def ff_zero(self, sim, viewer):
         self.moveto_jnt(self, sim, viewer, 'ff', [0., 0., 0., 0.], 200)
 
@@ -732,6 +730,7 @@ class ROBCTRL:
 
     def thumb_pregrasp(self, sim, viewer):
         self.moveto_jnt(self, sim, viewer, 'th', [0., 0., 0., 0.], 50)
+
     def ff_pregrasp(self, sim, viewer):
         self.moveto_jnt(self, sim, viewer, 'ff', [0., 0., 0., 0.], 20)
 
@@ -759,14 +758,15 @@ class ROBCTRL:
 
         position_taxel_inpalm = position_tip_inpalm + (np.matmul(orien_tip_inpalm, pos_p_intip)).transpose()
         orien_taxel_inpalm = np.matmul(orien_tip_inpalm, pos_o_intip)
-        position_taxel_inworld, orien_taxel_inworld = ug.pose_trans_palm_to_world(sim, position_taxel_inpalm, orien_taxel_inpalm)
+        position_taxel_inworld, orien_taxel_inworld = ug.pose_trans_palm_to_world(sim, position_taxel_inpalm,
+                                                                                  orien_taxel_inpalm)
         if ref_frame == 'palm':
             return position_taxel_inpalm, orien_taxel_inpalm
         else:
             return position_taxel_inworld, orien_taxel_inworld
 
     def ct_fingers_taxel_render(self, sim, viewer, model, tacperception):
-        #weighted contact position (taxel)
+        # weighted contact position (taxel)
         self.ct_finger_taxel_render(sim, viewer, model, 'ff', tacperception)
         self.ct_finger_taxel_render(sim, viewer, model, 'mf', tacperception)
         self.ct_finger_taxel_render(sim, viewer, model, 'rf', tacperception)
@@ -775,14 +775,17 @@ class ROBCTRL:
     def ct_finger_taxel_render(self, sim, viewer, model, finger_name, tacperception):
         if tacperception.is_finger_contact(sim, finger_name) == True:
             pos_zt_world = ug.posquat2trans(tacperception.get_contact_taxel_position(sim, model, finger_name, "world"))
-            viz.geo_visual(viewer, pos_zt_world[0:3, 3], pos_zt_world[0:3, 0:3], 0.001, tactile_allegro_mujo_const.GEOM_BOX, 0, "z")
+            viz.geo_visual(viewer, pos_zt_world[0:3, 3], pos_zt_world[0:3, 0:3], 0.001,
+                           tactile_allegro_mujo_const.GEOM_BOX, 0, "z")
             # tacperception.get_contact_taxel_nv(sim, model, finger_name, "palm_link")
+
     def active_fingers_taxels_render(self, sim, viewer, tacperception):
         self.active_finger_taxels_render(sim, viewer, 'ff', tacperception)
         self.active_finger_taxels_render(sim, viewer, 'mf', tacperception)
         self.active_finger_taxels_render(sim, viewer, 'rf', tacperception)
         self.active_finger_taxels_render(sim, viewer, 'th', tacperception)
         print('........................................\n')
+
     def active_finger_taxels_render(self, sim, viewer, finger_name, tacperception):
         if tacperception.is_finger_contact(sim, finger_name) == True:
             taxels_id = tacperception.get_contact_taxel_id_withoffset(sim, finger_name)
@@ -791,7 +794,7 @@ class ROBCTRL:
             print(finger_name + "viz taxels: ", end='')
             for i in taxels_id:
                 active_taxel_name = sim.model._sensor_id2name[i]
-                print(active_taxel_name+' ', end='')
+                print(active_taxel_name + ' ', end='')
                 # compute ground truth taxels
                 taxel_pose_gt = taxel_pose()
                 pose_taxels_w = ug.get_relative_posquat(sim, "world", active_taxel_name)
@@ -815,7 +818,7 @@ class ROBCTRL:
                 taxels_pose_fk = []
                 for i in taxels_id:
                     active_taxel_name = sim.model._sensor_id2name[i]
-                    #compute ground truth taxels
+                    # compute ground truth taxels
                     taxel_pose_gt = taxel_pose()
                     pose_taxels_w = ug.get_relative_posquat(sim, "world", active_taxel_name)
                     pos_p_world, pos_o_world = ug.posquat2pos_p_o(pose_taxels_w)
@@ -823,7 +826,7 @@ class ROBCTRL:
                     taxel_pose_gt.orien = pos_o_world
                     taxels_pose_gt.append(taxel_pose_gt)
 
-                    #compute taxels from forward kinematics
+                    # compute taxels from forward kinematics
                     position_taxel_inworld, orien_taxel_inworld = self.fk_offset(sim, 'rf', active_taxel_name)
                     taxel_pose_fk = taxel_pose()
                     taxel_pose_fk.position = position_taxel_inworld
@@ -834,6 +837,7 @@ class ROBCTRL:
                 viz.active_taxels_visual(viewer, taxels_pose_fk, 'fk')
             sim.step()
             viewer.render()
+
     def mf_move_taxels_render(self, sim, model, viewer, hand_param, tacperception):
         for _ in range(500):
             sim.data.ctrl[tactile_allegro_mujo_const.MF_CTRL_1] = 0
@@ -867,8 +871,10 @@ class ROBCTRL:
                 viz.active_taxels_visual(viewer, taxels_pose_fk, 'fk')
             sim.step()
             viewer.render()
+
     def rf_pregrasp(self, sim, viewer):
         self.moveto_jnt(self, sim, viewer, 'rf', [0., 0., 0., 0.], 20)
+
     def hand_pregrasp(self, sim, viewer):
         # self.thumb_pregrasp(sim, viewer)
         # self.ff_pregrasp(sim, viewer)
@@ -910,14 +916,12 @@ class ROBCTRL:
         p, o = self.kdl_kin_taxel.FK(q)
         return p, o, q
 
-
     def pre_thumb(self, sim, viewer):
         for _ in range(1000):
             sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_1] = \
                 sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_1] + 0.05
             sim.step()
             viewer.render()
-
 
     def thumb(self, sim, input1, input2):
         if not (np.array(sim.data.sensordata[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN: \
@@ -935,52 +939,33 @@ class ROBCTRL:
                 sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_3] + input2
             sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] = \
                 sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] + input2
+
     def get_cur_jnt(self, sim):
         # print("|||shape||||qpos: ", len(sim.data.qpos))
 
         cur_jnt = np.zeros(tactile_allegro_mujo_const.FULL_FINGER_JNTS_NUM)
         cur_jnt[0:4] = np.array([sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_1],
-                            sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_2],
-                            sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_3],
-                            sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_4]])
+                                 sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_2],
+                                 sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_3],
+                                 sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_4]])
 
         cur_jnt[4:8] = np.array([sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_1],
-                            sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_2],
-                            sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_3],
-                            sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_4]])
+                                 sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_2],
+                                 sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_3],
+                                 sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_4]])
 
         cur_jnt[8:12] = np.array([sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_1],
-                            sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_2],
-                            sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_3],
-                            sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_4]])
+                                  sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_2],
+                                  sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_3],
+                                  sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_4]])
 
         cur_jnt[12:16] = np.array([sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_1],
-                            sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_2],
-                            sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_3],
-                            sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_4]])
+                                   sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_2],
+                                   sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_3],
+                                   sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_4]])
         return cur_jnt
 
-    # def config_robot_tip_kin():
-    #     # kinematic chain for all fingers
-    #     robot = URDF.from_xml_file('../../robots/UR5_allegro_hand_right.urdf')
-    #     # first finger
-    #     kdl_kin_ff = KDLKinematics(robot, "palm_link", "link_3.0_tip")
-    #     # middle finger
-    #     kdl_kin_mf = KDLKinematics(robot, "palm_link", "link_7.0_tip")
-    #     # ring finger
-    #     kdl_kin_rf = KDLKinematics(robot, "palm_link", "link_11.0_tip")
-    #     # thumb
-    #     kdl_kin_th = KDLKinematics(robot, "palm_link", "link_15.0_tip")
-    #     # kdl_tree = kdl_tree_from_urdf_model(robot)
-    #     return kdl_kin_ff, kdl_kin_mf, kdl_kin_rf, kdl_kin_th
-
-    def config_robot(self, taxel_name):
-        # kinematic chain for all fingers
-        # self.robot = URDF.from_xml_file("../../robots/allegro_hand_right_with_tactile.urdf")
-        kdl_kin = KDLKinematics(self.robot, "palm_link", taxel_name)
-        return kdl_kin
-
-    def robjac_offset(self,sim, finger_name, q, taxel_name):
+    def robjac_offset(self, sim, finger_name, q, taxel_name):
         if finger_name == 'ff':
             position_tip_inpalm, orien_tip_inpalm = self.kdl_kin_ff.FK(q)
             pose_taxels_intip = ug.get_relative_posquat(sim, "link_3.0_tip", taxel_name)
@@ -1008,34 +993,36 @@ class ROBCTRL:
             jac = self.kdl_kin_th.jacobian(q, position_taxel_inpalm)
         # orien_taxel_inpalm = np.matmul(orien_tip_inpalm, pos_o_intip)
         return jac
+
     def update_augmented_state(self, sim, model, hand_param, tacperception, x_state):
         if tacperception.is_finger_contact(sim, hand_param[1][0]) == True:
             c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[1][0])
-            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0, size=(1, 3))
+            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0,
+                                                                                                     size=(1, 3))
             x_state[6] = pos_contact0[0][0]
             x_state[7] = pos_contact0[0][1]
             x_state[8] = pos_contact0[0][2]
 
-
         if tacperception.is_finger_contact(sim, hand_param[2][0]) == True:
             c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[2][0])
-            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0, size=(1, 3))
+            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0,
+                                                                                                     size=(1, 3))
             x_state[9] = pos_contact0[0][0]
             x_state[10] = pos_contact0[0][1]
             x_state[11] = pos_contact0[0][2]
 
-
         if tacperception.is_finger_contact(sim, hand_param[3][0]) == True:
             c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[3][0])
-            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0, size=(1, 3))
+            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0,
+                                                                                                     size=(1, 3))
             x_state[12] = pos_contact0[0][0]
             x_state[13] = pos_contact0[0][1]
             x_state[14] = pos_contact0[0][2]
 
-
         if tacperception.is_finger_contact(sim, hand_param[4][0]) == True:
             c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[4][0])
-            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0, size=(1, 3))
+            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0,
+                                                                                                     size=(1, 3))
             # print('x_state ', x_state)
             x_state[15] = pos_contact0[0][0]
             x_state[16] = pos_contact0[0][1]
@@ -1046,28 +1033,32 @@ class ROBCTRL:
     def augmented_state(self, sim, model, hand_param, tacperception, x_state):
         if tacperception.is_finger_contact(sim, hand_param[1][0]) == True:
             c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[1][0])
-            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0, size=(1, 3))
+            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0,
+                                                                                                     size=(1, 3))
             x_state = np.append(x_state, [pos_contact0])
         else:
             x_state = np.append(x_state, [0, 0, 0])
 
         if tacperception.is_finger_contact(sim, hand_param[2][0]) == True:
             c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[2][0])
-            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0, size=(1, 3))
+            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0,
+                                                                                                     size=(1, 3))
             x_state = np.append(x_state, [pos_contact0])
         else:
             x_state = np.append(x_state, [0, 0, 0])
 
         if tacperception.is_finger_contact(sim, hand_param[3][0]) == True:
             c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[3][0])
-            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0, size=(1, 3))
+            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0,
+                                                                                                     size=(1, 3))
             x_state = np.append(x_state, [pos_contact0])
         else:
             x_state = np.append(x_state, [0, 0, 0])
 
         if tacperception.is_finger_contact(sim, hand_param[4][0]) == True:
             c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[4][0])
-            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0, size=(1, 3))
+            pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0,
+                                                                                                     size=(1, 3))
             x_state = np.append(x_state, [pos_contact0])
         else:
             x_state = np.append(x_state, [0, 0, 0])
@@ -1077,7 +1068,7 @@ class ROBCTRL:
                     ekf_grasping, tacperception, char):
         global first_contact_flag, x_all, gd_all, ff_first_contact_flag, \
             mf_first_contact_flag, rf_first_contact_flag, th_first_contact_flag, \
-        P_state_cov, x_state, last_angles, x_bar, z_t, h_t
+            P_state_cov, x_state, last_angles, x_bar, z_t, h_t
 
         flag_ff = tacperception.is_finger_contact(sim, hand_param[1][0])
         flag_mf = tacperception.is_finger_contact(sim, hand_param[2][0])
@@ -1154,8 +1145,10 @@ class ROBCTRL:
                 if tacperception.is_th_contact == True:
                     th_first_contact_flag = True
 
+                """wave filter of jnt angles"""
                 last_angles = self.get_cur_jnt(sim)
-                self.mea_filter_js = lfilter(9, 0.01, last_angles, 16)  # wave filter of jnt angles
+                # self.mea_filter_js = lfilter(9, 0.01, last_angles, 16)
+                self.mea_filter_js = last_angles
                 print('return early')
                 return
             elif ((flag_ff == True) and (ff_first_contact_flag) == False):
@@ -1183,17 +1176,21 @@ class ROBCTRL:
             # todo can not use ground truth update the state at every step
             # x_state[:6] = gd_state
             cur_angles_tmp = self.get_cur_jnt(sim)
-            # do a rolling average
-            cur_angles, self.mea_filter_js.z = \
-                self.mea_filter_js.lp_filter(cur_angles_tmp, 16)    # wave filter of jnt angles
+            """ do a rolling average """
+            cur_angles = cur_angles_tmp
+            # cur_angles, self.mea_filter_js.z = \
+            #     self.mea_filter_js.lp_filter(cur_angles_tmp, 16)  # wave filter of jnt angles
             x_bar, P_state_cov, ju_all = \
-                ekf_grasping.state_predictor(sim, model, hand_param, object_param, \
-                                      x_state, tacperception, P_state_cov, cur_angles,\
-                                                   last_angles, self)
+                ekf_grasping.state_predictor(sim, model, hand_param, object_param,
+                                             x_state, tacperception, P_state_cov, cur_angles,
+                                             last_angles, self)
 
             last_angles = cur_angles
             # last_angles = cur_angles_tmp
-            # compute the axis and angle for plot_data
+            """
+            Compute the axis and angle for plot_data
+            (The )
+            """
             x_bar_plot = [0., 0., 0., 0., 0., 0., 0.]
             x_bar_plot[0:3] = x_bar[0:3]
             x_bar_plot[3:6], x_bar_plot[6] = ug.normalize_scale(x_bar[3:6])
@@ -1263,11 +1260,10 @@ class ROBCTRL:
             tacperception.fin_num = 0
             tacperception.fin_tri = np.zeros(4)
 
+
 first_contact_flag = False
 ff_first_contact_flag = False
 mf_first_contact_flag = False
 rf_first_contact_flag = False
 th_first_contact_flag = False
 P_state_cov = 0.1 * np.identity(6 + 4 * 3)
-
-

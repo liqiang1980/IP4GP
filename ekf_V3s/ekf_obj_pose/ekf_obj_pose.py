@@ -26,12 +26,12 @@ class MainLoop(threading.Thread):
                 rob_control.ring_finger(sim, 0.005, 0.000001)
             if hand_param[4][1] == '1':
                 rob_control.thumb(sim, 0.002, 0.000001)
+            """EKF process"""
+            rob_control.interaction(sim, model, viewer, hand_param, object_param, alg_param, grasping_ekf, tacperception, char)
 
             """Update tacdata for heapmap plot"""
             tacperception.update_tacdata(sim=sim)
 
-            """EKF process"""
-            rob_control.interaction(sim, model, viewer, hand_param, object_param, alg_param, grasping_ekf, tacperception, char)
             sim.step()
             viewer.render()
             del viewer._markers[:]
@@ -107,8 +107,6 @@ tacperception.fin_tri = np.zeros(4)
 
 # Thumb root movement
 rob_control.pre_thumb(sim, viewer)
-# thread2 = Thread(target=function02, args=(50, 'thread2'))
-# thread2.start()
 char = "v"
 # char = "i"
 

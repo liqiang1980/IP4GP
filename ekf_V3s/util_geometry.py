@@ -1488,7 +1488,3 @@ def vec2rot(vec):
     # print("    vec==rot:", rot)
     return rot
 
-
-def rolling_average(angle):
-
-    return avr
