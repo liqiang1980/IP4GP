@@ -841,7 +841,7 @@ def contact_compute(sim, model, fingername, tacperception, x_state, cur_angles, 
     else:
         if fingername == 'ff':
             if tacperception.is_ff_contact == True:
-                taxel_name = tacperception.get_contact_taxel_name(sim, model, 'ff')
+                taxel_name = tacperception.get_contact_taxel_name(sim, model, 'ff', z_h_flag="z")
                 pos_contact = tacperception.get_contact_taxel_position_from_name(sim, \
                                                 model, fingername, "palm_link", taxel_name)
                 #    the G_contact is partial grasping matrix because the noised object pose, refer to:
@@ -858,7 +858,7 @@ def contact_compute(sim, model, fingername, tacperception, x_state, cur_angles, 
         if fingername == 'mf':
 
             if tacperception.is_mf_contact == True:
-                taxel_name = tacperception.get_contact_taxel_name(sim, model, 'mf')
+                taxel_name = tacperception.get_contact_taxel_name(sim, model, 'mf', z_h_flag="z")
                 pos_contact = tacperception.get_contact_taxel_position_from_name(sim, \
                                                                        model, fingername, "palm_link",taxel_name)
                 #    the G_contact is partial grasping matrix because the noised object pose, refer to:
@@ -876,7 +876,7 @@ def contact_compute(sim, model, fingername, tacperception, x_state, cur_angles, 
         if fingername == 'rf':
 
             if tacperception.is_rf_contact == True:
-                taxel_name = tacperception.get_contact_taxel_name(sim, model, 'rf')
+                taxel_name = tacperception.get_contact_taxel_name(sim, model, 'rf', z_h_flag="z")
                 pos_contact = tacperception.get_contact_taxel_position_from_name(sim, \
                                                                        model, fingername, "palm_link",taxel_name)
                 #    the G_contact is partial grasping matrix because the noised object pose, refer to:
@@ -893,7 +893,7 @@ def contact_compute(sim, model, fingername, tacperception, x_state, cur_angles, 
         if fingername == 'th':
 
             if tacperception.is_th_contact == True:
-                taxel_name = tacperception.get_contact_taxel_name(sim, model, 'th')
+                taxel_name = tacperception.get_contact_taxel_name(sim, model, 'th', z_h_flag="z")
                 pos_contact = tacperception.get_contact_taxel_position_from_name(sim, \
                                                                        model, fingername, "palm_link",taxel_name)
                 #    the G_contact is partial grasping matrix because the noised object pose, refer to:

@@ -13,7 +13,7 @@ class taxel_pose:
 
 class cls_tactile_perception:
     def __init__(self):
-        c_point_name = []
+        self.c_point_name = []
         # contact finger number
         self.fin_num = 0
         # identify which fingers are contacted
@@ -38,7 +38,8 @@ class cls_tactile_perception:
         id=-1 means no contact.
         """
         self.mapping = {"ff": 0, "mf": 1, "rf": 2, "th": 3}
-        self.tacdata_cid = [[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], -1]
+        self.tacdata_ztid = [[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], -1]
+        self.tacdata_htid = [[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], -1]
 
     def update_tacdata(self, sim):
         """
@@ -54,10 +55,14 @@ class cls_tactile_perception:
         """ Get tacdata from sim """
         for i in range(4):
             tmp_Af.append(np.array(sim.data.sensordata[mapping_const[i][0]: mapping_const[i][1]]))
-            tmp_Af[i] = np.int64(tmp_Af[i] > 0)  # Binarize tac data
+            tmp_Af[i] = np.int64(tmp_Af[i] > 0) * 2  # Binarize tac data
             """ Put z_t into tacdata """
-            if self.tacdata_cid[0][i] != -1:  # Is contact
-                tmp_Af[i][self.tacdata_cid[0][i] - mapping_const[i][0]] = -2
+            if self.tacdata_ztid[0][i] != -1:  # Is contact
+                tmp_Af[i][self.tacdata_ztid[0][i] - mapping_const[i][0]] = -4
+            """ Put h_t into tacdata """
+            if self.tacdata_htid[0][i] != -1:  # Is contact
+                tmp_Af[i][self.tacdata_htid[0][i] - mapping_const[i][0]] = -2
+            # print("tac_z:\n", self.tacdata_ztid, "\ntac_h:\n", self.tacdata_htid)
         """ Ready to plot tacdata """
         for i in range(11, -1, -1):
             self.tacdata_ff[i] = tmp_Af[0][i * 6: i * 6 + 6][::-1]
@@ -308,13 +313,13 @@ class cls_tactile_perception:
             return np.where(sim.data.sensordata[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN: \
                                                 tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX] > 0.0)
 
-    def get_contact_taxel_position(self, sim, model, fingername, ref_frame):
+    def get_contact_taxel_position(self, sim, model, fingername, ref_frame, z_h_flag):
         """
         Get the position of the contact taxel in the reference frame.
         Always use the contact point closest to the center position of contact area.
         """
         # get the name
-        c_point_name = self.get_contact_taxel_name(sim, model, fingername)
+        c_point_name = self.get_contact_taxel_name(sim, model, fingername, z_h_flag)
         # get the position
         pos_contact = ug.get_relative_posquat(sim, ref_frame, c_point_name)
         tmp_list = []
@@ -325,7 +330,7 @@ class cls_tactile_perception:
         self.tuple_fin_ref_pose = tuple(tmp_list)
         return pos_contact
 
-    def get_contact_taxel_name(self, sim, model, fingername):
+    def get_contact_taxel_name(self, sim, model, fingername, z_h_flag):
         """
         Always use the contact point closest to the center position of contact area.
         """
@@ -365,6 +370,7 @@ class cls_tactile_perception:
             avg_position = ug.get_relative_posquat(sim, "palm_link", model._sensor_id2name[c_points[0]])[:3]
 
         """ Get the name of contact point closest to avg_position """
+
         if len(c_points) > 1:
             for i in range(len(c_points)):
                 taxel_position[:, i] = ug.get_relative_posquat(sim, "palm_link", active_taxel_name[i])[:3]
@@ -372,12 +378,16 @@ class cls_tactile_perception:
                 dev_taxel_value.append(np.linalg.norm(taxel_position[:, i] - avg_position))
             min_value = min(dev_taxel_value)
             id_chosen = c_points[dev_taxel_value.index(min_value)]
-            self.tacdata_cid[0][self.mapping[fingername]] = id_chosen
             c_point_name = model._sensor_id2name[id_chosen]
         else:
-            id_chosen = c_points[0]
-            self.tacdata_cid[0][self.mapping[fingername]] = id_chosen
-            c_point_name = model._sensor_id2name[id_chosen]
+            id_chosen = -1
+            c_point_name = model._sensor_id2name[c_points[0]]
+        """ Update tacdata_z or tacdata_h """
+        if z_h_flag == "z":
+            self.tacdata_ztid[0][self.mapping[fingername]] = id_chosen
+        elif z_h_flag == "h":
+            self.tacdata_htid[0][self.mapping[fingername]] = id_chosen
+
         return c_point_name
 
     # get the median of all contact_nums, and translate to contact_name
@@ -442,7 +452,7 @@ class cls_tactile_perception:
 
     # get normal vector direction
     def get_contact_taxel_nv(self, sim, model, fingername, ref_frame):
-        c_point_name = self.get_contact_taxel_name(sim, model, fingername)
+        c_point_name = self.get_contact_taxel_name(sim, model, fingername, "z")
         # get the position
         pos_contact = ug.get_relative_posquat(sim, ref_frame, c_point_name)
 

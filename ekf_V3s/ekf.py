@@ -147,7 +147,7 @@ class EKF:
         for i in range(4):
             if tacperception.fin_tri[i] == 1:
                 contact_position.append(
-                    (tacperception.get_contact_taxel_position(sim, model, hand_param[i + 1][0], "palm_link"))[:3] \
+                    (tacperception.get_contact_taxel_position(sim, model, hand_param[i + 1][0], "palm_link", "z"))[:3] \
                     + np.random.normal(0.00, 0.0, 3))
                 contact_nv.append(tacperception.get_contact_taxel_nv(sim, model,
                                                                      hand_param[i + 1][0], "palm_link") \
