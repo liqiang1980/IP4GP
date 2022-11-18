@@ -105,7 +105,8 @@ class EKF:
         # print("???shape of pre: ", prediction.shape, prediction, G_pinv.shape, ju.shape)
         prediction = np.append(prediction, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])  # 6*1 to 18*1
         # print("???shape of pre: ", prediction.shape, prediction, (1.0/tacperception.fin_num*prediction).shape, (1.0/tacperception.fin_num*prediction))
-        x_bar = x_state + 1.0 / tacperception.fin_num * prediction
+        # x_bar = x_state + 1.0 / tacperception.fin_num * prediction
+        x_bar = x_state + prediction
 
         P_state_cov = Transfer_Fun_Matrix * P_state_cov * \
                       Transfer_Fun_Matrix.transpose() + Q_state_noise_cov
@@ -115,7 +116,7 @@ class EKF:
         # ju is only for debugging
         return x_bar, P_state_cov, ju
 
-    def observe_computation(self, x_bar, tacperception, sim):
+    def observe_computation(self, x_bar, tacperception, sim, object_param):
         # print('measurement equation computation')
         contact_position = []
         contact_nv = []
@@ -127,8 +128,12 @@ class EKF:
             if tacperception.fin_tri[i] == 1:
                 contact_position.append(_obj_position.T + np.matmul(_rot, x_bar[6 + i * 3:6 + (i + 1) * 3]))
                 ##########Get normal of contact point on the cup
-                nor_contact_in_cup, res = og.surface_cup(x_bar[6 + i * 3], x_bar[6 + i * 3 + 1],
-                                                         x_bar[6 + i * 3 + 2])
+                if int(object_param[3]) == 3:
+                    nor_contact_in_cup, res = og.surface_cylinder(x_bar[6 + i * 3], x_bar[6 + i * 3 + 1],
+                                                             x_bar[6 + i * 3 + 2])
+                else:
+                    nor_contact_in_cup, res = og.surface_cup(x_bar[6 + i * 3], x_bar[6 + i * 3 + 1],
+                                                             x_bar[6 + i * 3 + 2])
                 nor_contact_in_world = np.matmul(_rot, nor_contact_in_cup)
                 contact_nv.append(nor_contact_in_world / np.linalg.norm(nor_contact_in_world))
             else:
@@ -158,7 +163,7 @@ class EKF:
 
         return np.array(contact_position), np.array(contact_nv)
 
-    def ekf_posteriori(self, sim, model, viewer, x_bar, z_t, h_t, P_state_cov, tacperception):
+    def ekf_posteriori(self, sim, model, viewer, x_bar, z_t, h_t, P_state_cov, tacperception, object_param):
         # print('posterior computation')
         # the jocobian matrix of measurement equation
         [W1, W2, W3] = x_bar[3:6]  # the rotvec of object in palm frame {P}
@@ -166,10 +171,16 @@ class EKF:
         pos_c2 = x_bar[9:12]  # the pos of contact point in object frame {O}
         pos_c3 = x_bar[12:15]  # the pos of contact point in object frame {O}
         pos_c4 = x_bar[15:18]  # the pos of contact point in object frame {O}
-        normal_c1 = og.surface_cup(pos_c1[0], pos_c1[1], pos_c1[2])[0]  # the normal of contact point in {O}
-        normal_c2 = og.surface_cup(pos_c2[0], pos_c2[1], pos_c2[2])[0]  # the normal of contact point in {O}
-        normal_c3 = og.surface_cup(pos_c3[0], pos_c3[1], pos_c3[2])[0]  # the normal of contact point in {O}
-        normal_c4 = og.surface_cup(pos_c4[0], pos_c4[1], pos_c4[2])[0]  # the normal of contact point in {O}
+        if int(object_param[3]) == 3:
+            normal_c1 = og.surface_cylinder(pos_c1[0], pos_c1[1], pos_c1[2])[0]  # the normal of contact point in {O}
+            normal_c2 = og.surface_cylinder(pos_c2[0], pos_c2[1], pos_c2[2])[0]  # the normal of contact point in {O}
+            normal_c3 = og.surface_cylinder(pos_c3[0], pos_c3[1], pos_c3[2])[0]  # the normal of contact point in {O}
+            normal_c4 = og.surface_cylinder(pos_c4[0], pos_c4[1], pos_c4[2])[0]  # the normal of contact point in {O}
+        else:
+            normal_c1 = og.surface_cup(pos_c1[0], pos_c1[1], pos_c1[2])[0]  # the normal of contact point in {O}
+            normal_c2 = og.surface_cup(pos_c2[0], pos_c2[1], pos_c2[2])[0]  # the normal of contact point in {O}
+            normal_c3 = og.surface_cup(pos_c3[0], pos_c3[1], pos_c3[2])[0]  # the normal of contact point in {O}
+            normal_c4 = og.surface_cup(pos_c4[0], pos_c4[1], pos_c4[2])[0]  # the normal of contact point in {O}
         # print("  normal_c1:", normal_c1)
         pn_flag = tactile_allegro_mujo_const.PN_FLAG
         if pn_flag == 'pn':  # use pos and normal as observation variable

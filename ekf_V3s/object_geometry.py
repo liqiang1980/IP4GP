@@ -17,3 +17,9 @@ def surface_bottle(cur_x, cur_y, cur_z):
     # -330.2*x^2-380.2*xy-259.4*y^2+17.66*x-11.82*y-0.183
     s = [-330.2, -380.2, -259.4, 17.66, -11.82, -0.183]  # 曲面方程的6个系数
     return (-1.0) * get_normal_from_formula(s, [cur_x, cur_y, cur_z]), s
+
+def surface_cylinder(cur_x, cur_y, cur_z):
+    """
+    The surface formula of Cylinder: x**2 + y**2 = r**2
+    """
+    return np.array([cur_x, cur_y, 0]), [0, 0, 0, 0, 0, 0]

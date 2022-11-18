@@ -5,11 +5,32 @@ import robot_control as robcontrol
 import mujoco_environment as mu_env
 import ekf
 import tactile_perception
-import tactile_heatmap
+import tactile_plotter
 import numpy as np
 from threading import Thread
 import sys, termios, tty, os, time
 import matplotlib.pyplot as plt
+
+
+class HeatmapLoop(Thread):
+    def __init__(self):
+        Thread.__init__(self)
+
+    def run(self):
+        ani_Heatmap = tactile_plotter.HeatmapAnimate_Dip(tacperception)
+        plt.show()
+
+
+class LineChartLoop(Thread):
+    def __init__(self):
+        Thread.__init__(self)
+
+    def run(self):
+        tactile_plotter.LineChartAnimate_Obj(rob_control, 100, 1,
+                                             label1='x[mm]', label2='y[mm]', label3='z[mm]',
+                                             label4='theta_x[deg]', label5='theta_y[deg]',
+                                             label6='theta_z[deg]')
+        plt.show()
 
 
 class MainLoop(threading.Thread):
@@ -27,7 +48,8 @@ class MainLoop(threading.Thread):
             if hand_param[4][1] == '1':
                 rob_control.thumb(sim, 0.002, 0.000001)
             """EKF process"""
-            rob_control.interaction(sim, model, viewer, hand_param, object_param, alg_param, grasping_ekf, tacperception, char)
+            rob_control.interaction(sim, model, viewer, hand_param, object_param, alg_param, grasping_ekf,
+                                    tacperception, char)
 
             """Update tacdata for heapmap plot"""
             tacperception.update_tacdata(sim=sim)
@@ -68,6 +90,12 @@ hand_param, object_param, alg_param = config_param.pass_arg()
 # init mujoco environment
 if int(object_param[3]) == 1:
     model, sim, viewer = mu_env.init_mujoco("../../robots/UR5_tactile_allegro_hand_obj_frozen.xml")
+elif int(object_param[3]) == 2:
+    model, sim, viewer = mu_env.init_mujoco("../../robots/UR5_tactile_allegro_hand_obj_upsidedown.xml")
+elif int(object_param[3]) == 3:
+    model, sim, viewer = mu_env.init_mujoco("../../robots/UR5_tactile_allegro_hand_cylinder.xml")
+elif int(object_param[3]) == 4:
+    model, sim, viewer = mu_env.init_mujoco("../../robots/UR5_tactile_allegro_hand_cylinder_frozen.xml")
 else:
     model, sim, viewer = mu_env.init_mujoco()
 
@@ -111,8 +139,17 @@ char = "v"
 # char = "i"
 
 #######################################################################
-tactile_heatmap.TacPlotClass_dip(tacperception)
 ekfer = MainLoop()
 ekfer.start()
+# ani_Heatmap = tactile_plotter.HeatmapAnimate_Dip(tacperception)
+# ani_LineChart = tactile_plotter.LineChartAnimate_Obj(rob_control, 100, 1,
+#                                                      label1='x[mm]', label2='y[mm]', label3='z[mm]',
+#                                                      label4='theta_x[deg]', label5='theta_y[deg]',
+#                                                      label6='theta_z[deg]')
+# plt.show()
 
-plt.show()
+# tactile_plotter.AllAnimate(tacperception=tacperception, robo=rob_control, x_len=100, y_len=1, label1='x[mm]',
+#                            label2='y[mm]', label3='z[mm]',
+#                            label4='theta_x[deg]', label5='theta_y[deg]',
+#                            label6='theta_z[deg]')
+# plt.show()

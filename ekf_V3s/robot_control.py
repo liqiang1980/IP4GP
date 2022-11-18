@@ -41,6 +41,8 @@ class ROBCTRL:
         self.kdl_kin_taxel = KDLKinematics(self.robot, "palm_link", "touch_7_4_8")
         # self._ik_wdls_v_kdl = kdl.ChainIkSolverVel_pinv(self.chain)
 
+        self.x_state_cur = [0, 0, 0, 0, 0, 0]
+        self.gd_cur = [0, 0, 0, 0, 0, 0]
         self.ct_g_z_position = [0, 0, 0]
         self.ct_p_z_position = [0, 0, 0]
         self.x_bar_all = [0, 0, 0, 0, 0, 0, 0]
@@ -1110,15 +1112,15 @@ class ROBCTRL:
                 print('x_state from beginning before add noise', x_state)
                 if tactile_allegro_mujo_const.initE_FLAG:
                     x_state = x_state + init_e
-                    x_state_plot = [0., 0., 0., 0., 0., 0., 0.]
-                    x_state_plot[0:3] = np.ravel(x_state)[0:3]
-                    x_state_plot[3:6], x_state_plot[6] = ug.normalize_scale(np.ravel(x_state)[3:6])
-                    self.x_state_all = np.vstack((self.x_state_all, x_state_plot))
-                    x_bar_plot = [0., 0., 0., 0., 0., 0., 0.]
-                    x_bar_plot[0:3] = np.ravel(x_state)[0:3]
-                    x_bar_plot[3:6], x_bar_plot[6] = ug.normalize_scale(np.ravel(x_state)[3:6])
+                x_state_plot = [0., 0., 0., 0., 0., 0., 0.]
+                x_state_plot[0:3] = np.ravel(x_state)[0:3]
+                x_state_plot[3:6], x_state_plot[6] = ug.normalize_scale(np.ravel(x_state)[3:6])
+                self.x_state_all = np.vstack((self.x_state_all, x_state_plot))
+                x_bar_plot = [0., 0., 0., 0., 0., 0., 0.]
+                x_bar_plot[0:3] = np.ravel(x_state)[0:3]
+                x_bar_plot[3:6], x_bar_plot[6] = ug.normalize_scale(np.ravel(x_state)[3:6])
 
-                    self.x_bar_all = np.vstack((self.x_bar_all, x_bar_plot))
+                self.x_bar_all = np.vstack((self.x_bar_all, x_bar_plot))
 
                 # augmented state with the contact position on the object surface described in the object frame
                 x_state = self.augmented_state(sim, model, hand_param, tacperception, x_state)
@@ -1197,13 +1199,14 @@ class ROBCTRL:
             gd_state_plot = [0., 0., 0., 0., 0., 0., 0.]
             gd_state_plot[0:3] = gd_state[0:3]
             gd_state_plot[3:6], gd_state_plot[6] = ug.normalize_scale(gd_state[3:6])
+            self.gd_cur = gd_state_plot
 
             self.x_bar_all = np.vstack((self.x_bar_all, x_bar_plot))
             self.x_gt_palm = np.vstack((self.x_gt_palm, gd_state_plot))
             self.ju_all = np.vstack((self.ju_all, ju_all[6:12]))
 
             #
-            h_t_position, h_t_nv = ekf_grasping.observe_computation(x_bar, tacperception, sim)
+            h_t_position, h_t_nv = ekf_grasping.observe_computation(x_bar, tacperception, sim, object_param)
             #
             z_t_position, z_t_nv = ekf_grasping.measure_fb(sim, model, hand_param, object_param, \
                                                            x_bar, tacperception)
@@ -1223,7 +1226,7 @@ class ROBCTRL:
             # # posterior estimation
             if tactile_allegro_mujo_const.posteriori_FLAG:
                 x_state, P_state_cov = ekf_grasping.ekf_posteriori(sim, model, viewer, x_bar, z_t, h_t, \
-                                                                   P_state_cov, tacperception)
+                                                                   P_state_cov, tacperception, object_param)
             else:
                 x_state = x_bar
 
@@ -1240,6 +1243,7 @@ class ROBCTRL:
             x_state_plot = [0., 0., 0., 0., 0., 0., 0.]
             x_state_plot[0:3] = x_state[0:3]
             x_state_plot[3:6], x_state_plot[6] = ug.normalize_scale(x_state[3:6])
+            self.x_state_cur = x_state_plot
 
             self.x_state_all = np.vstack((self.x_state_all, x_state_plot))
             #
@@ -1254,7 +1258,7 @@ class ROBCTRL:
         # else:
         #     print('no contact')
         if first_contact_flag:
-            viz.vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state, char)
+            viz.vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state, char, object_param)
             self.active_fingers_taxels_render(sim, viewer, tacperception)
             tacperception.fin_num = 0
             tacperception.fin_tri = np.zeros(4)

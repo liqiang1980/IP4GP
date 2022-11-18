@@ -54,7 +54,7 @@ TH_CTRL_4 = 21
 # if object (as a joint) is ball type, then OFF_SET = 3
 # if object (as a joint) is no type, then OFF_SET = 7
 
-
+# OFF_SET = 7
 OFF_SET = 0
 FF_MEA_1 = 126-OFF_SET
 FF_MEA_2 = 127-OFF_SET
@@ -79,12 +79,28 @@ TH_MEA_4 = 573-OFF_SET
 
 FF_TAXEL_NUM_MIN = 0
 FF_TAXEL_NUM_MAX = 72
+FFd_TAXEL_NUM_MIN = 72
+FFd_TAXEL_NUM_MAX = 108
+FFq_TAXEL_NUM_MIN = 108
+FFq_TAXEL_NUM_MAX = 144
 MF_TAXEL_NUM_MIN = 144
 MF_TAXEL_NUM_MAX = 216
+MFd_TAXEL_NUM_MIN = 216
+MFd_TAXEL_NUM_MAX = 252
+MFq_TAXEL_NUM_MIN = 252
+MFq_TAXEL_NUM_MAX = 288
 RF_TAXEL_NUM_MIN = 288
 RF_TAXEL_NUM_MAX = 360
+RFd_TAXEL_NUM_MIN = 360
+RFd_TAXEL_NUM_MAX = 396
+RFq_TAXEL_NUM_MIN = 396
+RFq_TAXEL_NUM_MAX = 432
 TH_TAXEL_NUM_MIN = 432
 TH_TAXEL_NUM_MAX = 504
+THd_TAXEL_NUM_MIN = 504
+THd_TAXEL_NUM_MAX = 540
+PALM_TAXEL_NUM_MIN = 540
+PALM_TAXEL_NUM_MAX = 635
 
 GEOM_ARROW = 100
 GEOM_BOX = 6
@@ -95,5 +111,6 @@ GT_FLAG = '1G'  # G Matrix controller: assign '1G' (splice a big G, then pinv) o
 posteriori_FLAG = True
 # posteriori_FLAG = False
 initE_FLAG = True
+# initE_FLAG = False
 betterJ_FLAG = True
 solver_ik_type_wdls = False

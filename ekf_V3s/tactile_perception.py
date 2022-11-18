@@ -56,12 +56,12 @@ class cls_tactile_perception:
         for i in range(4):
             tmp_Af.append(np.array(sim.data.sensordata[mapping_const[i][0]: mapping_const[i][1]]))
             tmp_Af[i] = np.int64(tmp_Af[i] > 0) * 2  # Binarize tac data
-            """ Put z_t into tacdata """
-            if self.tacdata_ztid[0][i] != -1:  # Is contact
-                tmp_Af[i][self.tacdata_ztid[0][i] - mapping_const[i][0]] = -4
             """ Put h_t into tacdata """
             if self.tacdata_htid[0][i] != -1:  # Is contact
                 tmp_Af[i][self.tacdata_htid[0][i] - mapping_const[i][0]] = -2
+            """ Put z_t into tacdata """
+            if self.tacdata_ztid[0][i] != -1:  # Is contact
+                tmp_Af[i][self.tacdata_ztid[0][i] - mapping_const[i][0]] = -4
             # print("tac_z:\n", self.tacdata_ztid, "\ntac_h:\n", self.tacdata_htid)
         """ Ready to plot tacdata """
         for i in range(11, -1, -1):

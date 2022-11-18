@@ -1,6 +1,8 @@
 import numpy as np
 import fcl
-#import pcl
+
+
+# import pcl
 
 class OBJ:
     def __init__(self, filename, swapyz=False):
@@ -40,7 +42,7 @@ class OBJ:
                 norms = []
                 for v in values[1:]:
                     w = v.split('/')
-                    face.append(int(w[0])-1) #在fcl中load的时候减去了1
+                    face.append(int(w[0]) - 1)  # 在fcl中load的时候减去了1
                     if len(w) >= 2 and len(w[1]) > 0:
                         texcoords.append(int(w[1]))
                     else:
@@ -71,115 +73,117 @@ class OBJ:
 
 
 def print_collision_result(o1_name, o2_name, result):
-    print( 'Collision between {} and {}:'.format(o1_name, o2_name))
-    print( '-'*30)
-    print( 'Collision?: {}'.format(result.is_collision))
-    print( 'Number of contacts: {}'.format(len(result.contacts)))
-    print( '')
+    print('Collision between {} and {}:'.format(o1_name, o2_name))
+    print('-' * 30)
+    print('Collision?: {}'.format(result.is_collision))
+    print('Number of contacts: {}'.format(len(result.contacts)))
+    print('')
+
 
 def print_continuous_collision_result(o1_name, o2_name, result):
-    print( 'Continuous collision between {} and {}:'.format(o1_name, o2_name))
-    print( '-'*30)
-    print( 'Collision?: {}'.format(result.is_collide))
-    print( 'Time of collision: {}'.format(result.time_of_contact))
-    print( '')
+    print('Continuous collision between {} and {}:'.format(o1_name, o2_name))
+    print('-' * 30)
+    print('Collision?: {}'.format(result.is_collide))
+    print('Time of collision: {}'.format(result.time_of_contact))
+    print('')
+
 
 def print_distance_result(o1_name, o2_name, result):
-    print( 'Distance between {} and {}:'.format(o1_name, o2_name))
-    print( '-'*30)
-    print( 'Distance: {}'.format(result.min_distance))
-    print( 'Closest Points:')
-    print( result.nearest_points[0])
-    print( result.nearest_points[1])
-    print( '')
+    print('Distance between {} and {}:'.format(o1_name, o2_name))
+    print('-' * 30)
+    print('Distance: {}'.format(result.min_distance))
+    print('Closest Points:')
+    print(result.nearest_points[0])
+    print(result.nearest_points[1])
+    print('')
 
-#file_dir1 = 'pos_save/cup_trans.npy'  #文件的路径
-#file_dir2 = 'pos_save/link_3_tip_trans.npy'
+# file_dir1 = 'pos_save/cup_trans.npy'  #文件的路径
+# file_dir2 = 'pos_save/link_3_tip_trans.npy'
 ## Create simple geometries
 ##单位是 mm
-#box = fcl.Box(1.0, 2.0, 3.0)
-#sphere = fcl.Sphere(4.0)
-#cone = fcl.Cone(5.0, 6.0)
-#cyl = fcl.Cylinder(2.0, 2.0)
+# box = fcl.Box(1.0, 2.0, 3.0)
+# sphere = fcl.Sphere(4.0)
+# cone = fcl.Cone(5.0, 6.0)
+# cyl = fcl.Cylinder(2.0, 2.0)
 
 ##创建cup obj模型的vert和tris参数
-#obj_cup = OBJ( "cup_1.obj")
-#verts_cup = obj_cup.get_vertices()
-#tris_cup = obj_cup.get_faces()
+# obj_cup = OBJ( "cup_1.obj")
+# verts_cup = obj_cup.get_vertices()
+# tris_cup = obj_cup.get_faces()
 ## Create mesh geometry
 
-#mesh_cup = fcl.BVHModel()
-#mesh_cup.beginModel(len(verts_cup), len(tris_cup))
-#mesh_cup.addSubModel(verts_cup, tris_cup)
-#mesh_cup.endModel()
-#print("len_verts_cup:", len(verts_cup))
+# mesh_cup = fcl.BVHModel()
+# mesh_cup.beginModel(len(verts_cup), len(tris_cup))
+# mesh_cup.addSubModel(verts_cup, tris_cup)
+# mesh_cup.endModel()
+# print("len_verts_cup:", len(verts_cup))
 
 ##fingertip
 ## obj_fingertip = OBJ( "fingertip.obj")
-#obj_fingertip = OBJ( "fingertip_part.obj")
-#verts_fingertip = obj_fingertip.get_vertices()
-#tris_fingertip = obj_fingertip.get_faces()
-#print("len_verts_fingertip:", len(verts_fingertip))
-#print("len_tris_fingertip:", len(tris_fingertip))
+# obj_fingertip = OBJ( "fingertip_part.obj")
+# verts_fingertip = obj_fingertip.get_vertices()
+# tris_fingertip = obj_fingertip.get_faces()
+# print("len_verts_fingertip:", len(verts_fingertip))
+# print("len_tris_fingertip:", len(tris_fingertip))
 ## Create mesh geometry
 
-#mesh_fingertip = fcl.BVHModel()
-#mesh_fingertip.beginModel(len(verts_fingertip), len(tris_fingertip))
-#mesh_fingertip.addSubModel(verts_fingertip, tris_fingertip)
-#mesh_fingertip.endModel()
+# mesh_fingertip = fcl.BVHModel()
+# mesh_fingertip.beginModel(len(verts_fingertip), len(tris_fingertip))
+# mesh_fingertip.addSubModel(verts_fingertip, tris_fingertip)
+# mesh_fingertip.endModel()
 
 ##=====================================================================
 ## Pairwise collision checking
 ##=====================================================================
-#print( '='*60)
-#print( 'Testing Pairwise Collision Checking')
-#print( '='*60)
-#print( '')
+# print( '='*60)
+# print( 'Testing Pairwise Collision Checking')
+# print( '='*60)
+# print( '')
 
-#req = fcl.CollisionRequest(enable_contact=True)
-#res = fcl.CollisionResult()
+# req = fcl.CollisionRequest(enable_contact=True)
+# res = fcl.CollisionResult()
 
-#pos_R_cup=np.load(file_dir1)
-#pos_R_fingertip=np.load(file_dir2)
+# pos_R_cup=np.load(file_dir1)
+# pos_R_fingertip=np.load(file_dir2)
 ## print("R_cup:", R_cup)
 ## print("R_fingertip:", R_fingertip)
 
-#R_cup = pos_R_cup[0:3, 0:3]
-#pos_cup = pos_R_cup[0:3, 3]*1000
+# R_cup = pos_R_cup[0:3, 0:3]
+# pos_cup = pos_R_cup[0:3, 3]*1000
 
 ## R_fingertip = np.array([-0.03486789, 0.64261658, -0.02630733, 0.76494188])
-#R_fingertip = pos_R_fingertip[0:3, 0:3]
-#pos_fingertip = pos_R_fingertip[0:3, 3] *1000
+# R_fingertip = pos_R_fingertip[0:3, 0:3]
+# pos_fingertip = pos_R_fingertip[0:3, 3] *1000
 
-#print("pos_fingertip:", pos_fingertip)
+# print("pos_fingertip:", pos_fingertip)
 
-    ## cup_trans:
-    ##  [[-0.99998416 -0.00266248  0.00495896  0.12111152]
-    ##  [ 0.00494169  0.00645425  0.99996696 -0.00991389]
-    ##  [-0.0026944   0.99997563 -0.00644099  0.03512894]
-    ##  [ 0.          0.          0.          1.        ]]
+## cup_trans:
+##  [[-0.99998416 -0.00266248  0.00495896  0.12111152]
+##  [ 0.00494169  0.00645425  0.99996696 -0.00991389]
+##  [-0.0026944   0.99997563 -0.00644099  0.03512894]
+##  [ 0.          0.          0.          1.        ]]
 
-#t_cup = fcl.Transform(R_cup, pos_cup)
+# t_cup = fcl.Transform(R_cup, pos_cup)
 ## t_cup = fcl.Transform(R_cup, pos_cup)
 
-#t_fingertip =  fcl.Transform(R_fingertip, pos_fingertip)
+# t_fingertip =  fcl.Transform(R_fingertip, pos_fingertip)
 ## t_fingertip =  fcl.Transform(R_fingertip, pos_fingertip)
 
 
-#o_cup = fcl.CollisionObject(mesh_cup, t_cup)
-#o_fingertip = fcl.CollisionObject(mesh_fingertip, t_fingertip)
- 
-#n_contacts = fcl.collide(o_cup, o_fingertip, req, res)
-#contact = res.contacts[0]
-#print("contact:", contact)
+# o_cup = fcl.CollisionObject(mesh_cup, t_cup)
+# o_fingertip = fcl.CollisionObject(mesh_fingertip, t_fingertip)
+
+# n_contacts = fcl.collide(o_cup, o_fingertip, req, res)
+# contact = res.contacts[0]
+# print("contact:", contact)
 ## res.getContacts(contact)
-#normals = contact.normal
-#print("normal:", normals)
+# normals = contact.normal
+# print("normal:", normals)
 
 ## n_contacts = fcl.collide(fcl.CollisionObject(mesh_cup, fcl.Transform(np.array([0.0,0.0,-1.0]))),
 ##                          fcl.CollisionObject(cyl, fcl.Transform()),
 ##                          req, res)
-#print_collision_result('cup', 'fingertip', res)
+# print_collision_result('cup', 'fingertip', res)
 
 
 ## print( '='*60)
@@ -194,18 +198,18 @@ def print_distance_result(o1_name, o2_name, result):
 ##=====================================================================
 ## Pairwise distance checking
 ##=====================================================================
-#print( '='*60)
-#print( 'Testing Pairwise Distance Checking')
-#print( '='*60)
-#print( '')
+# print( '='*60)
+# print( 'Testing Pairwise Distance Checking')
+# print( '='*60)
+# print( '')
 
-#req = fcl.DistanceRequest(enable_nearest_points=True)
-#res = fcl.DistanceResult()
+# req = fcl.DistanceRequest(enable_nearest_points=True)
+# res = fcl.DistanceResult()
 
 
-#dist = fcl.distance(o_cup,o_fingertip,
-                    #req, res)
-#print_distance_result('o_cup', 'o_fingertip', res)
+# dist = fcl.distance(o_cup,o_fingertip,
+# req, res)
+# print_distance_result('o_cup', 'o_fingertip', res)
 
 ## dist = fcl.distance(fcl.CollisionObject(box, fcl.Transform()),
 ##                     fcl.CollisionObject(cyl, fcl.Transform(np.array([6.0,0.0,0.0]))),

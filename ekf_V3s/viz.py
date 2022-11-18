@@ -76,7 +76,7 @@ def vis_frame_in_world(sim, viewer,part_name):
     T_part_world = ug.posquat2trans(posquat_part_world)
     cor_frame_visual(viewer, T_part_world[:3, 3], T_part_world[:3, :3], 0.2, part_name)
 
-def vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state, char):
+def vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state, char, object_param):
     """ z_t and h_t visualization """
     posquat_palm_world = ug.get_relative_posquat(sim, "world", "palm_link")
     T_palm_world = ug.posquat2trans(posquat_palm_world)
@@ -149,8 +149,16 @@ def vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state, char
     cor_frame_visual(viewer, pos_x_world, rot_x_world, 0.2, "est_Obj")
 
     if(char == "v"):
-        viewer.add_marker(pos=pos_x_world, mat=rot_x_world, type=7,
-                          label=' ', rgba=np.array([0.0, 0.0, 1.0, 1.0]), dataid=0)
+        if int(object_param[3]) == 3 or int(object_param[3]) == 4:
+            """Add marker type in mujoco_py.const: const.GEOM_MESH=7, const.GEOM_ARROW=100 ... """
+            """For Cylinder, size=[semi-major axis, semi-minor axis, height], unit=Meter(m)"""
+            viewer.add_marker(pos=pos_x_world, mat=rot_x_world, type=const.GEOM_CYLINDER, size=[0.04, 0.04, 0.08],
+                              label=' ', rgba=np.array([0.0, 0.0, 1.0, 1.0]), dataid=0)
+        else:
+            # viewer.add_marker(pos=pos_x_world, mat=rot_x_world, type=7,
+            #                   label=' ', rgba=np.array([0.0, 0.0, 1.0, 1.0]), dataid=0)
+            viewer.add_marker(pos=pos_x_world, mat=rot_x_world, type=const.GEOM_MESH,
+                              label=' ', rgba=np.array([0.0, 0.0, 1.0, 1.0]), dataid=0)
 
     # viewer.add_marker(pos=pos_x_world, mat=rot_x_world, type=tactile_allegro_mujo_const.GEOM_ARROW,
     #                   label="x_state", size=np.array([0.001, 0.001, 0.1]), rgba=np.array([0.34, 0.98, 1., 1.0]))
