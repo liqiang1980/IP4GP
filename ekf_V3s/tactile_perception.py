@@ -1,5 +1,6 @@
 import numpy as np
 import tactile_allegro_mujo_const
+import tactile_allegro_mujo_const as tacCONST
 import util_geometry as ug
 import object_geometry as og
 import time
@@ -17,13 +18,31 @@ class cls_tactile_perception:
         # contact finger number
         self.fin_num = 0
         # identify which fingers are contacted
-        self.fin_tri = np.zeros(4)
+        self.fin_tri = np.zeros(0)
         # tuple variable to tell (contact_finger_name, reference_frame, contacted_pose)
         self.tuple_fin_ref_pose = ()
-        self.is_ff_contact = False
-        self.is_mf_contact = False
-        self.is_rf_contact = False
-        self.is_th_contact = False
+        """Record which f_part is contact in current interaction round"""
+        self.is_contact = {"ff": False, "ffd": False, "ffq": False,
+                           "mf": False, "mfd": False, "mfq": False,
+                           "rf": False, "rfd": False, "rfq": False,
+                           "th": False, "thd": False, "palm": False}
+        """Record which f_part is contact in the first interaction round"""
+        self.is_first_contact = {"ff": False, "ffd": False, "ffq": False,
+                                 "mf": False, "mfd": False, "mfq": False,
+                                 "rf": False, "rfd": False, "rfq": False,
+                                 "th": False, "thd": False, "palm": False}
+        # self.is_ff_contact = False
+        # self.is_ffd_contact = False
+        # self.is_ffq_contact = False
+        # self.is_mf_contact = False
+        # self.is_mfd_contact = False
+        # self.is_mfq_contact = False
+        # self.is_rf_contact = False
+        # self.is_rfd_contact = False
+        # self.is_rfq_contact = False
+        # self.is_th_contact = False
+        # self.is_thd_contact = False
+        # self.is_palm_contact = False
         self.fftip_center_taxel_pose = [0., 0., 0., 0., 0., 0., 0.]
         self.mftip_center_taxel_pose = [0., 0., 0., 0., 0., 0., 0.]
         self.rftip_center_taxel_pose = [0., 0., 0., 0., 0., 0., 0.]
@@ -76,39 +95,50 @@ class cls_tactile_perception:
         self.get_tip_center_pose(sim, model, 'rf_tip', ref_frame)
         self.get_tip_center_pose(sim, model, 'th_tip', ref_frame)
 
-    def is_finger_contact(self, sim, finger_name):
-        if finger_name == 'ff':
-            if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN: \
-                    tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX]) > 0.0).any() == True:
-                self.is_ff_contact = True
-                return True
-            else:
-                self.is_ff_contact = False
-                return False
-        if finger_name == 'mf':
-            if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN: \
-                    tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX]) > 0.0).any() == True:
-                self.is_mf_contact = True
-                return True
-            else:
-                self.is_mf_contact = False
-                return False
-        if finger_name == 'rf':
-            if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN: \
-                    tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX]) > 0.0).any() == True:
-                self.is_rf_contact = True
-                return True
-            else:
-                self.is_rf_contact = False
-                return False
-        if finger_name == 'th':
-            if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN: \
-                    tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX]) > 0.0).any() == True:
-                self.is_th_contact = True
-                return True
-            else:
-                self.is_th_contact = False
-                return False
+    # def is_finger_contact(self, sim, finger_name):
+    #     if finger_name == 'ff':
+    #         if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN: \
+    #                 tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX]) > 0.0).any() == True:
+    #             self.is_ff_contact = True
+    #             return True
+    #         else:
+    #             self.is_ff_contact = False
+    #             return False
+    #     if finger_name == 'mf':
+    #         if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN: \
+    #                 tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX]) > 0.0).any() == True:
+    #             self.is_mf_contact = True
+    #             return True
+    #         else:
+    #             self.is_mf_contact = False
+    #             return False
+    #     if finger_name == 'rf':
+    #         if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN: \
+    #                 tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX]) > 0.0).any() == True:
+    #             self.is_rf_contact = True
+    #             return True
+    #         else:
+    #             self.is_rf_contact = False
+    #             return False
+    #     if finger_name == 'th':
+    #         if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN: \
+    #                 tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX]) > 0.0).any() == True:
+    #             self.is_th_contact = True
+    #             return True
+    #         else:
+    #             self.is_th_contact = False
+    #             return False
+
+    def is_finger_contact(self, sim, hand_param_part):
+        part_name = hand_param_part[0]
+        min_id = hand_param_part[3][0]
+        max_id = hand_param_part[3][1]
+        if (np.array(sim.data.sensordata[min_id:max_id]) > 0.0).any():
+            self.is_contact[part_name] = True
+            return True
+        else:
+            self.is_contact[part_name] = False
+            return False
 
     def get_contact_taxel_name_pressure(self, sim, model, finger_name):
         taxels_id = self.get_contact_taxel_id(sim, finger_name)
@@ -330,28 +360,34 @@ class cls_tactile_perception:
         self.tuple_fin_ref_pose = tuple(tmp_list)
         return pos_contact
 
-    def get_contact_taxel_name(self, sim, model, fingername, z_h_flag):
+    def get_contact_taxel_name(self, sim, model, f_part, z_h_flag):
         """
         Always use the contact point closest to the center position of contact area.
         """
-        taxels_id = self.get_contact_taxel_id(sim, fingername)
-
-        if fingername == 'ff':
-            c_points = taxels_id[0] + tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN
-            if len(c_points) == 0:  # No contact
-                return 'link_3.0_tip'
-        if fingername == 'mf':
-            c_points = taxels_id[0] + tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN
-            if len(c_points) == 0:  # No contact
-                return 'link_7.0_tip'
-        if fingername == 'rf':
-            c_points = taxels_id[0] + tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN
-            if len(c_points) == 0:  # No contact
-                return 'link_11.0_tip'
-        if fingername == 'th':  # No contact
-            c_points = taxels_id[0] + tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN
-            if len(c_points) == 0:
-                return 'link_15.0_tip'
+        fingername = f_part[0]
+        tac_id = f_part[3]  # tac_id = [min, max]
+        default_tac = f_part[4]
+        taxels_id = self.get_contact_taxel_id(sim=sim, finger_name=fingername)
+        c_points = taxels_id[0] + tac_id[0]
+        if len(c_points) == 0:  # No contact
+            return default_tac
+        #
+        # if fingername == 'ff':
+        #     c_points = taxels_id[0] + tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN
+        #     if len(c_points) == 0:  # No contact
+        #         return 'link_3.0_tip'
+        # if fingername == 'mf':
+        #     c_points = taxels_id[0] + tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN
+        #     if len(c_points) == 0:  # No contact
+        #         return 'link_7.0_tip'
+        # if fingername == 'rf':
+        #     c_points = taxels_id[0] + tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN
+        #     if len(c_points) == 0:  # No contact
+        #         return 'link_11.0_tip'
+        # if fingername == 'th':  # No contact
+        #     c_points = taxels_id[0] + tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN
+        #     if len(c_points) == 0:  # No contact
+        #         return 'link_15.0_tip'
 
         actived_tmp_position = np.zeros((3, len(c_points)))
         taxel_position = np.zeros((3, 72))

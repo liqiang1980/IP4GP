@@ -1,7 +1,8 @@
 import threading
 
+import finger_ctrl_func as fct
 import config_param
-import robot_control as robcontrol
+import robot_control as robctrl
 import mujoco_environment as mu_env
 import ekf
 import tactile_perception
@@ -38,15 +39,28 @@ class MainLoop(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
+        ctrl_val = {"ff": [0.005, 0.000001],
+                    "mf": [0.005, 0.000001],
+                    "rf": [0.005, 0.000001],
+                    "th": [0.002, 0.000001]
+                    }
         for ii in range(2000):
-            if hand_param[1][1] == '1':
-                rob_control.index_finger(sim, 0.005, 0.000001)
-            if hand_param[2][1] == '1':
-                rob_control.middle_finger(sim, 0.005, 0.000001)
-            if hand_param[3][1] == '1':
-                rob_control.ring_finger(sim, 0.005, 0.000001)
-            if hand_param[4][1] == '1':
-                rob_control.thumb(sim, 0.002, 0.000001)
+            for f_part in hand_param[1:]:
+                f_name = f_part[0]
+                used_flag = f_part[1]
+                if f_name in ctrl_val and used_flag == "1":
+                    fct.ctrl_finger(sim=sim, input1=ctrl_val[f_name][0], input2=ctrl_val[f_name][1], f_name=f_name)
+            # if hand_param[1][1] == '1':
+            #     fct.ctrl_finger(sim, 0.005, 0.000001, hand_param[1][0])
+            # if hand_param[2][1] == '1':
+            #     # fct.middle_finger(sim, 0.005, 0.000001)
+            #     fct.ctrl_finger(sim, 0.005, 0.000001, hand_param[2][0])
+            # if hand_param[3][1] == '1':
+            #     # fct.ring_finger(sim, 0.005, 0.000001)
+            #     fct.ctrl_finger(sim, 0.005, 0.000001, hand_param[3][0])
+            # if hand_param[4][1] == '1':
+            #     # fct.thumb(sim, 0.002, 0.000001)
+            #     fct.ctrl_finger(sim, 0.002, 0.000001, hand_param[4][0])
             """EKF process"""
             rob_control.interaction(sim, model, viewer, hand_param, object_param, alg_param, grasping_ekf,
                                     tacperception, char)
@@ -111,8 +125,8 @@ grasping_ekf.set_store_flag(alg_param[0])
 tacperception = tactile_perception.cls_tactile_perception()
 
 # init robot
-rob_control = robcontrol.ROBCTRL()
-rob_control.robot_init(sim)
+rob_control = robctrl.ROBCTRL()
+fct.robot_init(sim)
 mu_env.Camera_set(viewer, model)
 sim.model.eq_active[0] = True
 
@@ -131,10 +145,10 @@ for _ in range(50):
     # number of triggered fingers
 tacperception.fin_num = 0
 # The fingers which are triggered are Marked them with "1"
-tacperception.fin_tri = np.zeros(4)
+tacperception.fin_tri = np.zeros(len(hand_param)-1)
 
 # Thumb root movement
-rob_control.pre_thumb(sim, viewer)
+fct.pre_thumb(sim, viewer)
 char = "v"
 # char = "i"
 

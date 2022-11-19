@@ -9,6 +9,39 @@
                 <j3>7</j3>
                 <j4>8</j4>
             </init_posture>
+            <taxel_id>
+                <min>0</min>
+                <max>72</max>
+            </taxel_id>
+            <default_tac>link_3.0_tip</default_tac>
+        </finger>
+        <finger name= 'ffd'>
+            <used>1</used>
+            <init_posture>
+                <j1>-1</j1>
+                <j2>6</j2>
+                <j3>7</j3>
+                <j4>8</j4>
+            </init_posture>
+            <taxel_id>
+                <min>72</min>
+                <max>108</max>
+            </taxel_id>
+            <default_tac></default_tac>
+        </finger>
+        <finger name= 'ffq'>
+            <used>1</used>
+            <init_posture>
+                <j1>-1</j1>
+                <j2>-1</j2>
+                <j3>7</j3>
+                <j4>8</j4>
+            </init_posture>
+            <taxel_id>
+                <min>108</min>
+                <max>144</max>
+            </taxel_id>
+            <default_tac></default_tac>
         </finger>
         <finger name= 'mf'>
             <used>1</used>
@@ -18,6 +51,39 @@
                 <j3>7</j3>
                 <j4>8</j4>
             </init_posture>
+            <taxel_id>
+                <min>144</min>
+                <max>216</max>
+            </taxel_id>
+            <default_tac>link_7.0_tip</default_tac>
+        </finger>
+        <finger name= 'mfd'>
+            <used>1</used>
+            <init_posture>
+                <j1>-1</j1>
+                <j2>6</j2>
+                <j3>7</j3>
+                <j4>8</j4>
+            </init_posture>
+            <taxel_id>
+                <min>216</min>
+                <max>252</max>
+            </taxel_id>
+            <default_tac></default_tac>
+        </finger>
+        <finger name= 'mfq'>
+            <used>1</used>
+            <init_posture>
+                <j1>-1</j1>
+                <j2>-1</j2>
+                <j3>7</j3>
+                <j4>8</j4>
+            </init_posture>
+            <taxel_id>
+                <min>252</min>
+                <max>288</max>
+            </taxel_id>
+            <default_tac></default_tac>
         </finger>
         <finger name= 'rf'>
             <used>1</used>
@@ -27,6 +93,39 @@
                 <j3>7</j3>
                 <j4>8</j4>
             </init_posture>
+            <taxel_id>
+                <min>288</min>
+                <max>360</max>
+            </taxel_id>
+            <default_tac>link_11.0_tip</default_tac>
+        </finger>
+        <finger name= 'rfd'>
+            <used>1</used>
+            <init_posture>
+                <j1>-1</j1>
+                <j2>6</j2>
+                <j3>7</j3>
+                <j4>8</j4>
+            </init_posture>
+            <taxel_id>
+                <min>360</min>
+                <max>396</max>
+            </taxel_id>
+            <default_tac></default_tac>
+        </finger>
+        <finger name= 'rfq'>
+            <used>1</used>
+            <init_posture>
+                <j1>-1</j1>
+                <j2>-1</j2>
+                <j3>7</j3>
+                <j4>8</j4>
+            </init_posture>
+            <taxel_id>
+                <min>396</min>
+                <max>432</max>
+            </taxel_id>
+            <default_tac></default_tac>
         </finger>
         <finger name= 'th'>
             <used>1</used>
@@ -36,6 +135,39 @@
                 <j3>7</j3>
                 <j4>8</j4>
             </init_posture>
+            <taxel_id>
+                <min>432</min>
+                <max>504</max>
+            </taxel_id>
+            <default_tac>link_15.0_tip</default_tac>
+        </finger>
+        <finger name= 'thd'>
+            <used>1</used>
+            <init_posture>
+                <j1>-1</j1>
+                <j2>6</j2>
+                <j3>7</j3>
+                <j4>8</j4>
+            </init_posture>
+            <taxel_id>
+                <min>504</min>
+                <max>540</max>
+            </taxel_id>
+            <default_tac></default_tac>
+        </finger>
+        <finger name= 'palm'>
+            <used>1</used>
+            <init_posture>
+                <j1>-1</j1>
+                <j2>-1</j2>
+                <j3>-1</j3>
+                <j4>-1</j4>
+            </init_posture>
+            <taxel_id>
+                <min>540</min>
+                <max>635</max>
+            </taxel_id>
+            <default_tac></default_tac>
         </finger>
         <object>
             <name>cup</name>

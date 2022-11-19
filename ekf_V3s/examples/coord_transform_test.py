@@ -14,7 +14,7 @@ ctrl_wrist_pos, ctrl_wrist_quat = \
     mu_env.init_robot_object_mujoco(sim, object_param)
 
 # init robot
-rob_control = robcontrol.ROBCTRL()
+rob_control = robcontrol
 rob_control.robot_init(sim)
 mu_env.Camera_set(viewer, model)
 sim.model.eq_active[0] = True

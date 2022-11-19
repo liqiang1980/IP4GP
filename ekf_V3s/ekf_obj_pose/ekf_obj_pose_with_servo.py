@@ -27,7 +27,7 @@ tacperception = tactile_perception.cls_tactile_perception()
 
 
 # init robot
-rob_control = robcontrol.ROBCTRL()
+rob_control = robcontrol
 rob_control.robot_init(sim)
 mu_env.Camera_set(viewer, model)
 sim.model.eq_active[0] = True
