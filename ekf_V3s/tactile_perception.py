@@ -335,26 +335,35 @@ class cls_tactile_perception:
         Always use the contact point closest to the center position of contact area.
         """
         taxels_id = self.get_contact_taxel_id(sim, fingername)
+        tac_id = [0, 0]
 
         if fingername == 'ff':
+            tac_id = [tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN, tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX]
             c_points = taxels_id[0] + tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN
             if len(c_points) == 0:  # No contact
                 return 'link_3.0_tip'
         if fingername == 'mf':
+            tac_id = [tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN, tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX]
             c_points = taxels_id[0] + tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN
             if len(c_points) == 0:  # No contact
                 return 'link_7.0_tip'
         if fingername == 'rf':
+            tac_id = [tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN, tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX]
             c_points = taxels_id[0] + tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN
             if len(c_points) == 0:  # No contact
                 return 'link_11.0_tip'
         if fingername == 'th':  # No contact
+            tac_id = [tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN, tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX]
             c_points = taxels_id[0] + tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN
             if len(c_points) == 0:
                 return 'link_15.0_tip'
 
         actived_tmp_position = np.zeros((3, len(c_points)))
-        taxel_position = np.zeros((3, 72))
+        taxel_position = []
+        for tac in range(tac_id[0], tac_id[1], 1):
+            tac_name = model._sensor_id2name[tac]
+            taxel_position.append(ug.get_relative_posquat(sim, "palm_link", tac_name)[:3])
+
         active_taxel_name = []
         dev_taxel_value = []
         """ Get average position of contact points """
@@ -372,12 +381,16 @@ class cls_tactile_perception:
         """ Get the name of contact point closest to avg_position """
 
         if len(c_points) > 1:
-            for i in range(len(c_points)):
-                taxel_position[:, i] = ug.get_relative_posquat(sim, "palm_link", active_taxel_name[i])[:3]
-                # The norm() defaults to 2-norm, that is, distance
-                dev_taxel_value.append(np.linalg.norm(taxel_position[:, i] - avg_position))
+            # for i in range(len(c_points)):
+            #     taxel_position[:, i] = ug.get_relative_posquat(sim, "palm_link", active_taxel_name[i])[:3]
+            #     # The norm() defaults to 2-norm, that is, distance
+            #     dev_taxel_value.append(np.linalg.norm(taxel_position[:, i] - avg_position))
+            for i in range(72):
+                dev_taxel_value.append(np.linalg.norm(taxel_position[i] - avg_position))
             min_value = min(dev_taxel_value)
-            id_chosen = c_points[dev_taxel_value.index(min_value)]
+            # id_chosen = c_points[dev_taxel_value.index(min_value)]
+            id_chosen = dev_taxel_value.index(min_value) + tac_id[0]
+            print(" choose:", id_chosen)
             c_point_name = model._sensor_id2name[id_chosen]
         else:
             id_chosen = -1

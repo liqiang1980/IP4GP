@@ -1,46 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="1e71bcab-2f47-44c6-bf61-af04bfd402f1" name="Changes" comment="">
+    <list default="true" id="0c17ef8a-e085-4d23-bca7-d61466016836" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/../.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/EKF_V3s.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ekf.py" beforeDir="false" afterPath="$PROJECT_DIR$/ekf.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ekf_obj_pose/delta_angles.txt" beforeDir="false" afterPath="$PROJECT_DIR$/ekf_obj_pose/delta_angles.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ekf_obj_pose/delta_ct.txt" beforeDir="false" afterPath="$PROJECT_DIR$/ekf_obj_pose/delta_ct.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ekf_obj_pose/ekf_obj_pose.py" beforeDir="false" afterPath="$PROJECT_DIR$/ekf_obj_pose/ekf_obj_pose.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ekf_obj_pose/h_t.txt" beforeDir="false" afterPath="$PROJECT_DIR$/ekf_obj_pose/h_t.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ekf_obj_pose/ju_all.txt" beforeDir="false" afterPath="$PROJECT_DIR$/ekf_obj_pose/ju_all.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ekf_obj_pose/x_bar_all.txt" beforeDir="false" afterPath="$PROJECT_DIR$/ekf_obj_pose/x_bar_all.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ekf_obj_pose/x_gt_palm.txt" beforeDir="false" afterPath="$PROJECT_DIR$/ekf_obj_pose/x_gt_palm.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ekf_obj_pose/x_state_all.txt" beforeDir="false" afterPath="$PROJECT_DIR$/ekf_obj_pose/x_state_all.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ekf_obj_pose/z_t.txt" beforeDir="false" afterPath="$PROJECT_DIR$/ekf_obj_pose/z_t.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/robot_control.py" beforeDir="false" afterPath="$PROJECT_DIR$/robot_control.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tactile_heatmap.py" beforeDir="false" afterPath="$PROJECT_DIR$/tactile_heatmap.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/plotter.py" beforeDir="false" afterPath="$PROJECT_DIR$/plotter.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tactile_perception.py" beforeDir="false" afterPath="$PROJECT_DIR$/tactile_perception.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/util_geometry.py" beforeDir="false" afterPath="$PROJECT_DIR$/util_geometry.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="FileTemplateManagerImpl">
-    <option name="RECENT_TEMPLATES">
-      <list>
-        <option value="Python Script" />
-      </list>
-    </option>
-  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
-  <component name="GitSEFilterConfiguration">
-    <file-type-list>
-      <filtered-out-file-type name="LOCAL_BRANCH" />
-      <filtered-out-file-type name="REMOTE_BRANCH" />
-      <filtered-out-file-type name="TAG" />
-      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
-    </file-type-list>
-  </component>
-  <component name="ProjectId" id="2GRC3Qq8zMlbb71O2vQIROP19ua" />
+  <component name="ProjectId" id="2Hle8Bht5LVN51GhGTJ7NBgXg0S" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -50,18 +42,9 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="true" />
-    <property name="WebServerToolWindowPanel.toolwindow.highlight.mappings" value="true" />
-    <property name="WebServerToolWindowPanel.toolwindow.highlight.symlinks" value="true" />
-    <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
-    <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
-    <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../hhucPunchIn" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="python.debugger.dataview.coloredbydefault" value="false" />
     <property name="settings.editor.selected.configurable" value="PyScientificConfigurable" />
-  </component>
-  <component name="RecentsManager">
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$" />
-    </key>
   </component>
   <component name="RunManager" selected="Python.ekf_obj_pose">
     <configuration name="ekf_obj_pose" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
@@ -108,113 +91,30 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="robot_control" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="ekf_V3s" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/robot_control.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="ekf_V3s" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.ekf_obj_pose" />
-        <item itemvalue="Python.test" />
         <item itemvalue="Python.plotter" />
-        <item itemvalue="Python.robot_control" />
+        <item itemvalue="Python.ekf_obj_pose" />
       </list>
     </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="1e71bcab-2f47-44c6-bf61-af04bfd402f1" name="Changes" comment="" />
-      <created>1666341812330</created>
+      <changelist id="0c17ef8a-e085-4d23-bca7-d61466016836" name="Changes" comment="" />
+      <created>1668863936225</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1666341812330</updated>
-      <workItem from="1666341815794" duration="372000" />
-      <workItem from="1666598907477" duration="2995000" />
-      <workItem from="1666679098855" duration="7768000" />
-      <workItem from="1666688458696" duration="2199000" />
-      <workItem from="1666702016543" duration="913000" />
-      <workItem from="1666703264661" duration="420000" />
-      <workItem from="1666782078685" duration="3601000" />
-      <workItem from="1666789386047" duration="1968000" />
-      <workItem from="1666838429705" duration="7791000" />
-      <workItem from="1666858957698" duration="592000" />
-      <workItem from="1666874241831" duration="3563000" />
-      <workItem from="1666924071511" duration="1689000" />
-      <workItem from="1666926715677" duration="1340000" />
-      <workItem from="1666939259841" duration="8220000" />
-      <workItem from="1667113705087" duration="1681000" />
-      <workItem from="1667196565812" duration="3254000" />
-      <workItem from="1667200096232" duration="6288000" />
-      <workItem from="1667222054455" duration="2550000" />
-      <workItem from="1667264577089" duration="412000" />
-      <workItem from="1667265130209" duration="15724000" />
-      <workItem from="1667353816435" duration="1444000" />
-      <workItem from="1667356026513" duration="938000" />
-      <workItem from="1667372397597" duration="11580000" />
-      <workItem from="1667473900934" duration="4505000" />
+      <updated>1668863936225</updated>
+      <workItem from="1668863938142" duration="2161000" />
     </task>
-    <task id="LOCAL-00001" summary="update tac_heatmap_animation">
-      <created>1667397576649</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1667397576649</updated>
-    </task>
-    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
-  <component name="VcsManagerConfiguration">
-    <MESSAGE value="update tac_heatmap_animation" />
-    <option name="LAST_COMMIT_MESSAGE" value="update tac_heatmap_animation" />
-  </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/ekf_V3s$test.coverage" NAME="test Coverage Results" MODIFIED="1667394476066" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ekf_V3s$robot_control.coverage" NAME="robot_control Coverage Results" MODIFIED="1667222352952" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ekf_V3s$ekf_obj_pose.coverage" NAME="ekf_obj_pose Coverage Results" MODIFIED="1667478404924" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/ekf_obj_pose" />
-    <SUITE FILE_PATH="coverage/ekf_V3s$plotter.coverage" NAME="plotter Coverage Results" MODIFIED="1667300801792" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ekf_V3s$ekf_obj_pose.coverage" NAME="ekf_obj_pose Coverage Results" MODIFIED="1668866051474" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/ekf_obj_pose" />
+    <SUITE FILE_PATH="coverage/ekf_V3s$plotter.coverage" NAME="plotter Coverage Results" MODIFIED="1668866078799" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

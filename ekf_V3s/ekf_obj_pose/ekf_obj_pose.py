@@ -111,8 +111,7 @@ char = "v"
 # char = "i"
 
 #######################################################################
-tactile_heatmap.TacPlotClass_dip(tacperception)
 ekfer = MainLoop()
 ekfer.start()
-
-plt.show()
+# tactile_heatmap.TacPlotClass_dip(tacperception)
+# plt.show()

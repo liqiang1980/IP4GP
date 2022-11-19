@@ -13,12 +13,12 @@ pPlt.plot_xt_GD_6in1(x_state_all, gd_all,
 pPlt.plot_error_6in1(x_state_all, gd_all,
                      label1='x[mm]', label2='y[mm]', label3='z[mm]',
                      label4='roll[deg]', label5='pitch[deg]', label6='yaw[deg]', mode=2, cut=3)
-
-pPlt.plot_xbar_xsta_GD_6in1(x_bar_all, x_state_all, gd_all,
-                     label1='x[mm]', label2='y[mm]', label3='z[mm]',
-                     label4='roll[deg]', label5='pitch[deg]', label6='yaw[deg]', mode=2, cut=3)
-pPlt.plot_2err_6in1(x_state_all, x_bar_all, gd_all,
-                     label1='x[mm]', label2='y[mm]', label3='z[mm]',
-                     label4='roll[deg]', label5='pitch[deg]', label6='yaw[deg]', mode=2, cut=3)
-
+#
+# pPlt.plot_xbar_xsta_GD_6in1(x_bar_all, x_state_all, gd_all,
+#                      label1='x[mm]', label2='y[mm]', label3='z[mm]',
+#                      label4='roll[deg]', label5='pitch[deg]', label6='yaw[deg]', mode=2, cut=3)
+# pPlt.plot_2err_6in1(x_state_all, x_bar_all, gd_all,
+#                      label1='x[mm]', label2='y[mm]', label3='z[mm]',
+#                      label4='roll[deg]', label5='pitch[deg]', label6='yaw[deg]', mode=2, cut=3)
+#
 
