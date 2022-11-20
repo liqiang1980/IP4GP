@@ -10,6 +10,7 @@ import numpy as np
 from threading import Thread
 import sys, termios, tty, os, time
 import matplotlib.pyplot as plt
+import test_Plot_plus as pplt
 
 
 class MainLoop(threading.Thread):
@@ -17,7 +18,8 @@ class MainLoop(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        for ii in range(2000):
+        # for ii in range(2000):
+        for ii in range(400):
             if hand_param[1][1] == '1':
                 rob_control.index_finger(sim, 0.005, 0.000001)
             if hand_param[2][1] == '1':
@@ -35,6 +37,8 @@ class MainLoop(threading.Thread):
             sim.step()
             viewer.render()
             del viewer._markers[:]
+        tacperception.tac_track_data()
+        tactile_heatmap.plot_once(tacperception)
 
 
 def getch():
@@ -115,3 +119,4 @@ ekfer = MainLoop()
 ekfer.start()
 # tactile_heatmap.TacPlotClass_dip(tacperception)
 # plt.show()
+

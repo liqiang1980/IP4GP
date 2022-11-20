@@ -40,6 +40,12 @@ class cls_tactile_perception:
         self.mapping = {"ff": 0, "mf": 1, "rf": 2, "th": 3}
         self.tacdata_ztid = [[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], -1]
         self.tacdata_htid = [[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], -1]
+        self.tacdata_z_all = [[], [], [], []]
+        self.mapping_const = {0: [tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN, tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX],
+                         1: [tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN, tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX],
+                         2: [tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN, tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX],
+                         3: [tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN, tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX],
+                         }
 
     def update_tacdata(self, sim):
         """
@@ -47,21 +53,17 @@ class cls_tactile_perception:
         tmp_Af: ff, mf, rf, th: 1*72
         """
         tmp_Af = []
-        mapping_const = {0: [tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN, tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX],
-                         1: [tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN, tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX],
-                         2: [tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN, tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX],
-                         3: [tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN, tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX],
-                         }
         """ Get tacdata from sim """
         for i in range(4):
-            tmp_Af.append(np.array(sim.data.sensordata[mapping_const[i][0]: mapping_const[i][1]]))
+            tmp_Af.append(np.array(sim.data.sensordata[self.mapping_const[i][0]: self.mapping_const[i][1]]))
             tmp_Af[i] = np.int64(tmp_Af[i] > 0) * 2  # Binarize tac data
-            """ Put z_t into tacdata """
-            if self.tacdata_ztid[0][i] != -1:  # Is contact
-                tmp_Af[i][self.tacdata_ztid[0][i] - mapping_const[i][0]] = -4
             """ Put h_t into tacdata """
             if self.tacdata_htid[0][i] != -1:  # Is contact
-                tmp_Af[i][self.tacdata_htid[0][i] - mapping_const[i][0]] = -2
+                tmp_Af[i][self.tacdata_htid[0][i] - self.mapping_const[i][0]] = -2
+            """ Put z_t into tacdata """
+            if self.tacdata_ztid[0][i] != -1:  # Is contact
+                tmp_Af[i][self.tacdata_ztid[0][i] - self.mapping_const[i][0]] = -4
+            self.tacdata_z_all[i].append(self.tacdata_ztid[0][i])
             # print("tac_z:\n", self.tacdata_ztid, "\ntac_h:\n", self.tacdata_htid)
         """ Ready to plot tacdata """
         for i in range(11, -1, -1):
@@ -69,6 +71,30 @@ class cls_tactile_perception:
             self.tacdata_mf[i] = tmp_Af[1][i * 6: i * 6 + 6][::-1]
             self.tacdata_rf[i] = tmp_Af[2][i * 6: i * 6 + 6][::-1]
             self.tacdata_th[i] = tmp_Af[3][i * 6: i * 6 + 6][::-1]
+        # print("..shape of h_all:", len(self.tacdata_h_all), len(self.tacdata_h_all[0]))
+
+    def tac_track_data(self):
+        """
+        Plot the track of past contacts
+        """
+        tmp_Af = []
+        """ Get tacdata from sim """
+        # print(len(self.tacdata_z_all), len(self.tacdata_z_all[0]), self.tacdata_z_all)
+        for i in range(4):
+            tmp_Af.append(np.zeros(72))
+            color = 0
+            for j in range(len(self.tacdata_z_all[0])):
+                # print(j)
+                if self.tacdata_z_all[i][j] != -1:
+                    tmp_Af[i][self.tacdata_z_all[i][j] - self.mapping_const[i][0]] = color
+                    color += 0.1
+        """ Ready to plot tacdata """
+        for i in range(11, -1, -1):
+            self.tacdata_ff[i] = tmp_Af[0][i * 6: i * 6 + 6][::-1]
+            self.tacdata_mf[i] = tmp_Af[1][i * 6: i * 6 + 6][::-1]
+            self.tacdata_rf[i] = tmp_Af[2][i * 6: i * 6 + 6][::-1]
+            self.tacdata_th[i] = tmp_Af[3][i * 6: i * 6 + 6][::-1]
+
 
     def get_hand_tip_center_pose(self, sim, model, ref_frame):
         self.get_tip_center_pose(sim, model, 'ff_tip', ref_frame)
