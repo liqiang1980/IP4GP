@@ -18,8 +18,8 @@ class MainLoop(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        # for ii in range(2000):
-        for ii in range(400):
+        for ii in range(2000):
+        # for ii in range(400):
             if hand_param[1][1] == '1':
                 rob_control.index_finger(sim, 0.005, 0.000001)
             if hand_param[2][1] == '1':
@@ -37,8 +37,8 @@ class MainLoop(threading.Thread):
             sim.step()
             viewer.render()
             del viewer._markers[:]
-        tacperception.tac_track_data()
-        tactile_heatmap.plot_once(tacperception)
+        # tacperception.tac_track_data()
+        # tactile_heatmap.plot_once(tacperception)
 
 
 def getch():

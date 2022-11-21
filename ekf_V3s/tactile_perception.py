@@ -3,6 +3,7 @@ import tactile_allegro_mujo_const
 import util_geometry as ug
 import object_geometry as og
 import time
+from scipy.spatial.transform import Rotation
 
 
 class taxel_pose:
@@ -41,11 +42,42 @@ class cls_tactile_perception:
         self.tacdata_ztid = [[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], -1]
         self.tacdata_htid = [[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], -1]
         self.tacdata_z_all = [[], [], [], []]
-        self.mapping_const = {0: [tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN, tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX],
-                         1: [tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN, tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX],
-                         2: [tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN, tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX],
-                         3: [tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN, tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX],
-                         }
+        self.mapping_const = {
+            0: [tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN, tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX],
+            1: [tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN, tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX],
+            2: [tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN, tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX],
+            3: [tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN, tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX],
+        }
+        """ Last & Cur contact points ：name and pos & rot. default contact points are already set """
+        self.last_contact_h = [["link_3.0_tip", np.zeros(6)], ["link_7.0_tip", np.zeros(6)],
+                               ["link_11.0_tip", np.zeros(6)], ["link_15.0_tip", np.zeros(6)]]
+        self.cur_contact_h = [["link_3.0_tip", np.zeros(6)], ["link_7.0_tip", np.zeros(6)],
+                              ["link_11.0_tip", np.zeros(6)], ["link_15.0_tip", np.zeros(6)]]
+        self.last_contact_z = [["link_3.0_tip", np.zeros(6)], ["link_7.0_tip", np.zeros(6)],
+                               ["link_11.0_tip", np.zeros(6)], ["link_15.0_tip", np.zeros(6)]]
+        self.cur_contact_z = [["link_3.0_tip", np.zeros(6)], ["link_7.0_tip", np.zeros(6)],
+                              ["link_11.0_tip", np.zeros(6)], ["link_15.0_tip", np.zeros(6)]]
+
+    def contact_renew(self, sim, idx, tac_name, model):
+        posquat = ug.get_relative_posquat(sim=sim, src="palm_link", tgt=tac_name)
+        rotvec = Rotation.from_quat(posquat[3:]).as_rotvec()
+        if model == ["last", "z"]:
+            self.last_contact_z[idx][0] = tac_name
+            self.last_contact_z[idx][1][:3] = posquat[:3]
+            self.last_contact_z[idx][1][3:] = rotvec
+        elif model == ["cur", "z"]:
+            self.cur_contact_z[idx][0] = tac_name
+            self.cur_contact_z[idx][1][:3] = posquat[:3]
+            self.cur_contact_z[idx][1][3:] = rotvec
+        elif model == ["last", "h"]:
+            self.last_contact_h[idx][0] = tac_name
+            self.last_contact_h[idx][1][:3] = posquat[:3]
+            self.last_contact_h[idx][1][3:] = rotvec
+        elif model == ["cur", "h"]:
+            self.cur_contact_h[idx][0] = tac_name
+            self.cur_contact_h[idx][1][:3] = posquat[:3]
+            self.cur_contact_h[idx][1][3:] = rotvec
+
 
     def update_tacdata(self, sim):
         """
@@ -94,7 +126,6 @@ class cls_tactile_perception:
             self.tacdata_mf[i] = tmp_Af[1][i * 6: i * 6 + 6][::-1]
             self.tacdata_rf[i] = tmp_Af[2][i * 6: i * 6 + 6][::-1]
             self.tacdata_th[i] = tmp_Af[3][i * 6: i * 6 + 6][::-1]
-
 
     def get_hand_tip_center_pose(self, sim, model, ref_frame):
         self.get_tip_center_pose(sim, model, 'ff_tip', ref_frame)

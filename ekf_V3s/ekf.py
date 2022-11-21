@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 
 import qgFunc
@@ -94,6 +96,17 @@ class EKF:
         np.set_printoptions(suppress=True)
         np.savetxt('delta_angles.txt', self.delta_angle)
         ju = np.matmul(self.J_fingers, delta_angles)
+
+        """ Use fixed tac to get ju """
+        tac = ["link_3.0_tip", "link_7.0_tip", "link_11.0_tip", "link_15.0_tip"]
+        _ju = []
+        for i in range(4):
+            tacperception.contact_renew(sim=sim, idx=i, tac_name=tac[i], model=["cur", "h"])
+            _ju.extend(tacperception.cur_contact_h[i][1] - tacperception.last_contact_h[i][1])
+            tacperception.contact_renew(sim=sim, idx=i, tac_name=tac[i], model=["last", "h"])
+        # ju_judge = ju - _ju
+        # print("..2 ju compare: ", ju_judge.shape, ju_judge)
+        ju = _ju
 
         prediction = np.matmul(G_pinv, ju)
         if tactile_allegro_mujo_const.GT_FLAG == '4G':
