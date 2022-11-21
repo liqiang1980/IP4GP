@@ -80,7 +80,21 @@
       <option name="project" value="LOCAL" />
       <updated>1668997310759</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="add default_tac in data.xml">
+      <created>1669000090796</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1669000090796</updated>
+    </task>
+    <task id="LOCAL-00003" summary="add default_tac in data.xml">
+      <created>1669000322103</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1669000322103</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
