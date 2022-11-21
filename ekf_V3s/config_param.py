@@ -20,23 +20,19 @@ def pass_arg():
 
         # parse fingers' parameters
         # the parameters will be organized in list type in the following way
-        # ['allegro',
-        #  ['ff', '1', {'j1': '5', 'j2': '6', 'j3': '7', 'j4': '8'}, ['0', '72']],
-        #  ['ffd', '1', {'j1': '-1', 'j2': '6', 'j3': '7', 'j4': '8'}, ['72', '108']],
-        #  ['ffq', '1', {'j1': '-1', 'j2': '-1', 'j3': '7', 'j4': '8'}, ['108', '144']],
-        #
-        #  ['mf', '1', {'j1': '5', 'j2': '6', 'j3': '7', 'j4': '8'}, ['144', '216']],
-        #  ['mfd', '1', {'j1': '-1', 'j2': '6', 'j3': '7', 'j4': '8'}, ['216', '252']],
-        #  ['mfq', '1', {'j1': '-1', 'j2': '-1', 'j3': '7', 'j4': '8'}, ['252', '288']],
-        #
-        #  ['rf', '1', {'j1': '5', 'j2': '6', 'j3': '7', 'j4': '8'}, ['288', '360']],
-        #  ['rfd', '1', {'j1': '-1', 'j2': '6', 'j3': '7', 'j4': '8'}, ['360', '396']],
-        #  ['rfq', '1', {'j1': '-1', 'j2': '-1', 'j3': '7', 'j4': '8'}, ['396', '432']],
-        #
-        #  ['th', '1', {'j1': '5', 'j2': '6', 'j3': '7', 'j4': '8'}, ['432', '504']],
-        #  ['thd', '1', {'j1': '-1', 'j2': '6', 'j3': '7', 'j4': '8'}, ['504', '540']],
-        #
-        #  ['palm', '1', {'j1': '-1', 'j2': '-1', 'j3': '-1', 'j4': '-1'}, ['540', '635']]]
+        # allegro
+        # ['ff', 1, {'j1': '5', 'j2': '6', 'j3': '7', 'j4': '8'}, [0, 72], 'touch_0_3_6']
+        # ['ffd', 1, {'j1': '-1', 'j2': '6', 'j3': '7', 'j4': '8'}, [72, 108], 'touch_1_3_3']
+        # ['ffq', 1, {'j1': '-1', 'j2': '-1', 'j3': '7', 'j4': '8'}, [108, 144], 'touch_2_3_3']
+        # ['mf', 1, {'j1': '5', 'j2': '6', 'j3': '7', 'j4': '8'}, [144, 216], 'touch_7_3_6']
+        # ['mfd', 1, {'j1': '-1', 'j2': '6', 'j3': '7', 'j4': '8'}, [216, 252], 'touch_8_3_3']
+        # ['mfq', 1, {'j1': '-1', 'j2': '-1', 'j3': '7', 'j4': '8'}, [252, 288], 'touch_9_3_3']
+        # ['rf', 1, {'j1': '5', 'j2': '6', 'j3': '7', 'j4': '8'}, [288, 360], 'touch_11_3_6']
+        # ['rfd', 1, {'j1': '-1', 'j2': '6', 'j3': '7', 'j4': '8'}, [360, 396], 'touch_12_3_3']
+        # ['rfq', 1, {'j1': '-1', 'j2': '-1', 'j3': '7', 'j4': '8'}, [396, 432], 'touch_13_3_3']
+        # ['th', 1, {'j1': '5', 'j2': '6', 'j3': '7', 'j4': '8'}, [432, 504], 'touch_15_3_6']
+        # ['thd', 1, {'j1': '-1', 'j2': '6', 'j3': '7', 'j4': '8'}, [504, 540], 'touch_16_3_3']
+        # ['palm', 1, {'j1': '-1', 'j2': '-1', 'j3': '-1', 'j4': '-1'}, [540, 635], 'touch_111_6_6']
         fingers = dom.getElementsByTagName('finger')
         for finger in fingers:
             finger_name = finger.getAttribute("name")
@@ -54,7 +50,8 @@ def pass_arg():
             for tac in tacs:
                 tac_id_list = [int(tac.getElementsByTagName("min")[0].firstChild.data),
                                int(tac.getElementsByTagName("max")[0].firstChild.data)]
-            finger_param = [finger_name, is_used, j_init_dic, tac_id_list]
+            default_tac = finger.getElementsByTagName("default_tac")[0].firstChild.data
+            finger_param = [finger_name, is_used, j_init_dic, tac_id_list, default_tac]
             hand_param.append(finger_param)
 
         for item in hand_param:

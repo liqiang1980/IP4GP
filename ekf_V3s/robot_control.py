@@ -266,9 +266,8 @@ class ROBCTRL:
         # return xstate
 
     def interaction(self, sim, model, viewer, hand_param, object_param, alg_param, ekf_grasping, tacperception, char):
-        global first_contact_flag, x_all, gd_all, ff_first_contact_flag, \
-            mf_first_contact_flag, rf_first_contact_flag, th_first_contact_flag, \
-            P_state_cov, x_state, last_angles, x_bar, z_t, h_t
+        global first_contact_flag, x_all, gd_all, P_state_cov, x_state, last_angles, x_bar, z_t, h_t
+        # global ff_first_contact_flag, mf_first_contact_flag, rf_first_contact_flag, th_first_contact_flag
 
         # flag_ff = tacperception.is_finger_contact(sim, hand_param[1][0])
         # flag_mf = tacperception.is_finger_contact(sim, hand_param[2][0])

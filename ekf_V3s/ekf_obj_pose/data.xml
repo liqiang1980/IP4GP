@@ -13,7 +13,7 @@
                 <min>0</min>
                 <max>72</max>
             </taxel_id>
-            <default_tac>link_3.0_tip</default_tac>
+            <default_tac>touch_0_3_6</default_tac>
         </finger>
         <finger name= 'ffd'>
             <used>1</used>
@@ -27,7 +27,7 @@
                 <min>72</min>
                 <max>108</max>
             </taxel_id>
-            <default_tac></default_tac>
+            <default_tac>touch_1_3_3</default_tac>
         </finger>
         <finger name= 'ffq'>
             <used>1</used>
@@ -41,7 +41,7 @@
                 <min>108</min>
                 <max>144</max>
             </taxel_id>
-            <default_tac></default_tac>
+            <default_tac>touch_2_3_3</default_tac>
         </finger>
         <finger name= 'mf'>
             <used>1</used>
@@ -55,7 +55,7 @@
                 <min>144</min>
                 <max>216</max>
             </taxel_id>
-            <default_tac>link_7.0_tip</default_tac>
+            <default_tac>touch_7_3_6</default_tac>
         </finger>
         <finger name= 'mfd'>
             <used>1</used>
@@ -69,7 +69,7 @@
                 <min>216</min>
                 <max>252</max>
             </taxel_id>
-            <default_tac></default_tac>
+            <default_tac>touch_8_3_3</default_tac>
         </finger>
         <finger name= 'mfq'>
             <used>1</used>
@@ -83,7 +83,7 @@
                 <min>252</min>
                 <max>288</max>
             </taxel_id>
-            <default_tac></default_tac>
+            <default_tac>touch_9_3_3</default_tac>
         </finger>
         <finger name= 'rf'>
             <used>1</used>
@@ -97,7 +97,7 @@
                 <min>288</min>
                 <max>360</max>
             </taxel_id>
-            <default_tac>link_11.0_tip</default_tac>
+            <default_tac>touch_11_3_6</default_tac>
         </finger>
         <finger name= 'rfd'>
             <used>1</used>
@@ -111,7 +111,7 @@
                 <min>360</min>
                 <max>396</max>
             </taxel_id>
-            <default_tac></default_tac>
+            <default_tac>touch_12_3_3</default_tac>
         </finger>
         <finger name= 'rfq'>
             <used>1</used>
@@ -125,7 +125,7 @@
                 <min>396</min>
                 <max>432</max>
             </taxel_id>
-            <default_tac></default_tac>
+            <default_tac>touch_13_3_3</default_tac>
         </finger>
         <finger name= 'th'>
             <used>1</used>
@@ -139,7 +139,7 @@
                 <min>432</min>
                 <max>504</max>
             </taxel_id>
-            <default_tac>link_15.0_tip</default_tac>
+            <default_tac>touch_15_3_6</default_tac>
         </finger>
         <finger name= 'thd'>
             <used>1</used>
@@ -153,7 +153,7 @@
                 <min>504</min>
                 <max>540</max>
             </taxel_id>
-            <default_tac></default_tac>
+            <default_tac>touch_16_3_3</default_tac>
         </finger>
         <finger name= 'palm'>
             <used>1</used>
@@ -167,7 +167,7 @@
                 <min>540</min>
                 <max>635</max>
             </taxel_id>
-            <default_tac></default_tac>
+            <default_tac>touch_111_6_6</default_tac>
         </finger>
         <object>
             <name>cup</name>
