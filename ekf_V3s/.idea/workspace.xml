@@ -17,7 +17,6 @@
     <setting file="file://$PROJECT_DIR$/ekf_obj_pose/ekf_obj_pose.py" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Plot_plus.py" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/robot_control.py" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/test.py" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/util_geometry.py" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="ProjectId" id="2Hnsj7SVcRcFPER4oJoLcsRQAkt" />
@@ -31,7 +30,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
   </component>
   <component name="RunManager">
     <configuration name="ekf_obj_pose" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
@@ -94,7 +93,14 @@
       <option name="project" value="LOCAL" />
       <updated>1669000322103</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="add default_tac in data.xml">
+      <created>1669000441980</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1669000441980</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
