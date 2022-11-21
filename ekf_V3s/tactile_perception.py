@@ -327,21 +327,21 @@ class cls_tactile_perception:
             c_points = taxels_id[0] + 432
         return c_points
 
-    def get_contact_taxel_id(self, sim, finger_name):
+    def get_contact_taxel_id(self, sim, f_part):
         # print("|||shape||||sensordata: ", len(sim.data.sensordata))
-
-        if finger_name == 'ff':
-            return np.where(sim.data.sensordata[tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN: \
-                                                tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX] > 0.0)
-        if finger_name == 'mf':
-            return np.where(sim.data.sensordata[tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN: \
-                                                tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX] > 0.0)
-        if finger_name == 'rf':
-            return np.where(sim.data.sensordata[tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN: \
-                                                tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX] > 0.0)
-        if finger_name == 'th':
-            return np.where(sim.data.sensordata[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN: \
-                                                tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX] > 0.0)
+        return np.where(sim.data.sensordata[f_part[3][0]: f_part[3][1]] > 0.0)
+        # if finger_name == 'ff':
+        #     return np.where(sim.data.sensordata[tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN: \
+        #                                         tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX] > 0.0)
+        # if finger_name == 'mf':
+        #     return np.where(sim.data.sensordata[tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN: \
+        #                                         tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX] > 0.0)
+        # if finger_name == 'rf':
+        #     return np.where(sim.data.sensordata[tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN: \
+        #                                         tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX] > 0.0)
+        # if finger_name == 'th':
+        #     return np.where(sim.data.sensordata[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN: \
+        #                                         tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX] > 0.0)
 
     def get_contact_taxel_position(self, sim, model, fingername, ref_frame, z_h_flag):
         """
@@ -367,10 +367,12 @@ class cls_tactile_perception:
         fingername = f_part[0]
         tac_id = f_part[3]  # tac_id = [min, max]
         default_tac = f_part[4]
-        taxels_id = self.get_contact_taxel_id(sim=sim, finger_name=fingername)
-        c_points = taxels_id[0] + tac_id[0]
-        if len(c_points) == 0:  # No contact
+        taxels_id = self.get_contact_taxel_id(sim=sim, f_part=f_part)
+        if taxels_id is None:  # No contact
             return default_tac
+        c_points = taxels_id[0] + tac_id[0]
+        # if len(c_points) == 0:  # No contact
+        #     return default_tac
         #
         # if fingername == 'ff':
         #     c_points = taxels_id[0] + tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN

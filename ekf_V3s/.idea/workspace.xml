@@ -3,9 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="a46bb2c9-c41f-4eea-84c6-08bc8cd6b118" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config_param.py" beforeDir="false" afterPath="$PROJECT_DIR$/config_param.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ekf_obj_pose/data.xml" beforeDir="false" afterPath="$PROJECT_DIR$/ekf_obj_pose/data.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/robot_control.py" beforeDir="false" afterPath="$PROJECT_DIR$/robot_control.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tactile_perception.py" beforeDir="false" afterPath="$PROJECT_DIR$/tactile_perception.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,14 +64,26 @@
       <option name="presentableId" value="Default" />
       <updated>1668932314214</updated>
       <workItem from="1668932316038" duration="2931000" />
-      <workItem from="1668997092117" duration="195000" />
+      <workItem from="1668997092117" duration="1751000" />
     </task>
+    <task id="LOCAL-00001" summary="add default_tac in data.xml">
+      <created>1668997310759</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1668997310759</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="add default_tac in data.xml" />
+    <option name="LAST_COMMIT_MESSAGE" value="add default_tac in data.xml" />
+  </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/ekf_V3s$ekf_obj_pose.coverage" NAME="ekf_obj_pose Coverage Results" MODIFIED="1668933628118" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/ekf_obj_pose" />
+    <SUITE FILE_PATH="coverage/ekf_V3s$ekf_obj_pose.coverage" NAME="ekf_obj_pose Coverage Results" MODIFIED="1668997966029" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/ekf_obj_pose" />
   </component>
 </project>
