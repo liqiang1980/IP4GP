@@ -102,15 +102,14 @@ class EKF:
         ju = np.matmul(self.J_fingers, delta_angles)
 
         """ Use fixed tac to get ju """
-        # tac = ["link_3.0_tip", "link_7.0_tip", "link_11.0_tip", "link_15.0_tip"]
-        _ju = []
-        for i in range(4):
-            tacperception.contact_renew(sim=sim, idx=i, tac_name=tac[i], model=["cur", "h"])
-            _ju.extend(tacperception.cur_contact_h[i][1] - tacperception.last_contact_h[i][1])
-            tacperception.contact_renew(sim=sim, idx=i, tac_name=tac[i], model=["last", "h"])
-        ju_judge = ju - _ju
-        print("..2 ju compare: ", ju_judge.shape, ju_judge)
-        ju = _ju
+        # _ju = []
+        # for i in range(4):
+        #     tacperception.contact_renew(sim=sim, idx=i, tac_name=tac[i], model=["cur", "h"])
+        #     _ju.extend(tacperception.cur_contact_h[i][1] - tacperception.last_contact_h[i][1])
+        #     tacperception.contact_renew(sim=sim, idx=i, tac_name=tac[i], model=["last", "h"])
+        # ju_judge = ju - _ju
+        # print("..2 ju compare: ", ju_judge.shape, ju_judge)
+        # ju = _ju
 
         prediction = np.matmul(G_pinv, ju)
         # pq_cup_in_palm = ug.get_relative_posquat(sim, src="palm_link", tgt="cup")
@@ -127,8 +126,6 @@ class EKF:
 
         # assume the contact positions on the object do not change.
         # print("???shape of pre: ", prediction.shape, prediction, G_pinv.shape, ju.shape)
-        _prediction = np.array([prediction[0], prediction[1], prediction[2],
-                                prediction[3], prediction[4], prediction[5]])
         prediction = np.append(prediction, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])  # 6*1 to 18*1
         # print("???shape of pre: ", prediction.shape, prediction, (1.0/tacperception.fin_num*prediction).shape, (1.0/tacperception.fin_num*prediction))
         # x_bar = x_state + 1.0 / tacperception.fin_num * prediction
@@ -181,9 +178,8 @@ class EKF:
         for i in range(4):
             if tacperception.fin_tri[i] == 1:
                 contact_position.append(
-                    # (tacperception.get_contact_taxel_position(sim, model, hand_param[i + 1][0], "palm_link", "z", tactile_allegro_mujo_const.TAC[i]))[:3]
-                    (tacperception.get_contact_taxel_position(sim, model, hand_param[i + 1][0], "palm_link", "nz", tactile_allegro_mujo_const.TAC[i]))[:3]
-                    # + np.random.normal(0.00, 0.0, 3)
+                    (tacperception.get_contact_taxel_position(sim, model, hand_param[i + 1][0], "palm_link", "z", tactile_allegro_mujo_const.TAC[i]))[:3]
+                    + np.random.normal(0.00, 0.0, 3)
                     )
                 contact_nv.append(tacperception.get_contact_taxel_nv(sim, model,
                                                                      hand_param[i + 1][0], "palm_link") \
