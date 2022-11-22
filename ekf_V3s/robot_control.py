@@ -1068,7 +1068,7 @@ class ROBCTRL:
                     ekf_grasping, tacperception, char):
         global first_contact_flag, x_all, gd_all, ff_first_contact_flag, \
             mf_first_contact_flag, rf_first_contact_flag, th_first_contact_flag, \
-            P_state_cov, x_state, last_angles, x_bar, z_t, h_t
+            P_state_cov, x_state, gd_state, last_angles, x_bar, z_t, h_t
 
         flag_ff = tacperception.is_finger_contact(sim, hand_param[1][0])
         flag_mf = tacperception.is_finger_contact(sim, hand_param[2][0])
@@ -1093,6 +1093,10 @@ class ROBCTRL:
             # detect the first contact and initialize y_t_update with noise
             # print('get into contact procedure')
             if not first_contact_flag:
+                # tac = ["link_3.0_tip", "link_7.0_tip", "link_11.0_tip", "link_15.0_tip"]
+                tac = ["touch_0_3_6", "touch_7_3_6", "touch_11_3_6", "touch_15_3_6"]
+                for i in range(4):
+                    tacperception.contact_renew(sim=sim, idx=i, tac_name=tac[i], model=["last", "h"])
                 # initialize the co-variance matrix of state estimation
                 # P_state_cov = np.random.normal(0, 0.01) * np.identity(6 + 4 * 3)
                 # P_state_cov = 0.1 * np.identity(6 + 4 * 3)
@@ -1108,18 +1112,16 @@ class ROBCTRL:
                 x_state = ug.pos_quat2axis_angle(x_state)
                 np.set_printoptions(suppress=True)
                 print('x_state from beginning before add noise', x_state)
+                x_state_plot = [0., 0., 0., 0., 0., 0., 0.]
+                x_bar_plot = [0., 0., 0., 0., 0., 0., 0.]
                 if tactile_allegro_mujo_const.initE_FLAG:
                     x_state = x_state + init_e
-                    x_state_plot = [0., 0., 0., 0., 0., 0., 0.]
                     x_state_plot[0:3] = np.ravel(x_state)[0:3]
                     x_state_plot[3:6], x_state_plot[6] = ug.normalize_scale(np.ravel(x_state)[3:6])
-                    self.x_state_all = np.vstack((self.x_state_all, x_state_plot))
-                    x_bar_plot = [0., 0., 0., 0., 0., 0., 0.]
                     x_bar_plot[0:3] = np.ravel(x_state)[0:3]
                     x_bar_plot[3:6], x_bar_plot[6] = ug.normalize_scale(np.ravel(x_state)[3:6])
-
-                    self.x_bar_all = np.vstack((self.x_bar_all, x_bar_plot))
-
+                self.x_state_all = np.vstack((self.x_state_all, x_state_plot))
+                self.x_bar_all = np.vstack((self.x_bar_all, x_bar_plot))
                 # augmented state with the contact position on the object surface described in the object frame
                 x_state = self.augmented_state(sim, model, hand_param, tacperception, x_state)
                 x_all = x_state
@@ -1184,7 +1186,6 @@ class ROBCTRL:
                 ekf_grasping.state_predictor(sim, model, hand_param, object_param,
                                              x_state, tacperception, P_state_cov, cur_angles,
                                              last_angles, self)
-
             last_angles = cur_angles
             # last_angles = cur_angles_tmp
             """
@@ -1254,7 +1255,7 @@ class ROBCTRL:
         # else:
         #     print('no contact')
         if first_contact_flag:
-            viz.vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state, char)
+            viz.vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state, gd_state, char)
             self.active_fingers_taxels_render(sim, viewer, tacperception)
             tacperception.fin_num = 0
             tacperception.fin_tri = np.zeros(4)

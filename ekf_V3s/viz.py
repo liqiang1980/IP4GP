@@ -76,7 +76,7 @@ def vis_frame_in_world(sim, viewer,part_name):
     T_part_world = ug.posquat2trans(posquat_part_world)
     cor_frame_visual(viewer, T_part_world[:3, 3], T_part_world[:3, :3], 0.2, part_name)
 
-def vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state, char):
+def vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state, gd_state, char):
     """ z_t and h_t visualization """
     posquat_palm_world = ug.get_relative_posquat(sim, "world", "palm_link")
     T_palm_world = ug.posquat2trans(posquat_palm_world)
@@ -143,8 +143,10 @@ def vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state, char
 
     """ x_state Visualization """
     pos_x_world = (T_palm_world[:3, 3] + np.matmul(T_palm_world[:3, :3], x_state[:3].T)).T
+    # pos_x_world = (T_palm_world[:3, 3] + np.matmul(T_palm_world[:3, :3], gd_state[:3].T)).T
+    # rot_x_palm = Rotation.from_rotvec(gd_state[3:6]).as_matrix()
     rot_x_palm = Rotation.from_rotvec(x_state[3:6]).as_matrix()
-    v, s = ug.normalize_scale(x_state[3:6])
+    # v, s = ug.normalize_scale(x_state[3:6])
     rot_x_world = np.matmul(T_palm_world[:3, :3], rot_x_palm)
     cor_frame_visual(viewer, pos_x_world, rot_x_world, 0.2, "est_Obj")
 
