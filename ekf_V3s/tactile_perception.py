@@ -4,6 +4,7 @@ import tactile_allegro_mujo_const as tacCONST
 import util_geometry as ug
 import object_geometry as og
 import time
+from scipy.spatial.transform import Rotation as R
 
 
 class taxel_pose:
@@ -15,10 +16,10 @@ class taxel_pose:
 class cls_tactile_perception:
     def __init__(self):
         self.c_point_name = []
-        # contact finger number
-        self.fin_num = 0
-        # identify which fingers are contacted
-        self.fin_tri = np.zeros(0)
+        # # contact finger number
+        # self.fin_num = 0 （该变量需要在每一轮清零，不应当设为对象私有变量，应当设为函数局部变量）
+        # # identify which fingers are contacted
+        # self.fin_tri = np.zeros(0)
         # tuple variable to tell (contact_finger_name, reference_frame, contacted_pose)
         self.tuple_fin_ref_pose = ()
         """Record which f_part is contact in current interaction round"""
@@ -31,26 +32,23 @@ class cls_tactile_perception:
                                  "mf": False, "mfd": False, "mfq": False,
                                  "rf": False, "rfd": False, "rfq": False,
                                  "th": False, "thd": False, "palm": False}
-        # self.is_ff_contact = False
-        # self.is_ffd_contact = False
-        # self.is_ffq_contact = False
-        # self.is_mf_contact = False
-        # self.is_mfd_contact = False
-        # self.is_mfq_contact = False
-        # self.is_rf_contact = False
-        # self.is_rfd_contact = False
-        # self.is_rfq_contact = False
-        # self.is_th_contact = False
-        # self.is_thd_contact = False
-        # self.is_palm_contact = False
-        self.fftip_center_taxel_pose = [0., 0., 0., 0., 0., 0., 0.]
-        self.mftip_center_taxel_pose = [0., 0., 0., 0., 0., 0., 0.]
-        self.rftip_center_taxel_pose = [0., 0., 0., 0., 0., 0., 0.]
-        self.thtip_center_taxel_pose = [0., 0., 0., 0., 0., 0., 0.]
-        self.tacdata_ff = np.zeros([12, 6])
-        self.tacdata_mf = np.zeros([12, 6])
-        self.tacdata_rf = np.zeros([12, 6])
-        self.tacdata_th = np.zeros([12, 6])
+        """Record last tac and cur tac: tac_name , position & rotvec """
+        self.last_tac = {"ff": ["touch_0_3_6", np.zeros(6)], "ffd": ["touch_1_3_3", np.zeros(6)],
+                         "ffq": ["touch_2_3_3", np.zeros(6)],
+                         "mf": ["touch_7_3_6", np.zeros(6)], "mfd": ["touch_8_3_3", np.zeros(6)],
+                         "mfq": ["touch_9_3_3", np.zeros(6)],
+                         "rf": ["touch_11_3_6", np.zeros(6)], "rfd": ["touch_12_3_3", np.zeros(6)],
+                         "rfq": ["touch_13_3_3", np.zeros(6)],
+                         "th": ["touch_15_3_6", np.zeros(6)], "thd": ["touch_16_3_3", np.zeros(6)],
+                         "palm": ["touch_111_6_6", np.zeros(6)]}
+        self.cur_tac = {"ff": ["touch_0_3_6", np.zeros(6)], "ffd": ["touch_1_3_3", np.zeros(6)],
+                        "ffq": ["touch_2_3_3", np.zeros(6)],
+                        "mf": ["touch_7_3_6", np.zeros(6)], "mfd": ["touch_8_3_3", np.zeros(6)],
+                        "mfq": ["touch_9_3_3", np.zeros(6)],
+                        "rf": ["touch_11_3_6", np.zeros(6)], "rfd": ["touch_12_3_3", np.zeros(6)],
+                        "rfq": ["touch_13_3_3", np.zeros(6)],
+                        "th": ["touch_15_3_6", np.zeros(6)], "thd": ["touch_16_3_3", np.zeros(6)],
+                        "palm": ["touch_111_6_6", np.zeros(6)]}
         """
         The 4 array correspond to tip,mdp,mqp,palm part. 
         The 4 id correspond to ff,mf,rf,th respectively. There is only 1 id in palm part. 
@@ -95,39 +93,19 @@ class cls_tactile_perception:
         self.get_tip_center_pose(sim, model, 'rf_tip', ref_frame)
         self.get_tip_center_pose(sim, model, 'th_tip', ref_frame)
 
-    # def is_finger_contact(self, sim, finger_name):
-    #     if finger_name == 'ff':
-    #         if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN: \
-    #                 tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX]) > 0.0).any() == True:
-    #             self.is_ff_contact = True
-    #             return True
-    #         else:
-    #             self.is_ff_contact = False
-    #             return False
-    #     if finger_name == 'mf':
-    #         if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN: \
-    #                 tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX]) > 0.0).any() == True:
-    #             self.is_mf_contact = True
-    #             return True
-    #         else:
-    #             self.is_mf_contact = False
-    #             return False
-    #     if finger_name == 'rf':
-    #         if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN: \
-    #                 tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX]) > 0.0).any() == True:
-    #             self.is_rf_contact = True
-    #             return True
-    #         else:
-    #             self.is_rf_contact = False
-    #             return False
-    #     if finger_name == 'th':
-    #         if (np.array(sim.data.sensordata[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN: \
-    #                 tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX]) > 0.0).any() == True:
-    #             self.is_th_contact = True
-    #             return True
-    #         else:
-    #             self.is_th_contact = False
-    #             return False
+    def tac_renew(self, f_part):
+        f_name = f_part[0]
+        pq_tac_in_cup = ug.get_relative_posquat(sim=sim, src="cup", tgt=tac_name)
+        norvec_tac_in_cup, s = og.surface_cup(pq_tac_in_cup[0], pq_tac_in_cup[1], pq_tac_in_cup[2])
+        R_tac_in_cup = ug.vec2rot(vec=norvec_tac_in_cup)
+        # rotvec = Rotation.from_quat(posquat[3:]).as_rotvec()
+        pq_cup_in_palm = ug.get_relative_posquat(sim=sim, src="palm_link", tgt="cup")
+        pos_cup_in_palm = pq_cup_in_palm[:3]
+        R_cup_in_palm = R.from_quat(pq_cup_in_palm[3:]).as_matrix()
+        pos_tac_in_palm = pos_cup_in_palm + np.matmul(R_cup_in_palm, pq_tac_in_cup[:3].T).T
+        R_tac_in_palm = np.matmul(R_cup_in_palm, R_tac_in_cup)
+        rotvec_tac_in_palm = R.from_matrix(R_tac_in_palm).as_rotvec()
+
 
     def is_finger_contact(self, sim, hand_param_part):
         part_name = hand_param_part[0]

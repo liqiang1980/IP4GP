@@ -24,45 +24,48 @@ class IK_type(Enum):
 
 class ROBCTRL:
     def __init__(self):
+        self.FIRST_INTERACTION_FLAG = False
         self.robot = URDF.from_xml_file('../../robots/allegro_hand_right_with_tactile.urdf')
         # self.robot = URDF.from_xml_file('../../robots/UR5_allegro_hand_right.urdf')
         # self.robot = URDF.from_xml_file('../../robots/allegro_hand_tactile_v1.4.urdf')
-        # first finger
-        self.kdl_kin_ff = KDLKinematics(self.robot, "palm_link", "link_3.0_tip")
-        # middle finger
-        self.kdl_kin_mf = KDLKinematics(self.robot, "palm_link", "link_7.0_tip")
-        # ring finger
-        self.kdl_kin_rf = KDLKinematics(self.robot, "palm_link", "link_11.0_tip")
-        # thumb
-        self.kdl_kin_th = KDLKinematics(self.robot, "palm_link", "link_15.0_tip")
 
-        self.kdl_kin_taxel = KDLKinematics(self.robot, "palm_link", "touch_7_4_8")
+        # first finger
+        # self.kdl_kin_ff = KDLKinematics(self.robot, "palm_link", "link_3.0_tip")
+        # # middle finger
+        # self.kdl_kin_mf = KDLKinematics(self.robot, "palm_link", "link_7.0_tip")
+        # # ring finger
+        # self.kdl_kin_rf = KDLKinematics(self.robot, "palm_link", "link_11.0_tip")
+        # # thumb
+        # self.kdl_kin_th = KDLKinematics(self.robot, "palm_link", "link_15.0_tip")
+        #
+        # self.kdl_kin_taxel = KDLKinematics(self.robot, "palm_link", "touch_7_4_8")
         # self._ik_wdls_v_kdl = kdl.ChainIkSolverVel_pinv(self.chain)
 
         self.x_state_cur = [0, 0, 0, 0, 0, 0]
         self.gd_cur = [0, 0, 0, 0, 0, 0]
         self.ct_g_z_position = [0, 0, 0]
         self.ct_p_z_position = [0, 0, 0]
-        self.x_bar_all = [0, 0, 0, 0, 0, 0, 0]
-        self.x_state_all = [0, 0, 0, 0, 0, 0, 0]
+        # self.x_bar_all = [0, 0, 0, 0, 0, 0, 0]
+        # self.x_state_all = [0, 0, 0, 0, 0, 0, 0]
         self.x_gt_palm = [0, 0, 0, 0, 0, 0, 0]
         self.x_gt_world = [0, 0, 0]
         self.ju_all = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        if tacCONST.PN_FLAG == 'pn':
-            self.delta_ct = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        else:
-            self.delta_ct = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        if tacCONST.PN_FLAG == 'pn':
-            z_t = self.z_t = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                              0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        else:
-            z_t = self.z_t = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        if tacCONST.PN_FLAG == 'pn':
-            h_t = self.h_t = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                              0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        else:
-            h_t = self.h_t = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+        """ Growing variable, Pre store data for plot """
+        self.x_state_all = [0., 0., 0., 0., 0., 0., 0.]
+        self.x_bar_all = [0., 0., 0., 0., 0., 0., 0.]
+
+        # if tacCONST.PN_FLAG == 'pn':
+        #     # self.delta_ct = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+        #     #                  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        #     z_t = self.z_t = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+        #                       0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        #     h_t = self.h_t = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+        #                       0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        # else:
+        #     # self.delta_ct = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        #     z_t = self.z_t = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        #     h_t = self.h_t = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
     def fk_offset(self, sim, finger_name, active_taxel_name, ref_frame='world'):
         if finger_name == 'ff':
@@ -174,7 +177,6 @@ class ROBCTRL:
 
     def update_augmented_state(self, sim, model, f_param, tacperception, xstate):
         for idx, f_part in enumerate(f_param):
-            f_name = f_part[0]
             if tacperception.is_finger_contact(sim, f_part):
                 contact_name = tacperception.get_contact_taxel_name(sim=sim, model=model, f_part=f_part,
                                                                     z_h_flag="h")
@@ -185,43 +187,8 @@ class ROBCTRL:
                 xstate[8 + 3 * idx] = pos_contact[0][2]
         return xstate
 
-        # if tacperception.is_finger_contact(sim, hand_param[1][0]):
-        #     c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[1][0], z_h_flag="h")
-        #     pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0,
-        #                                                                                              size=(1, 3))
-        #     x_state[6] = pos_contact0[0][0]
-        #     x_state[7] = pos_contact0[0][1]
-        #     x_state[8] = pos_contact0[0][2]
-        #
-        # if tacperception.is_finger_contact(sim, hand_param[2][0]):
-        #     c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[2][0], z_h_flag="h")
-        #     pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0,
-        #                                                                                              size=(1, 3))
-        #     x_state[9] = pos_contact0[0][0]
-        #     x_state[10] = pos_contact0[0][1]
-        #     x_state[11] = pos_contact0[0][2]
-        #
-        # if tacperception.is_finger_contact(sim, hand_param[3][0]):
-        #     c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[3][0], z_h_flag="h")
-        #     pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0,
-        #                                                                                              size=(1, 3))
-        #     x_state[12] = pos_contact0[0][0]
-        #     x_state[13] = pos_contact0[0][1]
-        #     x_state[14] = pos_contact0[0][2]
-        #
-        # if tacperception.is_finger_contact(sim, hand_param[4][0]):
-        #     c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[4][0], z_h_flag="h")
-        #     pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0,
-        #                                                                                              size=(1, 3))
-        #     # print('x_state ', x_state)
-        #     x_state[15] = pos_contact0[0][0]
-        #     x_state[16] = pos_contact0[0][1]
-        #     x_state[17] = pos_contact0[0][2]
-        # return x_state
-
     def augmented_state(self, sim, model, f_param, tacperception, xstate):
         for f_part in f_param:
-            f_name = f_part[0]
             if tacperception.is_finger_contact(sim=sim, hand_param_part=f_part):
                 contact_name = tacperception.get_contact_taxel_name(sim=sim, model=model, f_part=f_part,
                                                                     z_h_flag="h")
@@ -232,153 +199,82 @@ class ROBCTRL:
                 xstate = np.append(xstate, [0, 0, 0])
         return xstate
 
-        # if tacperception.is_finger_contact(sim, hand_param[1][0]):
-        #     c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[1][0], z_h_flag="h")
-        #     pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0,
-        #                                                                                              size=(1, 3))
-        #     x_state = np.append(x_state, [pos_contact0])
-        # else:
-        #     x_state = np.append(x_state, [0, 0, 0])
-        #
-        # if tacperception.is_finger_contact(sim, hand_param[2][0]):
-        #     c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[2][0], z_h_flag="h")
-        #     pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0,
-        #                                                                                              size=(1, 3))
-        #     x_state = np.append(x_state, [pos_contact0])
-        # else:
-        #     x_state = np.append(x_state, [0, 0, 0])
-        #
-        # if tacperception.is_finger_contact(sim, hand_param[3][0]):
-        #     c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[3][0], z_h_flag="h")
-        #     pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0,
-        #                                                                                              size=(1, 3))
-        #     x_state = np.append(x_state, [pos_contact0])
-        # else:
-        #     x_state = np.append(x_state, [0, 0, 0])
-        #
-        # if tacperception.is_finger_contact(sim, hand_param[4][0]):
-        #     c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[4][0], z_h_flag="h")
-        #     pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0,
-        #                                                                                              size=(1, 3))
-        #     x_state = np.append(x_state, [pos_contact0])
-        # else:
-        #     x_state = np.append(x_state, [0, 0, 0])
-        # return xstate
-
     def interaction(self, sim, model, viewer, hand_param, object_param, alg_param, ekf_grasping, tacperception, char):
         global first_contact_flag, x_all, gd_all, P_state_cov, x_state, last_angles, x_bar, z_t, h_t
-        # global ff_first_contact_flag, mf_first_contact_flag, rf_first_contact_flag, th_first_contact_flag
-
-        # flag_ff = tacperception.is_finger_contact(sim, hand_param[1][0])
-        # flag_mf = tacperception.is_finger_contact(sim, hand_param[2][0])
-        # flag_rf = tacperception.is_finger_contact(sim, hand_param[3][0])
-        # flag_th = tacperception.is_finger_contact(sim, hand_param[4][0])
-        # contact_flags = [False] * (len(hand_param) - 1)  # Record which f_part is contact in current interaction round
-        # for i in range(len(hand_param) - 1):
-        #     contact_flags[i] = tacperception.is_finger_contact(sim, hand_param[i + 1])
 
         f_param = hand_param[1:]
-        """Update contact"""
+        f_num = 0  # The number of contact finger parts
+        """ 
+        Update contact state:
+        update contact_flags, number of contact finger parts and cur_contact_tac. 
+        """
         for f_part in f_param:
-            tacperception.is_finger_contact(sim=sim, hand_param_part=f_part)
+            if tacperception.is_finger_contact(sim=sim, hand_param_part=f_part):
+                f_num += 1  # The number of contact finger parts
 
-        # if flag_ff or flag_mf or flag_rf or flag_th:
-        # if any(contact_flags):
+        """ If any contact_tac exists, Do interaction """
         if any(list(tacperception.is_contact.values())):
-            # f_param = hand_param[1:]
-            for idx, f_part in enumerate(f_param):
-                f_name = f_part[0]
-                if tacperception.is_contact[f_name]:
-                    tacperception.fin_num += 1
-                    tacperception.fin_tri[idx] = 1
-            # if tacperception.is_ff_contact:
-            #     tacperception.fin_num += 1
-            #     tacperception.fin_tri[0] = 1
-            # if tacperception.is_mf_contact == True:
-            #     tacperception.fin_num += 1
-            #     tacperception.fin_tri[1] = 1
-            # if tacperception.is_rf_contact == True:
-            #     tacperception.fin_num += 1
-            #     tacperception.fin_tri[2] = 1
-            # if tacperception.is_th_contact == True:
-            #     tacperception.fin_num += 1
-            #     tacperception.fin_tri[3] = 1
-
-            # print('contacts num ', tacperception.fin_num)
-            # print('contacts id ', tacperception.fin_tri)
-            # detect the first contact and initialize y_t_update with noise
-            # print('get into contact procedure')
-            if not first_contact_flag:
+            # for idx, f_part in enumerate(f_param):
+            #     f_name = f_part[0]
+            #     if tacperception.is_contact[f_name]:
+            #         tacperception.fin_num += 1
+            #         tacperception.fin_tri[idx] = 1
+            """ First interaction, Do Initialization """
+            if not self.FIRST_INTERACTION_FLAG:
+                self.FIRST_INTERACTION_FLAG = True
                 # initialize the co-variance matrix of state estimation
                 # P_state_cov = np.random.normal(0, 0.01) * np.identity(6 + 4 * 3)
                 # P_state_cov = 0.1 * np.identity(6 + 4 * 3)
                 # noise +-5 mm, +-0.002 (axis angle vector)
                 # prepare object pose and relevant noise
-                init_e = np.hstack((np.random.uniform((-1) * float(object_param[1]), float(object_param[1]),
-                                                      (1, 3)),
-                                    np.random.uniform(-1 * float(object_param[2]), float(object_param[2]), (1, 3))))
-
+                """ x_state & gd_state Initialization """
+                gd_posquat = ug.get_relative_posquat(sim, "palm_link", "cup")
+                gd_state = ug.posquat2posrotvec_hacking(gd_posquat)
                 x_state = ug.get_relative_posquat(sim, "palm_link", "cup")
-                # attention, here orientation we use the axis angle representation.
-                # x_state = np.array([ug.pos_quat2axis_angle(x_state)])
                 x_state = ug.pos_quat2axis_angle(x_state)
                 np.set_printoptions(suppress=True)
                 print('x_state from beginning before add noise', x_state)
                 if tacCONST.initE_FLAG:
+                    init_e = np.hstack(
+                        (np.random.uniform((-1) * float(object_param[1]), float(object_param[1]), (1, 3)),
+                         np.random.uniform(-1 * float(object_param[2]), float(object_param[2]), (1, 3))))
                     x_state = x_state + init_e
+
+                """ 
+                Augmented state Initialization.
+                augmented state with the contact position on the object surface described in the object frame 
+                """
+                x_state = self.augmented_state(sim=sim, model=model, f_param=f_param, tacperception=tacperception,
+                                               xstate=x_state)
+
+                """ Init the data for plot """
                 x_state_plot = [0., 0., 0., 0., 0., 0., 0.]
+                x_bar_plot = [0., 0., 0., 0., 0., 0., 0.]
+                gd_state_plot = [0., 0., 0., 0., 0., 0., 0.]
                 x_state_plot[0:3] = np.ravel(x_state)[0:3]
                 x_state_plot[3:6], x_state_plot[6] = ug.normalize_scale(np.ravel(x_state)[3:6])
                 self.x_state_all = np.vstack((self.x_state_all, x_state_plot))
-                x_bar_plot = [0., 0., 0., 0., 0., 0., 0.]
                 x_bar_plot[0:3] = np.ravel(x_state)[0:3]
                 x_bar_plot[3:6], x_bar_plot[6] = ug.normalize_scale(np.ravel(x_state)[3:6])
-
                 self.x_bar_all = np.vstack((self.x_bar_all, x_bar_plot))
-
-                # augmented state with the contact position on the object surface described in the object frame
-                x_state = self.augmented_state(sim=sim, model=model, f_param=f_param, tacperception=tacperception,
-                                               xstate=x_state)
-                x_all = x_state
-
-                gd_posquat = ug.get_relative_posquat(sim, "palm_link", "cup")
-                gd_state = ug.posquat2posrotvec_hacking(gd_posquat)
-
-                gd_state_plot = [0., 0., 0., 0., 0., 0., 0.]
                 gd_state_plot[0:3] = gd_state[0:3]
                 gd_state_plot[3:6], gd_state_plot[6] = ug.normalize_scale(gd_state[3:6])
-
                 self.x_gt_palm = np.vstack((self.x_gt_palm, gd_state_plot))
 
-                # print('x_state ground truth ', gd_state)
-                # gd_state = qg.posquat2posrotvec(gd_posquat)
+                """Set first contact flags for finger parts"""
                 first_contact_flag = True
                 for f in tacperception.is_contact:
                     if tacperception.is_contact[f]:
                         tacperception.is_first_contact[f] = True
-                #
-                # if tacperception.is_ff_contact:
-                #     ff_first_contact_flag = True
-                # if tacperception.is_mf_contact:
-                #     mf_first_contact_flag = True
-                # if tacperception.is_rf_contact:
-                #     rf_first_contact_flag = True
-                # if tacperception.is_th_contact:
-                #     th_first_contact_flag = True
 
-                """wave filter of jnt angles"""
-                last_angles = self.get_cur_jnt(sim)
-                # self.mea_filter_js = lfilter(9, 0.01, last_angles, 16)
-                self.mea_filter_js = last_angles
-                print('return early')
+                print('\nInitialization done.\n')
                 return
 
-            else:
-                for f in tacperception.is_contact:
-                    if tacperception.is_contact[f] and not tacperception.is_first_contact[f]:
-                        x_state = self.update_augmented_state(sim=sim, model=model, f_param=f_param,
-                                                              tacperception=tacperception, xstate=x_state)
-                        tacperception.is_first_contact[f] = True
+            for f in tacperception.is_contact:
+                if tacperception.is_contact[f] and not tacperception.is_first_contact[f]:
+                    x_state = self.update_augmented_state(sim=sim, model=model, f_param=f_param,
+                                                          tacperception=tacperception, xstate=x_state)
+                    tacperception.is_first_contact[f] = True
 
             # elif ((flag_ff == True) and (ff_first_contact_flag) == False):
             #     x_state = self.update_augmented_state(sim, model, hand_param, tacperception, x_state)
@@ -404,9 +300,9 @@ class ROBCTRL:
             """ Prediction step in EKF """
             # todo can not use ground truth update the state at every step
             # x_state[:6] = gd_state
-            cur_angles_tmp = self.get_cur_jnt(sim)
+            # cur_angles_tmp = self.get_cur_jnt(sim)
             """ do a rolling average """
-            cur_angles = cur_angles_tmp
+            # cur_angles = cur_angles_tmp
             # cur_angles, self.mea_filter_js.z = \
             #     self.mea_filter_js.lp_filter(cur_angles_tmp, 16)  # wave filter of jnt angles
             x_bar, P_state_cov, ju_all = \
@@ -414,7 +310,7 @@ class ROBCTRL:
                                              x_state, tacperception, P_state_cov, cur_angles,
                                              last_angles, self)
 
-            last_angles = cur_angles
+            # last_angles = cur_angles
             # last_angles = cur_angles_tmp
             """
             Compute the axis and angle for plot_data
@@ -451,7 +347,8 @@ class ROBCTRL:
 
             # # posterior estimation
             if tacCONST.posteriori_FLAG:
-                x_state, P_state_cov = ekf_grasping.ekf_posteriori(sim, model, viewer, x_bar, z_t, h_t, P_state_cov, tacperception, object_param)
+                x_state, P_state_cov = ekf_grasping.ekf_posteriori(sim, model, viewer, x_bar, z_t, h_t, P_state_cov,
+                                                                   tacperception, object_param)
             else:
                 x_state = x_bar
 
@@ -480,17 +377,18 @@ class ROBCTRL:
             np.savetxt('delta_ct.txt', self.delta_ct)
             np.savetxt('z_t.txt', self.z_t)
             np.savetxt('h_t.txt', self.h_t)
-        # else:
-        #     print('no contact')
-        if first_contact_flag:
+
+        if self.FIRST_INTERACTION_FLAG:
             viz.vis_state_contact(sim, viewer, tacperception, z_t, h_t, x_bar, x_state, char, object_param)
             self.active_fingers_taxels_render(sim, viewer, tacperception)
             tacperception.fin_num = 0
             # tacperception.fin_tri = np.zeros(4)
-            tacperception.fin_tri = np.zeros(len(hand_param) - 1)
+            # tacperception.fin_tri = np.zeros(len(hand_param) - 1)
+
+        """ Last Step: use cur_state to update last_state """
 
 
-first_contact_flag = False
+# first_contact_flag = False
 # ff_first_contact_flag = False
 # mf_first_contact_flag = False
 # rf_first_contact_flag = False
