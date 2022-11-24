@@ -110,13 +110,15 @@ class EKF:
                       tacperception.is_th_contact]
         for i in range(4):
             c_point_name = tacperception.get_contact_taxel_name(sim, model, hand_param[i + 1][0], z_h_flag="z")
-            # if c_point_name is None:
-            if not is_contact[i]:
+            if c_point_name is None:
+            # if not is_contact[i]:
                 print("none")
                 c_point_name = tacperception.last_contact[i][0]
-            print("_ju cname: ", c_point_name)
-            cur_s = tacperception.contact_renew(sim=sim, idx=i, tac_name=c_point_name, model="cur")
+            # print("_ju cname: ", c_point_name)
+            cur_s = tacperception.contact_renew(sim=sim, idx=i, tac_name=c_point_name, model="cur", xstate=x_state)
+            # cur_s = tacperception.contact_renew(sim=sim, idx=i, tac_name=tacperception.last_contact[i][0], model="cur", xstate=x_state)
             print(tacperception.cur_contact[i][1], tacperception.last_contact[i][1])
+            # print(is_contact)
             # _ju.extend(tacperception.cur_contact[i][1] - tacperception.last_contact[i][1])
             if is_contact[i]:
                 _ju.extend(tacperception.cur_contact[i][1] - tacperception.last_contact[i][1])
@@ -127,7 +129,7 @@ class EKF:
         ju_judge = ju - _ju
         print("..2 ju compare: ", ju_judge.shape, ju_judge)\
         # print("\n_ju: ", _ju)
-        ju = _ju
+        # ju = _ju
 
         prediction = np.matmul(G_pinv, ju)
         # pq_cup_in_palm = ug.get_relative_posquat(sim, src="palm_link", tgt="cup")

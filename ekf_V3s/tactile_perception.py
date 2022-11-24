@@ -58,38 +58,32 @@ class cls_tactile_perception:
         # self.cur_contact_z = [["touch_0_3_6", np.zeros(6)], ["touch_7_3_6", np.zeros(6)],
         #                       ["touch_11_3_6", np.zeros(6)], ["touch_15_3_6", np.zeros(6)]]
         self.last_contact = [["touch_0_3_6", np.zeros(6)], ["touch_7_3_6", np.zeros(6)],
-                             ["touch_11_3_6", np.zeros(6)], ["touch_15_3_6", np.zeros(6)]]
+                             ["touch_11_3_6", np.zeros(6)], ["touch_15_4_7", np.zeros(6)]]
         self.cur_contact = [["touch_0_3_6", np.zeros(6)], ["touch_7_3_6", np.zeros(6)],
-                            ["touch_11_3_6", np.zeros(6)], ["touch_15_3_6", np.zeros(6)]]
+                            ["touch_11_3_6", np.zeros(6)], ["touch_15_4_7", np.zeros(6)]]
 
-    def contact_renew(self, sim, idx, tac_name, model):
-        # pq_tac_in_palm = ug.get_relative_posquat(sim=sim, src="palm_link", tgt=tac_name)
-        pq_tac_in_cup = ug.get_relative_posquat(sim=sim, src="cup", tgt=tac_name)
-        norvec_tac_in_cup, s = og.surface_cup(pq_tac_in_cup[0], pq_tac_in_cup[1], pq_tac_in_cup[2])
-        R_tac_in_cup = ug.vec2rot(vec=norvec_tac_in_cup)
-        # rotvec = Rotation.from_quat(posquat[3:]).as_rotvec()
-        pq_cup_in_palm = ug.get_relative_posquat(sim=sim, src="palm_link", tgt="cup")
-        pos_cup_in_palm = pq_cup_in_palm[:3]
-        R_cup_in_palm = Rotation.from_quat(pq_cup_in_palm[3:]).as_matrix()
-        pos_tac_in_palm = pos_cup_in_palm + np.matmul(R_cup_in_palm, pq_tac_in_cup[:3].T).T
-        R_tac_in_palm = np.matmul(R_cup_in_palm, R_tac_in_cup)
-        rotvec_tac_in_palm = Rotation.from_matrix(R_tac_in_palm).as_rotvec()
-        # if model == ["last", "z"]:
-        #     self.last_contact_z[idx][0] = tac_name
-        #     self.last_contact_z[idx][1][:3] = posquat[:3]
-        #     self.last_contact_z[idx][1][3:] = rotvec
-        # elif model == ["cur", "z"]:
-        #     self.cur_contact_z[idx][0] = tac_name
-        #     self.cur_contact_z[idx][1][:3] = posquat[:3]
-        #     self.cur_contact_z[idx][1][3:] = rotvec
-        # elif model == ["last", "h"]:
-        #     self.last_contact_h[idx][0] = tac_name
-        #     self.last_contact_h[idx][1][:3] = posquat[:3]
-        #     self.last_contact_h[idx][1][3:] = rotvec
-        # elif model == ["cur", "h"]:
-        #     self.cur_contact_h[idx][0] = tac_name
-        #     self.cur_contact_h[idx][1][:3] = posquat[:3]
-        #     self.cur_contact_h[idx][1][3:] = rotvec
+    def contact_renew(self, sim, idx, tac_name, model, xstate):
+        pq_tac_in_palm = ug.get_relative_posquat(sim=sim, src="palm_link", tgt=tac_name)
+        pos_tac_in_palm = pq_tac_in_palm[:3]
+        # rotvec_tac_in_palm = abs(Rotation.from_quat(pq_tac_in_palm[3:]).as_rotvec())
+        rotvec_tac_in_palm = Rotation.from_quat(pq_tac_in_palm[3:]).as_rotvec()
+        #
+        # pos_cup_in_palm = np.mat(xstate[:3])
+        # R_cup_in_palm = Rotation.from_rotvec(xstate[3:6]).as_matrix()
+        # T_cup_in_palm = np.mat(np.eye(4))
+        # T_cup_in_palm[:3, :3] = R_cup_in_palm
+        # T_cup_in_palm[:3, 3] = pos_cup_in_palm.T
+        # T_palm_in_cup = np.linalg.inv(T_cup_in_palm)
+        #
+        # pos_tac_in_cup = np.ravel((T_palm_in_cup[:3, 3] + np.matmul(T_palm_in_cup[:3, :3], pos_tac_in_palm.T)).T)
+        # print(pos_tac_in_cup)
+        #
+        # norvec_tac_in_cup, s = og.surface_cup(pos_tac_in_cup[0], pos_tac_in_cup[1], pos_tac_in_cup[2])
+        # R_tac_in_cup = ug.vec2rot(vec=norvec_tac_in_cup)
+        #
+        # R_tac_in_palm = np.matmul(R_cup_in_palm, R_tac_in_cup)
+        # rotvec_tac_in_palm = Rotation.from_matrix(R_tac_in_palm).as_rotvec()
+
         if model == "last":
             self.last_contact[idx][0] = tac_name
             self.last_contact[idx][1][:3] = pos_tac_in_palm
