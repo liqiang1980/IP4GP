@@ -1002,6 +1002,7 @@ class ROBCTRL:
             x_state[6] = pos_contact0[0][0]
             x_state[7] = pos_contact0[0][1]
             x_state[8] = pos_contact0[0][2]
+            tacperception.contact_renew(sim=sim, idx=0, tac_name=c_point_name0, model="last")
 
         if tacperception.is_finger_contact(sim, hand_param[2][0]) == True:
             c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[2][0], z_h_flag="h")
@@ -1010,6 +1011,7 @@ class ROBCTRL:
             x_state[9] = pos_contact0[0][0]
             x_state[10] = pos_contact0[0][1]
             x_state[11] = pos_contact0[0][2]
+            tacperception.contact_renew(sim=sim, idx=1, tac_name=c_point_name0, model="last")
 
         if tacperception.is_finger_contact(sim, hand_param[3][0]) == True:
             c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[3][0], z_h_flag="h")
@@ -1018,6 +1020,7 @@ class ROBCTRL:
             x_state[12] = pos_contact0[0][0]
             x_state[13] = pos_contact0[0][1]
             x_state[14] = pos_contact0[0][2]
+            tacperception.contact_renew(sim=sim, idx=2, tac_name=c_point_name0, model="last")
 
         if tacperception.is_finger_contact(sim, hand_param[4][0]) == True:
             c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[4][0], z_h_flag="h")
@@ -1027,7 +1030,7 @@ class ROBCTRL:
             x_state[15] = pos_contact0[0][0]
             x_state[16] = pos_contact0[0][1]
             x_state[17] = pos_contact0[0][2]
-
+            tacperception.contact_renew(sim=sim, idx=3, tac_name=c_point_name0, model="last")
         return x_state
 
     def augmented_state(self, sim, model, hand_param, tacperception, x_state):
@@ -1036,32 +1039,40 @@ class ROBCTRL:
             pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0,
                                                                                                      size=(1, 3))
             x_state = np.append(x_state, [pos_contact0])
+            tacperception.contact_renew(sim=sim, idx=0, tac_name=c_point_name0, model="last")
         else:
             x_state = np.append(x_state, [0, 0, 0])
+            tacperception.contact_renew(sim=sim, idx=0, tac_name=tacperception.last_contact[0][0], model="last")
 
         if tacperception.is_finger_contact(sim, hand_param[2][0]) == True:
             c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[2][0], z_h_flag="h")
             pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0,
                                                                                                      size=(1, 3))
             x_state = np.append(x_state, [pos_contact0])
+            tacperception.contact_renew(sim=sim, idx=1, tac_name=c_point_name0, model="last")
         else:
             x_state = np.append(x_state, [0, 0, 0])
+            tacperception.contact_renew(sim=sim, idx=1, tac_name=tacperception.last_contact[1][0], model="last")
 
         if tacperception.is_finger_contact(sim, hand_param[3][0]) == True:
             c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[3][0], z_h_flag="h")
             pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0,
                                                                                                      size=(1, 3))
             x_state = np.append(x_state, [pos_contact0])
+            tacperception.contact_renew(sim=sim, idx=2, tac_name=c_point_name0, model="last")
         else:
             x_state = np.append(x_state, [0, 0, 0])
+            tacperception.contact_renew(sim=sim, idx=2, tac_name=tacperception.last_contact[2][0], model="last")
 
         if tacperception.is_finger_contact(sim, hand_param[4][0]) == True:
             c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[4][0], z_h_flag="h")
             pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0,
                                                                                                      size=(1, 3))
             x_state = np.append(x_state, [pos_contact0])
+            tacperception.contact_renew(sim=sim, idx=3, tac_name=c_point_name0, model="last")
         else:
             x_state = np.append(x_state, [0, 0, 0])
+            tacperception.contact_renew(sim=sim, idx=3, tac_name=tacperception.last_contact[3][0], model="last")
         return x_state
 
     def interaction(self, sim, model, viewer, hand_param, object_param, alg_param, \
@@ -1093,10 +1104,6 @@ class ROBCTRL:
             # detect the first contact and initialize y_t_update with noise
             # print('get into contact procedure')
             if not first_contact_flag:
-                # tac = ["link_3.0_tip", "link_7.0_tip", "link_11.0_tip", "link_15.0_tip"]
-                tac = ["touch_0_3_6", "touch_7_3_6", "touch_11_3_6", "touch_15_3_6"]
-                for i in range(4):
-                    tacperception.contact_renew(sim=sim, idx=i, tac_name=tac[i], model=["last", "h"])
                 # initialize the co-variance matrix of state estimation
                 # P_state_cov = np.random.normal(0, 0.01) * np.identity(6 + 4 * 3)
                 # P_state_cov = 0.1 * np.identity(6 + 4 * 3)
@@ -1156,15 +1163,19 @@ class ROBCTRL:
             elif ((flag_ff == True) and (ff_first_contact_flag) == False):
                 x_state = self.update_augmented_state(sim, model, hand_param, tacperception, x_state)
                 ff_first_contact_flag = True
+                # return
             elif ((flag_mf == True) and (mf_first_contact_flag) == False):
                 x_state = self.update_augmented_state(sim, model, hand_param, tacperception, x_state)
                 mf_first_contact_flag = True
+                # return
             elif ((flag_rf == True) and (rf_first_contact_flag) == False):
                 x_state = self.update_augmented_state(sim, model, hand_param, tacperception, x_state)
                 rf_first_contact_flag = True
+                # return
             elif ((flag_th == True) and (th_first_contact_flag) == False):
                 x_state = self.update_augmented_state(sim, model, hand_param, tacperception, x_state)
                 th_first_contact_flag = True
+                # return
 
             # else:
             #     print('no else')

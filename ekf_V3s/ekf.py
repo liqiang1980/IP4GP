@@ -75,7 +75,8 @@ class EKF:
         self.J_fingers = np.zeros([6 * 4, 4 * 4])
         for i in range(4):
             self.G_contact[i, :, :], self.J[i, :, :] \
-                = ug.contact_compute(sim, model, hand_param[i + 1][0], tacperception, x_state, cur_angles, robctrl, "palm_link", tac[i])
+                = ug.contact_compute(sim, model, hand_param[i + 1][0], tacperception, x_state, cur_angles, robctrl,
+                                     "palm_link", tac[i])
             # self.Grasping_matrix[0 + i * 6: 6 + i * 6, :] = self.G_contact[i, :, :]
             self.Grasping_matrix[:, 0 + i * 6: 6 + i * 6] = self.G_contact[i, :, :]
             self.J_fingers[0 + i * 6: 6 + i * 6, 0 + i * 4: 4 + i * 4] = self.J[i, :, :]
@@ -102,14 +103,31 @@ class EKF:
         ju = np.matmul(self.J_fingers, delta_angles)
 
         """ Use fixed tac to get ju """
-        # _ju = []
-        # for i in range(4):
-        #     tacperception.contact_renew(sim=sim, idx=i, tac_name=tac[i], model=["cur", "h"])
-        #     _ju.extend(tacperception.cur_contact_h[i][1] - tacperception.last_contact_h[i][1])
-        #     tacperception.contact_renew(sim=sim, idx=i, tac_name=tac[i], model=["last", "h"])
-        # ju_judge = ju - _ju
-        # print("..2 ju compare: ", ju_judge.shape, ju_judge)
-        # ju = _ju
+        _ju = []
+        is_contact = [tacperception.is_ff_contact,
+                      tacperception.is_mf_contact,
+                      tacperception.is_rf_contact,
+                      tacperception.is_th_contact]
+        for i in range(4):
+            c_point_name = tacperception.get_contact_taxel_name(sim, model, hand_param[i + 1][0], z_h_flag="z")
+            # if c_point_name is None:
+            if not is_contact[i]:
+                print("none")
+                c_point_name = tacperception.last_contact[i][0]
+            print("_ju cname: ", c_point_name)
+            cur_s = tacperception.contact_renew(sim=sim, idx=i, tac_name=c_point_name, model="cur")
+            print(tacperception.cur_contact[i][1], tacperception.last_contact[i][1])
+            # _ju.extend(tacperception.cur_contact[i][1] - tacperception.last_contact[i][1])
+            if is_contact[i]:
+                _ju.extend(tacperception.cur_contact[i][1] - tacperception.last_contact[i][1])
+            else:
+                _ju.extend(np.zeros(6))
+            tacperception.last_contact[i][0] = copy.deepcopy(c_point_name)
+            tacperception.last_contact[i][1] = copy.deepcopy(cur_s)
+        ju_judge = ju - _ju
+        print("..2 ju compare: ", ju_judge.shape, ju_judge)\
+        # print("\n_ju: ", _ju)
+        ju = _ju
 
         prediction = np.matmul(G_pinv, ju)
         # pq_cup_in_palm = ug.get_relative_posquat(sim, src="palm_link", tgt="cup")
@@ -152,7 +170,7 @@ class EKF:
         for i in range(4):
             if tacperception.fin_tri[i] == 1:
                 contact_position.extend(_obj_position.T + np.matmul(_rot, x_bar[6 + i * 3:6 + (i + 1) * 3]))
-                _contact_position.extend(tacperception.cur_contact_h[i][1][:3])
+                _contact_position.extend(tacperception.cur_contact[i][1][:3])
                 ##########Get normal of contact point on the cup
                 nor_contact_in_cup, res = og.surface_cup(x_bar[6 + i * 3], x_bar[6 + i * 3 + 1],
                                                          x_bar[6 + i * 3 + 2])
@@ -178,9 +196,9 @@ class EKF:
         for i in range(4):
             if tacperception.fin_tri[i] == 1:
                 contact_position.append(
-                    (tacperception.get_contact_taxel_position(sim, model, hand_param[i + 1][0], "palm_link", "z", tactile_allegro_mujo_const.TAC[i]))[:3]
+                    (tacperception.get_contact_taxel_position(sim, model, hand_param[i + 1][0], "palm_link"))[:3]
                     + np.random.normal(0.00, 0.0, 3)
-                    )
+                )
                 contact_nv.append(tacperception.get_contact_taxel_nv(sim, model,
                                                                      hand_param[i + 1][0], "palm_link") \
                                   + np.random.normal(0, 0., 3))

@@ -1506,6 +1506,11 @@ Control Engineering / Automation Engineering
                                                                                     <site name="touch_0_2_9" />
                                                                                     <geom type="cylinder" size="0.0011 0.00003" euler="0 1.57 0"  contype="1" conaffinity="1" rgba="0 0 1 1"/>
                                                                                     </body>
+<!--                                                                                    <body name="touch_0_3_10" pos=" 0.005 0.00125 0.007945 "  euler=" 0.0 0.0 0.0 ">-->
+<!--                                                                                    <joint  type="slide" pos="0 0 0" stiffness="5" axis="1 0 0" limited="true" range="-0.0015 0.0015" damping="1"/>-->
+<!--                                                                                    <site name="touch_0_3_10" />-->
+<!--                                                                                    <geom type="cylinder" size="0.0011 0.00003" euler="0 1.57 0"  contype="1" conaffinity="1" rgba="0 0 1 1"/>-->
+<!--                                                                                    </body>-->
                                                                                     <body name="touch_0_3_9" pos=" 0.005 0.00125 0.0056749999999999995 "  euler=" 0.0 0.0 0.0 ">
                                                                                     <joint  type="slide" pos="0 0 0" stiffness="5" axis="1 0 0" limited="true" range="-0.0015 0.0015" damping="1"/>
                                                                                     <site name="touch_0_3_9" />

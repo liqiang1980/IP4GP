@@ -49,35 +49,57 @@ class cls_tactile_perception:
             3: [tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN, tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX],
         }
         """ Last & Cur contact points ：name and pos & rot. default contact points are already set """
-        self.last_contact_h = [["touch_0_3_6", np.zeros(6)], ["touch_7_3_6", np.zeros(6)],
-                              ["touch_11_3_6", np.zeros(6)], ["touch_15_3_6", np.zeros(6)]]
-        self.cur_contact_h = [["touch_0_3_6", np.zeros(6)], ["touch_7_3_6", np.zeros(6)],
-                              ["touch_11_3_6", np.zeros(6)], ["touch_15_3_6", np.zeros(6)]]
-        self.last_contact_z = [["touch_0_3_6", np.zeros(6)], ["touch_7_3_6", np.zeros(6)],
-                              ["touch_11_3_6", np.zeros(6)], ["touch_15_3_6", np.zeros(6)]]
-        self.cur_contact_z = [["touch_0_3_6", np.zeros(6)], ["touch_7_3_6", np.zeros(6)],
-                              ["touch_11_3_6", np.zeros(6)], ["touch_15_3_6", np.zeros(6)]]
+        # self.last_contact_h = [["touch_0_3_6", np.zeros(6)], ["touch_7_3_6", np.zeros(6)],
+        #                        ["touch_11_3_6", np.zeros(6)], ["touch_15_3_6", np.zeros(6)]]
+        # self.cur_contact_h = [["touch_0_3_6", np.zeros(6)], ["touch_7_3_6", np.zeros(6)],
+        # #                       ["touch_11_3_6", np.zeros(6)], ["touch_15_3_6", np.zeros(6)]]
+        # self.last_contact_z = [["touch_0_3_6", np.zeros(6)], ["touch_7_3_6", np.zeros(6)],
+        #                        ["touch_11_3_6", np.zeros(6)], ["touch_15_3_6", np.zeros(6)]]
+        # self.cur_contact_z = [["touch_0_3_6", np.zeros(6)], ["touch_7_3_6", np.zeros(6)],
+        #                       ["touch_11_3_6", np.zeros(6)], ["touch_15_3_6", np.zeros(6)]]
+        self.last_contact = [["touch_0_3_6", np.zeros(6)], ["touch_7_3_6", np.zeros(6)],
+                             ["touch_11_3_6", np.zeros(6)], ["touch_15_3_6", np.zeros(6)]]
+        self.cur_contact = [["touch_0_3_6", np.zeros(6)], ["touch_7_3_6", np.zeros(6)],
+                            ["touch_11_3_6", np.zeros(6)], ["touch_15_3_6", np.zeros(6)]]
 
     def contact_renew(self, sim, idx, tac_name, model):
-        posquat = ug.get_relative_posquat(sim=sim, src="palm_link", tgt=tac_name)
-        rotvec = Rotation.from_quat(posquat[3:]).as_rotvec()
-        if model == ["last", "z"]:
-            self.last_contact_z[idx][0] = tac_name
-            self.last_contact_z[idx][1][:3] = posquat[:3]
-            self.last_contact_z[idx][1][3:] = rotvec
-        elif model == ["cur", "z"]:
-            self.cur_contact_z[idx][0] = tac_name
-            self.cur_contact_z[idx][1][:3] = posquat[:3]
-            self.cur_contact_z[idx][1][3:] = rotvec
-        elif model == ["last", "h"]:
-            self.last_contact_h[idx][0] = tac_name
-            self.last_contact_h[idx][1][:3] = posquat[:3]
-            self.last_contact_h[idx][1][3:] = rotvec
-        elif model == ["cur", "h"]:
-            self.cur_contact_h[idx][0] = tac_name
-            self.cur_contact_h[idx][1][:3] = posquat[:3]
-            self.cur_contact_h[idx][1][3:] = rotvec
-
+        # pq_tac_in_palm = ug.get_relative_posquat(sim=sim, src="palm_link", tgt=tac_name)
+        pq_tac_in_cup = ug.get_relative_posquat(sim=sim, src="cup", tgt=tac_name)
+        norvec_tac_in_cup, s = og.surface_cup(pq_tac_in_cup[0], pq_tac_in_cup[1], pq_tac_in_cup[2])
+        R_tac_in_cup = ug.vec2rot(vec=norvec_tac_in_cup)
+        # rotvec = Rotation.from_quat(posquat[3:]).as_rotvec()
+        pq_cup_in_palm = ug.get_relative_posquat(sim=sim, src="palm_link", tgt="cup")
+        pos_cup_in_palm = pq_cup_in_palm[:3]
+        R_cup_in_palm = Rotation.from_quat(pq_cup_in_palm[3:]).as_matrix()
+        pos_tac_in_palm = pos_cup_in_palm + np.matmul(R_cup_in_palm, pq_tac_in_cup[:3].T).T
+        R_tac_in_palm = np.matmul(R_cup_in_palm, R_tac_in_cup)
+        rotvec_tac_in_palm = Rotation.from_matrix(R_tac_in_palm).as_rotvec()
+        # if model == ["last", "z"]:
+        #     self.last_contact_z[idx][0] = tac_name
+        #     self.last_contact_z[idx][1][:3] = posquat[:3]
+        #     self.last_contact_z[idx][1][3:] = rotvec
+        # elif model == ["cur", "z"]:
+        #     self.cur_contact_z[idx][0] = tac_name
+        #     self.cur_contact_z[idx][1][:3] = posquat[:3]
+        #     self.cur_contact_z[idx][1][3:] = rotvec
+        # elif model == ["last", "h"]:
+        #     self.last_contact_h[idx][0] = tac_name
+        #     self.last_contact_h[idx][1][:3] = posquat[:3]
+        #     self.last_contact_h[idx][1][3:] = rotvec
+        # elif model == ["cur", "h"]:
+        #     self.cur_contact_h[idx][0] = tac_name
+        #     self.cur_contact_h[idx][1][:3] = posquat[:3]
+        #     self.cur_contact_h[idx][1][3:] = rotvec
+        if model == "last":
+            self.last_contact[idx][0] = tac_name
+            self.last_contact[idx][1][:3] = pos_tac_in_palm
+            self.last_contact[idx][1][3:] = rotvec_tac_in_palm
+        elif model == "cur":
+            self.cur_contact[idx][0] = tac_name
+            self.cur_contact[idx][1][:3] = pos_tac_in_palm
+            self.cur_contact[idx][1][3:] = rotvec_tac_in_palm
+            # print(" _ju cname posrotvec: ", posquat, rotvec, self.cur_contact[idx][1])
+        return self.cur_contact[idx][1]
 
     def update_tacdata(self, sim):
         """
@@ -370,16 +392,13 @@ class cls_tactile_perception:
             return np.where(sim.data.sensordata[tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN: \
                                                 tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX] > 0.0)
 
-    def get_contact_taxel_position(self, sim, model, fingername, ref_frame, z_h_flag, tac_name):
+    def get_contact_taxel_position(self, sim, model, fingername, ref_frame):
         """
         Get the position of the contact taxel in the reference frame.
         Always use the contact point closest to the center position of contact area.
         """
         # get the name
-        if z_h_flag == "z":
-            c_point_name = self.get_contact_taxel_name(sim, model, fingername, z_h_flag)
-        else:
-            c_point_name = tac_name
+        c_point_name = self.get_contact_taxel_name(sim, model, fingername, "z")
         # get the position
         pos_contact = ug.get_relative_posquat(sim, ref_frame, c_point_name)
         tmp_list = []
@@ -451,8 +470,8 @@ class cls_tactile_perception:
             min_value = min(dev_taxel_value)
             # id_chosen = c_points[dev_taxel_value.index(min_value)]
             id_chosen = dev_taxel_value.index(min_value) + tac_id[0]
-            print(" choose:", id_chosen)
             c_point_name = model._sensor_id2name[id_chosen]
+            print(" choose:", id_chosen, " tac_name:", c_point_name)
         else:
             id_chosen = -1
             c_point_name = model._sensor_id2name[c_points[0]]

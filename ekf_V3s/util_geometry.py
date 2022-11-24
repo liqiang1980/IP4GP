@@ -785,7 +785,7 @@ def contact_compute(sim, model, fingername, tacperception, x_state, cur_angles, 
             print("Calculate G: ff")
             cur_jnt = cur_angles[0:4]
             if tacperception.is_ff_contact == True:
-                pos_contact = tacperception.get_contact_taxel_position(sim, model, fingername, ref_frame=ref_frame, tac_name=tac_name)
+                pos_contact = tacperception.get_contact_taxel_position(sim, model, fingername, ref_frame=ref_frame)
                 #    the G_contact is partial grasping matrix because the noised object pose, refer to:
                 #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
                 #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
@@ -801,7 +801,7 @@ def contact_compute(sim, model, fingername, tacperception, x_state, cur_angles, 
             cur_jnt = cur_angles[4:8]
 
             if tacperception.is_mf_contact == True:
-                pos_contact = tacperception.get_contact_taxel_position(sim, model, fingername, ref_frame=ref_frame, tac_name=tac_name)
+                pos_contact = tacperception.get_contact_taxel_position(sim, model, fingername, ref_frame=ref_frame)
                 #    the G_contact is partial grasping matrix because the noised object pose, refer to:
                 #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
                 #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
@@ -816,7 +816,7 @@ def contact_compute(sim, model, fingername, tacperception, x_state, cur_angles, 
             print("Calculate G: rf")
             cur_jnt = cur_angles[8:12]
             if tacperception.is_rf_contact == True:
-                pos_contact = tacperception.get_contact_taxel_position(sim, model, fingername, ref_frame=ref_frame, tac_name=tac_name)
+                pos_contact = tacperception.get_contact_taxel_position(sim, model, fingername, ref_frame=ref_frame)
                 #    the G_contact is partial grasping matrix because the noised object pose, refer to:
                 #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
                 #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
@@ -833,7 +833,7 @@ def contact_compute(sim, model, fingername, tacperception, x_state, cur_angles, 
             cur_jnt = cur_angles[12:16]
 
             if tacperception.is_th_contact == True:
-                pos_contact = tacperception.get_contact_taxel_position(sim, model, fingername, ref_frame=ref_frame, tac_name=tac_name)
+                pos_contact = tacperception.get_contact_taxel_position(sim, model, fingername, ref_frame=ref_frame)
                 #    the G_contact is partial grasping matrix because the noised object pose, refer to:
                 #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
                 #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
@@ -847,10 +847,9 @@ def contact_compute(sim, model, fingername, tacperception, x_state, cur_angles, 
     else:
         if fingername == 'ff':
             if tacperception.is_ff_contact == True:
-                # taxel_name = tacperception.get_contact_taxel_name(sim, model, 'ff', z_h_flag="z")
-                taxel_name = tac_name
-                # pos_contact = tacperception.get_contact_taxel_position_from_name(sim, model, fingername, ref_frame, taxel_name)
-                pos_contact = tacperception.get_contact_taxel_position(sim, model, fingername, ref_frame=ref_frame, z_h_flag="h", tac_name=tac_name)
+                taxel_name = tacperception.get_contact_taxel_name(sim, model, 'ff', z_h_flag="z")
+                # taxel_name = tac_name
+                pos_contact = tacperception.get_contact_taxel_position_from_name(sim, model, fingername, ref_frame, taxel_name)
                 #    the G_contact is partial grasping matrix because the noised object pose, refer to:
                 #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
                 #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
@@ -865,10 +864,9 @@ def contact_compute(sim, model, fingername, tacperception, x_state, cur_angles, 
         if fingername == 'mf':
 
             if tacperception.is_mf_contact == True:
-                # taxel_name = tacperception.get_contact_taxel_name(sim, model, 'ff', z_h_flag="z")
-                taxel_name = tac_name
-                # pos_contact = tacperception.get_contact_taxel_position_from_name(sim, model, fingername, ref_frame, taxel_name)
-                pos_contact = tacperception.get_contact_taxel_position(sim, model, fingername, ref_frame=ref_frame, z_h_flag="h", tac_name=tac_name)
+                taxel_name = tacperception.get_contact_taxel_name(sim, model, 'ff', z_h_flag="z")
+                # taxel_name = tac_name
+                pos_contact = tacperception.get_contact_taxel_position_from_name(sim, model, fingername, ref_frame, taxel_name)
                 #    the G_contact is partial grasping matrix because the noised object pose, refer to:
                 #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
                 #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
@@ -884,10 +882,9 @@ def contact_compute(sim, model, fingername, tacperception, x_state, cur_angles, 
         if fingername == 'rf':
 
             if tacperception.is_rf_contact == True:
-                # taxel_name = tacperception.get_contact_taxel_name(sim, model, 'ff', z_h_flag="z")
-                taxel_name = tac_name
-                # pos_contact = tacperception.get_contact_taxel_position_from_name(sim, model, fingername, ref_frame, taxel_name)
-                pos_contact = tacperception.get_contact_taxel_position(sim, model, fingername, ref_frame=ref_frame, z_h_flag="h", tac_name=tac_name)
+                taxel_name = tacperception.get_contact_taxel_name(sim, model, 'ff', z_h_flag="z")
+                # taxel_name = tac_name
+                pos_contact = tacperception.get_contact_taxel_position_from_name(sim, model, fingername, ref_frame, taxel_name)
                 #    the G_contact is partial grasping matrix because the noised object pose, refer to:
                 #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
                 #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
@@ -902,10 +899,9 @@ def contact_compute(sim, model, fingername, tacperception, x_state, cur_angles, 
         if fingername == 'th':
 
             if tacperception.is_th_contact == True:
-                # taxel_name = tacperception.get_contact_taxel_name(sim, model, 'ff', z_h_flag="z")
-                taxel_name = tac_name
-                # pos_contact = tacperception.get_contact_taxel_position_from_name(sim, model, fingername, ref_frame, taxel_name)
-                pos_contact = tacperception.get_contact_taxel_position(sim, model, fingername, ref_frame=ref_frame, z_h_flag="h", tac_name=tac_name)
+                taxel_name = tacperception.get_contact_taxel_name(sim, model, 'ff', z_h_flag="z")
+                # taxel_name = tac_name
+                pos_contact = tacperception.get_contact_taxel_position_from_name(sim, model, fingername, ref_frame, taxel_name)
                 #    the G_contact is partial grasping matrix because the noised object pose, refer to:
                 #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
                 #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2

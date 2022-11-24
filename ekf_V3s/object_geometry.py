@@ -10,7 +10,8 @@ def get_normal_from_formula(coe, point):
 
 def surface_cup(cur_x, cur_y, cur_z):
     s = [129.4, 1.984, 139., -0.666, 0.32, -0.207]  # 曲面方程的6个系数
-    return (-1.0) * get_normal_from_formula(s, [cur_x, cur_y, cur_z]), s
+    # return (-1.0) * get_normal_from_formula(s, [cur_x, cur_y, cur_z]), s
+    return get_normal_from_formula(s, [cur_x, cur_y, cur_z]), s
 
 
 def surface_bottle(cur_x, cur_y, cur_z):
