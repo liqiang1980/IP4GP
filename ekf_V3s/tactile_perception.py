@@ -66,7 +66,11 @@ class cls_tactile_perception:
         pq_tac_in_palm = ug.get_relative_posquat(sim=sim, src="palm_link", tgt=tac_name)
         pos_tac_in_palm = pq_tac_in_palm[:3]
         # rotvec_tac_in_palm = abs(Rotation.from_quat(pq_tac_in_palm[3:]).as_rotvec())
-        rotvec_tac_in_palm = Rotation.from_quat(pq_tac_in_palm[3:]).as_rotvec()
+        # pq_tac_in_palm[3:] = abs(pq_tac_in_palm[3:])
+        # rotvec_tac_in_palm = Rotation.from_quat(pq_tac_in_palm[3:]).as_rotvec()
+        rotvec_tac_in_palm = ug.posquat2posrotvec_hacking(pq_tac_in_palm)[3:]
+        # print("    quat: ", pq_tac_in_palm[3:], " rotvec: ", rotvec_tac_in_palm)
+
         #
         # pos_cup_in_palm = np.mat(xstate[:3])
         # R_cup_in_palm = Rotation.from_rotvec(xstate[3:6]).as_matrix()

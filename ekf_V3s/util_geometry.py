@@ -405,7 +405,7 @@ def pos_quat2axis_angle(pos_quat):
 def posquat2posrotvec_hacking(posquat):
     posrotvec = np.zeros(6)
     posrotvec[:3] = posquat[:3]
-    _quat = np.hstack((posquat[4:], posquat[3]))
+    _quat = np.hstack((posquat[4:], posquat[3]))  # change wxyz to xyzw
     rm = Rotation.from_quat(_quat).as_matrix()
     # compute rot_vec
     theta_tmp = math.acos((np.trace(rm) - 1.0) / 2.0)
