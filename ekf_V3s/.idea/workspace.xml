@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a46bb2c9-c41f-4eea-84c6-08bc8cd6b118" name="Changes" comment="">
+    <list default="true" id="f48f9cc3-90c2-4d50-bba7-7ed9f1a72c30" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/ekf_V3s.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/robot_control.py" beforeDir="false" afterPath="$PROJECT_DIR$/robot_control.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tactile_perception.py" beforeDir="false" afterPath="$PROJECT_DIR$/tactile_perception.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -14,17 +16,7 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
-  <component name="HighlightingSettingsPerFile">
-    <setting file="file://$PROJECT_DIR$/plotter.py" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/tactile_perception.py" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/ekf_obj_pose/ekf_obj_pose.py" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Plot_plus.py" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/robot_control.py" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/test.py" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/tactile_plotter.py" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/util_geometry.py" root0="FORCE_HIGHLIGHTING" />
-  </component>
-  <component name="ProjectId" id="2Hnsj7SVcRcFPER4oJoLcsRQAkt" />
+  <component name="ProjectId" id="2I1D2mHfPQYw1QZ2Y601rUUv0u7" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -35,7 +27,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RunManager">
     <configuration name="ekf_obj_pose" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
@@ -52,7 +44,7 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/ekf_obj_pose/ekf_obj_pose.py" />
-      <option name="PARAMETERS" value="data.xml" />
+      <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -69,58 +61,16 @@
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="a46bb2c9-c41f-4eea-84c6-08bc8cd6b118" name="Changes" comment="" />
-      <created>1668932314214</created>
+      <changelist id="f48f9cc3-90c2-4d50-bba7-7ed9f1a72c30" name="Changes" comment="" />
+      <created>1669339991182</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1668932314214</updated>
-      <workItem from="1668932316038" duration="2931000" />
-      <workItem from="1668997092117" duration="1751000" />
+      <updated>1669339991182</updated>
+      <workItem from="1669339993114" duration="18000" />
     </task>
-    <task id="LOCAL-00001" summary="add default_tac in data.xml">
-      <created>1668997310759</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1668997310759</updated>
-    </task>
-    <task id="LOCAL-00002" summary="add default_tac in data.xml">
-      <created>1669000090796</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1669000090796</updated>
-    </task>
-    <task id="LOCAL-00003" summary="add default_tac in data.xml">
-      <created>1669000322103</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1669000322103</updated>
-    </task>
-    <task id="LOCAL-00004" summary="add default_tac in data.xml">
-      <created>1669000441980</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1669000441980</updated>
-    </task>
-    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
-  </component>
-  <component name="VcsManagerConfiguration">
-    <MESSAGE value="add default_tac in data.xml" />
-    <option name="LAST_COMMIT_MESSAGE" value="add default_tac in data.xml" />
-  </component>
-  <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/ekf_V3s$test.coverage" NAME="test Coverage Results" MODIFIED="1669194260855" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ekf_V3s$robot_control.coverage" NAME="robot_control Coverage Results" MODIFIED="1667222352952" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ekf_V3s$test1.coverage" NAME="test1 Coverage Results" MODIFIED="1667735563624" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ekf_V3s$ekf_obj_pose.coverage" NAME="ekf_obj_pose Coverage Results" MODIFIED="1669287798483" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/ekf_obj_pose" />
-    <SUITE FILE_PATH="coverage/ekf_V3s$tactile_plotter.coverage" NAME="tactile_plotter Coverage Results" MODIFIED="1667875458008" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ekf_V3s$plotter.coverage" NAME="plotter Coverage Results" MODIFIED="1669259898479" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

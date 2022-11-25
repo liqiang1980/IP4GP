@@ -93,20 +93,6 @@ class cls_tactile_perception:
         self.get_tip_center_pose(sim, model, 'rf_tip', ref_frame)
         self.get_tip_center_pose(sim, model, 'th_tip', ref_frame)
 
-    def tac_renew(self, f_part):
-        f_name = f_part[0]
-        pq_tac_in_cup = ug.get_relative_posquat(sim=sim, src="cup", tgt=tac_name)
-        norvec_tac_in_cup, s = og.surface_cup(pq_tac_in_cup[0], pq_tac_in_cup[1], pq_tac_in_cup[2])
-        R_tac_in_cup = ug.vec2rot(vec=norvec_tac_in_cup)
-        # rotvec = Rotation.from_quat(posquat[3:]).as_rotvec()
-        pq_cup_in_palm = ug.get_relative_posquat(sim=sim, src="palm_link", tgt="cup")
-        pos_cup_in_palm = pq_cup_in_palm[:3]
-        R_cup_in_palm = R.from_quat(pq_cup_in_palm[3:]).as_matrix()
-        pos_tac_in_palm = pos_cup_in_palm + np.matmul(R_cup_in_palm, pq_tac_in_cup[:3].T).T
-        R_tac_in_palm = np.matmul(R_cup_in_palm, R_tac_in_cup)
-        rotvec_tac_in_palm = R.from_matrix(R_tac_in_palm).as_rotvec()
-
-
     def is_finger_contact(self, sim, hand_param_part):
         part_name = hand_param_part[0]
         min_id = hand_param_part[3][0]
