@@ -50,8 +50,9 @@ def pass_arg():
             for tac in tacs:
                 tac_id_list = [int(tac.getElementsByTagName("min")[0].firstChild.data),
                                int(tac.getElementsByTagName("max")[0].firstChild.data)]
-            default_tac = finger.getElementsByTagName("default_tac")[0].firstChild.data
-            finger_param = [finger_name, is_used, j_init_dic, tac_id_list, default_tac]
+            default_tac_name = finger.getElementsByTagName("default_tac")[0].getElementsByTagName("name")[0].firstChild.data
+            default_tac_id = int(finger.getElementsByTagName("default_tac")[0].getElementsByTagName("id")[0].firstChild.data)
+            finger_param = [finger_name, is_used, j_init_dic, tac_id_list, [default_tac_name, default_tac_id]]
             hand_param.append(finger_param)
 
         for item in hand_param:

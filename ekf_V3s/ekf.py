@@ -16,7 +16,6 @@ from scipy.spatial.transform import Rotation
 # https://automaticaddison.com/extended-kalman-filter-ekf-with-python-code-example/
 
 class EKF:
-
     def __init__(self):
         print('init ekf')
         ##############   refresh parameters  ###################
@@ -103,7 +102,7 @@ class EKF:
 
         # assume the contact positions on the object do not change.
         # print("???shape of pre: ", prediction.shape, prediction, G_pinv.shape, ju.shape)
-        prediction = np.append(prediction, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])  # 6*1 to 18*1
+        prediction = np.append(prediction, [0] * (12*3))
         # print("???shape of pre: ", prediction.shape, prediction, (1.0/tacperception.fin_num*prediction).shape, (1.0/tacperception.fin_num*prediction))
         # x_bar = x_state + 1.0 / tacperception.fin_num * prediction
         x_bar = x_state + prediction
@@ -114,7 +113,7 @@ class EKF:
         # print('in state predict after', P_state_cov)
 
         # ju is only for debugging
-        return x_bar, P_state_cov, ju
+        return x_bar, P_state_cov
 
     def observe_computation(self, x_bar, tacperception, sim, object_param):
         # print('measurement equation computation')
@@ -224,13 +223,6 @@ class EKF:
             # K_t[0:3, :] = 0.08 * np.linalg.pinv(J_h)[0:3, :]
             # K_t[3:6, :] = 0.001 * np.linalg.pinv(J_h)[3:6, :]
             u, s, v = np.linalg.svd(J_h)
-            # print('s is ', s)
-            # print('in posteria P_state_cov before', P_state_cov)
-            # print('J_h ', J_h)
-            # print('pinv ', np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi))
-            # h_t[:3] = -h_t[:3]
-            # normal direction of the object is oposite to the contact tacxel
-            # h_t[12:] = -h_t[12:]
             delta_t = z_t - h_t
             delta_t[12:24] = 0.0 * (z_t[12:24] - h_t[12:24])
             Update = np.ravel(np.matmul(K_t, delta_t))

@@ -156,6 +156,11 @@ def get_relative_posquat(sim, src, tgt):
     return trans2posquat(srcHtgt)
 
 
+def get_relative_posrotvec(sim, src, tgt):
+    posquat = get_relative_posquat(sim=sim, src=src, tgt=tgt)
+    return posquat2posrotvec_hacking(posquat=posquat)
+
+
 def get_prepose_posequat(wHo, oHg):
     # wHg = wHo * oHg
     wHg = np.matmul(wHo, oHg)
@@ -726,6 +731,7 @@ def posquat2posrotvec(posquat):
     _quat = np.hstack((posquat[4:], posquat[3]))
     posrotvec[3:] = Rotation.from_quat(_quat).as_rotvec()
     return posrotvec
+
 
 def posquat2posrotvec_hacking(posquat):
     posrotvec = np.zeros(6)
