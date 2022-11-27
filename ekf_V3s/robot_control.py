@@ -8,7 +8,8 @@ import util_geometry as ug
 import time
 import fcl
 import math
-
+import copy
+import qgFunc as qg
 import viz
 import PyKDL as kdl
 from mujoco_py import const
@@ -41,6 +42,45 @@ class ROBCTRL:
         self.kdl_kin_taxel = KDLKinematics(self.robot, "palm_link", "touch_7_4_8")
         # self._ik_wdls_v_kdl = kdl.ChainIkSolverVel_pinv(self.chain)
 
+        # init kdl_JntArrays for each finger
+        # self.hand_description = URDF.from_xml_file(
+        #     "/home/lqg/robotics_data/qg_ws/src/fpt_vis/launch/allegro_hand_tactile_v1.4.urdf")  # for Jacobian
+        self.hand_description = URDF.from_xml_file('../../robots/allegro_hand_right_with_tactile.urdf')
+        self.hand_tree = kdl_tree_from_urdf_model(self.hand_description)  # for Jacobian
+        self.index_qpos = kdl.JntArray(4)
+        self.mid_qpos = kdl.JntArray(4)
+        self.ring_qpos = kdl.JntArray(4)
+        self.thumb_qpos = kdl.JntArray(4)
+        kdl.SetToZero(self.index_qpos)
+        kdl.SetToZero(self.mid_qpos)
+        kdl.SetToZero(self.ring_qpos)
+        kdl.SetToZero(self.thumb_qpos)
+        # self.index_chain = self.hand_tree.getChain("palm_link", "link_3.0_tip_tactile")
+        # self.mid_chain = self.hand_tree.getChain("palm_link", "link_7.0_tip_tactile")
+        # self.ring_chain = self.hand_tree.getChain("palm_link", "link_11.0_tip_tactile")
+        # self.thumb_chain = self.hand_tree.getChain("palm_link", "link_15.0_tip_tactile")
+        self.index_chain = self.hand_tree.getChain("palm_link", "link_3.0_tip")
+        self.mid_chain = self.hand_tree.getChain("palm_link", "link_7.0_tip")
+        self.ring_chain = self.hand_tree.getChain("palm_link", "link_11.0_tip")
+        self.thumb_chain = self.hand_tree.getChain("palm_link", "link_15.0_tip")
+        # forward kinematicsallegro_jstates
+        self.index_fk = kdl.ChainFkSolverPos_recursive(self.index_chain)
+        self.mid_fk = kdl.ChainFkSolverPos_recursive(self.mid_chain)
+        self.ring_fk = kdl.ChainFkSolverPos_recursive(self.ring_chain)
+        self.thumb_fk = kdl.ChainFkSolverPos_recursive(self.thumb_chain)
+        # init kdl_Frames for each finger
+        self.index_pos = kdl.Frame()  # Construct an identity frame
+        self.mid_pos = kdl.Frame()  # Construct an identity frame
+        self.ring_pos = kdl.Frame()  # Construct an identity frame
+        self.thumb_pos = kdl.Frame()  # Construct an identity frame
+        # T results from FK_dealer
+        self.T_index_palm = np.mat(np.eye(4))
+        self.T_middle_palm = np.mat(np.eye(4))
+        self.T_ring_palm = np.mat(np.eye(4))
+        self.T_thumb_palm = np.mat(np.eye(4))
+        # Last_jnt
+        # self.last_jnt = [0] * 16
+
         self.ct_g_z_position = [0, 0, 0]
         self.ct_p_z_position = [0, 0, 0]
         self.x_bar_all = [0, 0, 0, 0, 0, 0, 0]
@@ -71,6 +111,136 @@ class ROBCTRL:
         sim.data.ctrl[tactile_allegro_mujo_const.UR_CTRL_4] = -1.
         sim.data.ctrl[tactile_allegro_mujo_const.UR_CTRL_5] = 0
         sim.data.ctrl[tactile_allegro_mujo_const.UR_CTRL_6] = -0.3
+
+    def get_cur_jnt(self, sim):
+        # print("|||shape||||qpos: ", len(sim.data.qpos))
+        cur_jnt = np.zeros(tactile_allegro_mujo_const.FULL_FINGER_JNTS_NUM)
+        cur_jnt[0:4] = np.array([sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_1],
+                                 sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_2],
+                                 sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_3],
+                                 sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_4]])
+
+        cur_jnt[4:8] = np.array([sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_1],
+                                 sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_2],
+                                 sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_3],
+                                 sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_4]])
+
+        cur_jnt[8:12] = np.array([sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_1],
+                                  sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_2],
+                                  sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_3],
+                                  sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_4]])
+
+        cur_jnt[12:16] = np.array([sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_1],
+                                   sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_2],
+                                   sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_3],
+                                   sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_4]])
+        return cur_jnt
+
+    def joint_update(self, cur_jnt):
+        _all_joint = cur_jnt
+        # all_joint = np.array(_all_joint)
+        # self.qpos_now = all_joint
+        # self.time_now = time.time()
+        # self.qpos_delta = self.qpos_now - self.qpos_last
+        # self.qvel = self.qpos_delta / (self.time_now - self.time_last)
+        # self.qpos_last = self.qpos_now
+        # self.time_last = self.time_now
+
+        self.index_qpos[0] = _all_joint[0]
+        self.index_qpos[1] = _all_joint[1]
+        self.index_qpos[2] = _all_joint[2]
+        self.index_qpos[3] = _all_joint[3]
+        self.mid_qpos[0] = _all_joint[4]
+        self.mid_qpos[1] = _all_joint[5]
+        self.mid_qpos[2] = _all_joint[6]
+        self.mid_qpos[3] = _all_joint[7]
+        self.ring_qpos[0] = _all_joint[8]
+        self.ring_qpos[1] = _all_joint[9]
+        self.ring_qpos[2] = _all_joint[10]
+        self.ring_qpos[3] = _all_joint[11]
+        self.thumb_qpos[0] = _all_joint[12]
+        self.thumb_qpos[1] = _all_joint[13]
+        self.thumb_qpos[2] = _all_joint[14]
+        self.thumb_qpos[3] = _all_joint[15]
+
+    def fk_dealer(self):
+        """
+        Get T (tips in palm) and J by FK method
+        joint positions are updated in main_process()
+        """
+        M = np.mat(np.zeros((3, 3)))
+        p = np.zeros([3, 1])
+        index_in_palm_T = np.mat(np.eye(4))
+        mid_in_palm_T = np.mat(np.eye(4))
+        ring_in_palm_T = np.mat(np.eye(4))
+        thumb_in_palm_T = np.mat(np.eye(4))
+
+        # forward kinematics
+        qg.kdl_calc_fk(self.index_fk, self.index_qpos, self.index_pos)
+        M[0, 0] = copy.deepcopy(self.index_pos.M[0, 0])
+        M[0, 1] = copy.deepcopy(self.index_pos.M[0, 1])
+        M[0, 2] = copy.deepcopy(self.index_pos.M[0, 2])
+        M[1, 0] = copy.deepcopy(self.index_pos.M[1, 0])
+        M[1, 1] = copy.deepcopy(self.index_pos.M[1, 1])
+        M[1, 2] = copy.deepcopy(self.index_pos.M[1, 2])
+        M[2, 0] = copy.deepcopy(self.index_pos.M[2, 0])
+        M[2, 1] = copy.deepcopy(self.index_pos.M[2, 1])
+        M[2, 2] = copy.deepcopy(self.index_pos.M[2, 2])
+        p[0, 0] = copy.deepcopy(self.index_pos.p[0])
+        p[1, 0] = copy.deepcopy(self.index_pos.p[1])
+        p[2, 0] = copy.deepcopy(self.index_pos.p[2])
+        index_in_palm_T[:3, :3] = M
+        index_in_palm_T[:3, 3] = p
+
+        qg.kdl_calc_fk(self.mid_fk, self.mid_qpos, self.mid_pos)
+        M[0, 0] = copy.deepcopy(self.mid_pos.M[0, 0])
+        M[0, 1] = copy.deepcopy(self.mid_pos.M[0, 1])
+        M[0, 2] = copy.deepcopy(self.mid_pos.M[0, 2])
+        M[1, 0] = copy.deepcopy(self.mid_pos.M[1, 0])
+        M[1, 1] = copy.deepcopy(self.mid_pos.M[1, 1])
+        M[1, 2] = copy.deepcopy(self.mid_pos.M[1, 2])
+        M[2, 0] = copy.deepcopy(self.mid_pos.M[2, 0])
+        M[2, 1] = copy.deepcopy(self.mid_pos.M[2, 1])
+        M[2, 2] = copy.deepcopy(self.mid_pos.M[2, 2])
+        p[0, 0] = copy.deepcopy(self.mid_pos.p[0])
+        p[1, 0] = copy.deepcopy(self.mid_pos.p[1])
+        p[2, 0] = copy.deepcopy(self.mid_pos.p[2])
+        mid_in_palm_T[:3, :3] = M
+        mid_in_palm_T[:3, 3] = p
+
+        qg.kdl_calc_fk(self.ring_fk, self.ring_qpos, self.ring_pos)
+        M[0, 0] = copy.deepcopy(self.ring_pos.M[0, 0])
+        M[0, 1] = copy.deepcopy(self.ring_pos.M[0, 1])
+        M[0, 2] = copy.deepcopy(self.ring_pos.M[0, 2])
+        M[1, 0] = copy.deepcopy(self.ring_pos.M[1, 0])
+        M[1, 1] = copy.deepcopy(self.ring_pos.M[1, 1])
+        M[1, 2] = copy.deepcopy(self.ring_pos.M[1, 2])
+        M[2, 0] = copy.deepcopy(self.ring_pos.M[2, 0])
+        M[2, 1] = copy.deepcopy(self.ring_pos.M[2, 1])
+        M[2, 2] = copy.deepcopy(self.ring_pos.M[2, 2])
+        p[0, 0] = copy.deepcopy(self.ring_pos.p[0])
+        p[1, 0] = copy.deepcopy(self.ring_pos.p[1])
+        p[2, 0] = copy.deepcopy(self.ring_pos.p[2])
+        ring_in_palm_T[:3, :3] = M
+        ring_in_palm_T[:3, 3] = p
+
+        qg.kdl_calc_fk(self.thumb_fk, self.thumb_qpos, self.thumb_pos)
+        M[0, 0] = self.thumb_pos.M[0, 0]
+        M[0, 1] = self.thumb_pos.M[0, 1]
+        M[0, 2] = self.thumb_pos.M[0, 2]
+        M[1, 0] = self.thumb_pos.M[1, 0]
+        M[1, 1] = self.thumb_pos.M[1, 1]
+        M[1, 2] = self.thumb_pos.M[1, 2]
+        M[2, 0] = self.thumb_pos.M[2, 0]
+        M[2, 1] = self.thumb_pos.M[2, 1]
+        M[2, 2] = self.thumb_pos.M[2, 2]
+        p[0, 0] = self.thumb_pos.p[0]
+        p[1, 0] = self.thumb_pos.p[1]
+        p[2, 0] = self.thumb_pos.p[2]
+        thumb_in_palm_T[:3, :3] = M
+        thumb_in_palm_T[:3, 3] = p
+
+        return index_in_palm_T, mid_in_palm_T, ring_in_palm_T, thumb_in_palm_T
 
     def p2p_p_ik(self, sim, viewer, p_start, q_end):
         q_est = self.kdl_kin_taxel.inverse(position=p_start.position, rot=p_start.orientation, \
@@ -371,7 +541,7 @@ class ROBCTRL:
                 sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] + inc
 
     def finger_contact(self, sim, viewer, finger_name, tacperception):
-        while (tacperception.is_finger_contact(sim, finger_name) != True):
+        while not tacperception.is_finger_contact(sim, finger_name):
             self.inc_finger_jnt(sim, finger_name, 0.001)
             sim.step()
             viewer.render()
@@ -940,31 +1110,6 @@ class ROBCTRL:
             sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] = \
                 sim.data.ctrl[tactile_allegro_mujo_const.TH_CTRL_4] + input2
 
-    def get_cur_jnt(self, sim):
-        # print("|||shape||||qpos: ", len(sim.data.qpos))
-
-        cur_jnt = np.zeros(tactile_allegro_mujo_const.FULL_FINGER_JNTS_NUM)
-        cur_jnt[0:4] = np.array([sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_1],
-                                 sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_2],
-                                 sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_3],
-                                 sim.data.qpos[tactile_allegro_mujo_const.FF_MEA_4]])
-
-        cur_jnt[4:8] = np.array([sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_1],
-                                 sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_2],
-                                 sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_3],
-                                 sim.data.qpos[tactile_allegro_mujo_const.MF_MEA_4]])
-
-        cur_jnt[8:12] = np.array([sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_1],
-                                  sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_2],
-                                  sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_3],
-                                  sim.data.qpos[tactile_allegro_mujo_const.RF_MEA_4]])
-
-        cur_jnt[12:16] = np.array([sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_1],
-                                   sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_2],
-                                   sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_3],
-                                   sim.data.qpos[tactile_allegro_mujo_const.TH_MEA_4]])
-        return cur_jnt
-
     def robjac_offset(self, sim, finger_name, q, taxel_name):
         if finger_name == 'ff':
             position_tip_inpalm, orien_tip_inpalm = self.kdl_kin_ff.FK(q)
@@ -1002,7 +1147,9 @@ class ROBCTRL:
             x_state[6] = pos_contact0[0][0]
             x_state[7] = pos_contact0[0][1]
             x_state[8] = pos_contact0[0][2]
-            tacperception.contact_renew(sim=sim, idx=0, tac_name=c_point_name0, model="last", xstate=x_state)
+            tacperception.contact_renew2(sim=sim, idx=0, tac_name=c_point_name0, model="last",
+                                         T_tip_palm=self.T_index_palm)
+            # tacperception.contact_renew(sim=sim, idx=0, tac_name=c_point_name0, model="last", xstate=x_state)
             # tacperception.contact_renew(sim=sim, idx=0, tac_name=tacperception.last_contact[0][0], model="last", xstate=x_state)
 
         if tacperception.is_finger_contact(sim, hand_param[2][0]) == True:
@@ -1012,7 +1159,9 @@ class ROBCTRL:
             x_state[9] = pos_contact0[0][0]
             x_state[10] = pos_contact0[0][1]
             x_state[11] = pos_contact0[0][2]
-            tacperception.contact_renew(sim=sim, idx=1, tac_name=c_point_name0, model="last", xstate=x_state)
+            tacperception.contact_renew2(sim=sim, idx=1, tac_name=c_point_name0, model="last",
+                                         T_tip_palm=self.T_middle_palm)
+            # tacperception.contact_renew(sim=sim, idx=1, tac_name=c_point_name0, model="last", xstate=x_state)
             # tacperception.contact_renew(sim=sim, idx=1, tac_name=tacperception.last_contact[1][0], model="last", xstate=x_state)
 
         if tacperception.is_finger_contact(sim, hand_param[3][0]) == True:
@@ -1022,7 +1171,9 @@ class ROBCTRL:
             x_state[12] = pos_contact0[0][0]
             x_state[13] = pos_contact0[0][1]
             x_state[14] = pos_contact0[0][2]
-            tacperception.contact_renew(sim=sim, idx=2, tac_name=c_point_name0, model="last", xstate=x_state)
+            tacperception.contact_renew2(sim=sim, idx=2, tac_name=c_point_name0, model="last",
+                                         T_tip_palm=self.T_ring_palm)
+            # tacperception.contact_renew(sim=sim, idx=2, tac_name=c_point_name0, model="last", xstate=x_state)
             # tacperception.contact_renew(sim=sim, idx=2, tac_name=tacperception.last_contact[2][0], model="last", xstate=x_state)
 
         if tacperception.is_finger_contact(sim, hand_param[4][0]) == True:
@@ -1033,7 +1184,9 @@ class ROBCTRL:
             x_state[15] = pos_contact0[0][0]
             x_state[16] = pos_contact0[0][1]
             x_state[17] = pos_contact0[0][2]
-            tacperception.contact_renew(sim=sim, idx=3, tac_name=c_point_name0, model="last", xstate=x_state)
+            tacperception.contact_renew2(sim=sim, idx=3, tac_name=c_point_name0, model="last",
+                                         T_tip_palm=self.T_thumb_palm)
+            # tacperception.contact_renew(sim=sim, idx=3, tac_name=c_point_name0, model="last", xstate=x_state)
             # tacperception.contact_renew(sim=sim, idx=3, tac_name=tacperception.last_contact[3][0], model="last", xstate=x_state)
         return x_state
 
@@ -1043,44 +1196,64 @@ class ROBCTRL:
             pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0,
                                                                                                      size=(1, 3))
             x_state = np.append(x_state, [pos_contact0])
-            tacperception.contact_renew(sim=sim, idx=0, tac_name=c_point_name0, model="last", xstate=x_state)
+            tacperception.contact_renew2(sim=sim, idx=0, tac_name=c_point_name0, model="last",
+                                         T_tip_palm=self.T_index_palm)
+            # tacperception.contact_renew(sim=sim, idx=0, tac_name=c_point_name0, model="last", xstate=x_state)
             # tacperception.contact_renew(sim=sim, idx=0, tac_name=tacperception.last_contact[0][0], model="last", xstate=x_state)
         else:
             x_state = np.append(x_state, [0, 0, 0])
-            tacperception.contact_renew(sim=sim, idx=0, tac_name=tacperception.last_contact[0][0], model="last", xstate=x_state)
+            tacperception.contact_renew2(sim=sim, idx=0, tac_name=tacperception.last_contact[0][0], model="last",
+                                         T_tip_palm=self.T_index_palm)
+            # tacperception.contact_renew(sim=sim, idx=0, tac_name=tacperception.last_contact[0][0], model="last",
+            #                             xstate=x_state)
 
         if tacperception.is_finger_contact(sim, hand_param[2][0]) == True:
             c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[2][0], z_h_flag="h")
             pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0,
                                                                                                      size=(1, 3))
             x_state = np.append(x_state, [pos_contact0])
-            tacperception.contact_renew(sim=sim, idx=1, tac_name=c_point_name0, model="last", xstate=x_state)
+            tacperception.contact_renew2(sim=sim, idx=1, tac_name=c_point_name0, model="last",
+                                         T_tip_palm=self.T_middle_palm)
+            # tacperception.contact_renew(sim=sim, idx=1, tac_name=c_point_name0, model="last", xstate=x_state)
             # tacperception.contact_renew(sim=sim, idx=1, tac_name=tacperception.last_contact[1][0], model="last", xstate=x_state)
         else:
             x_state = np.append(x_state, [0, 0, 0])
-            tacperception.contact_renew(sim=sim, idx=1, tac_name=tacperception.last_contact[1][0], model="last", xstate=x_state)
+            tacperception.contact_renew2(sim=sim, idx=1, tac_name=tacperception.last_contact[1][0], model="last",
+                                         T_tip_palm=self.T_middle_palm)
+            # tacperception.contact_renew(sim=sim, idx=1, tac_name=tacperception.last_contact[1][0], model="last",
+            #                             xstate=x_state)
 
         if tacperception.is_finger_contact(sim, hand_param[3][0]) == True:
             c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[3][0], z_h_flag="h")
             pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0,
                                                                                                      size=(1, 3))
             x_state = np.append(x_state, [pos_contact0])
-            tacperception.contact_renew(sim=sim, idx=2, tac_name=c_point_name0, model="last", xstate=x_state)
+            tacperception.contact_renew2(sim=sim, idx=2, tac_name=c_point_name0, model="last",
+                                         T_tip_palm=self.T_ring_palm)
+            # tacperception.contact_renew(sim=sim, idx=2, tac_name=c_point_name0, model="last", xstate=x_state)
             # tacperception.contact_renew(sim=sim, idx=2, tac_name=tacperception.last_contact[2][0], model="last", xstate=x_state)
         else:
             x_state = np.append(x_state, [0, 0, 0])
-            tacperception.contact_renew(sim=sim, idx=2, tac_name=tacperception.last_contact[2][0], model="last", xstate=x_state)
+            tacperception.contact_renew2(sim=sim, idx=2, tac_name=tacperception.last_contact[2][0], model="last",
+                                         T_tip_palm=self.T_ring_palm)
+            # tacperception.contact_renew(sim=sim, idx=2, tac_name=tacperception.last_contact[2][0], model="last",
+            #                             xstate=x_state)
 
         if tacperception.is_finger_contact(sim, hand_param[4][0]) == True:
             c_point_name0 = tacperception.get_contact_taxel_name(sim, model, hand_param[4][0], z_h_flag="h")
             pos_contact0 = ug.get_relative_posquat(sim, "cup", c_point_name0)[:3] + np.random.normal(0, 0.0,
                                                                                                      size=(1, 3))
             x_state = np.append(x_state, [pos_contact0])
-            tacperception.contact_renew(sim=sim, idx=3, tac_name=c_point_name0, model="last", xstate=x_state)
+            tacperception.contact_renew2(sim=sim, idx=3, tac_name=c_point_name0, model="last",
+                                         T_tip_palm=self.T_ring_palm)
+            # tacperception.contact_renew(sim=sim, idx=3, tac_name=c_point_name0, model="last", xstate=x_state)
             # tacperception.contact_renew(sim=sim, idx=3, tac_name=tacperception.last_contact[3][0], model="last", xstate=x_state)
         else:
             x_state = np.append(x_state, [0, 0, 0])
-            tacperception.contact_renew(sim=sim, idx=3, tac_name=tacperception.last_contact[3][0], model="last", xstate=x_state)
+            tacperception.contact_renew2(sim=sim, idx=3, tac_name=tacperception.last_contact[3][0], model="last",
+                                         T_tip_palm=self.T_ring_palm)
+            # tacperception.contact_renew(sim=sim, idx=3, tac_name=tacperception.last_contact[3][0], model="last",
+            #                             xstate=x_state)
         return x_state
 
     def interaction(self, sim, model, viewer, hand_param, object_param, alg_param, \
@@ -1093,6 +1266,10 @@ class ROBCTRL:
         flag_mf = tacperception.is_finger_contact(sim, hand_param[2][0])
         flag_rf = tacperception.is_finger_contact(sim, hand_param[3][0])
         flag_th = tacperception.is_finger_contact(sim, hand_param[4][0])
+        """ Update jnt state """
+        cur_angles_tmp = self.get_cur_jnt(sim)
+        self.joint_update(cur_angles_tmp)
+        self.T_index_palm, self.T_middle_palm, self.T_ring_palm, self.T_thumb_palm = self.fk_dealer()
 
         if ((flag_ff == True) or (flag_mf == True) or (flag_rf == True) or (flag_th == True)):
             if tacperception.is_ff_contact == True:
@@ -1196,7 +1373,7 @@ class ROBCTRL:
             """ Prediction step in EKF """
             # todo can not use ground truth update the state at every step
             # x_state[:6] = gd_state
-            cur_angles_tmp = self.get_cur_jnt(sim)
+
             """ do a rolling average """
             cur_angles = cur_angles_tmp
             # cur_angles, self.mea_filter_js.z = \

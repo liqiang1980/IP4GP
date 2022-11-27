@@ -4,7 +4,7 @@ import util_geometry as ug
 import object_geometry as og
 import time
 from scipy.spatial.transform import Rotation
-
+import qgFunc as qg
 
 class taxel_pose:
     def __init__(self):
@@ -62,7 +62,7 @@ class cls_tactile_perception:
         self.cur_contact = [["touch_0_3_6", np.zeros(6)], ["touch_7_3_6", np.zeros(6)],
                             ["touch_11_3_6", np.zeros(6)], ["touch_15_4_7", np.zeros(6)]]
 
-    def contact_renew(self, sim, idx, tac_name, model, xstate):
+    def contact_renew(self, sim, idx, tac_name, model):
         pq_tac_in_palm = ug.get_relative_posquat(sim=sim, src="palm_link", tgt=tac_name)
         pos_tac_in_palm = pq_tac_in_palm[:3]
         # rotvec_tac_in_palm = abs(Rotation.from_quat(pq_tac_in_palm[3:]).as_rotvec())
@@ -97,6 +97,30 @@ class cls_tactile_perception:
             self.cur_contact[idx][1][:3] = pos_tac_in_palm
             self.cur_contact[idx][1][3:] = rotvec_tac_in_palm
             # print(" _ju cname posrotvec: ", posquat, rotvec, self.cur_contact[idx][1])
+        return self.cur_contact[idx][1]
+
+    def contact_renew2(self, sim, idx, tac_name, model, T_tip_palm):
+        # default_tac = ["touch_0_3_6", "touch_7_3_6", "touch_11_3_6", "touch_15_3_6"]
+        default_tac = ["link_3.0_tip", "link_7.0_tip", "link_11.0_tip", "link_15.0_tip"]
+        default_pq = ug.get_relative_posquat(sim=sim, src="palm_link", tgt=default_tac[idx])
+        # default_rotvec = Rotation.from_quat(default_pq[3:]).as_rotvec()
+        default_rotvec = ug.quat2rotvec_hacking(default_pq[3:])
+        pos0, rpy0 = qg.get_taxel_poseuler(tac_name)  # The 'euler' in xml are 'rpy' in fact
+        T_tac_palm = qg.get_T_taxel(pos=pos0, rpy=rpy0, T_tip_in_palm=T_tip_palm)
+        pos_tac_in_palm = np.ravel(T_tac_palm[:3, 3].T)
+        # quat_tac_in_palm = Rotation.from_matrix(T_tac_palm[:3, :3]).as_quat()
+        # rotvec_tac_in_palm = ug.quat2rotvec_hacking(quat_tac_in_palm)
+        # rotvec_tac_in_palm = Rotation.from_matrix(T_tac_palm[:3, :3]).as_rotvec()
+        rotvec_tac_in_palm = default_rotvec
+        # print(quat_tac_in_palm)
+        if model == "last":
+            self.last_contact[idx][0] = tac_name
+            self.last_contact[idx][1][:3] = pos_tac_in_palm
+            self.last_contact[idx][1][3:] = rotvec_tac_in_palm
+        elif model == "cur":
+            self.cur_contact[idx][0] = tac_name
+            self.cur_contact[idx][1][:3] = pos_tac_in_palm
+            self.cur_contact[idx][1][3:] = rotvec_tac_in_palm
         return self.cur_contact[idx][1]
 
     def update_tacdata(self, sim):

@@ -3,6 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="0c17ef8a-e085-4d23-bca7-d61466016836" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ekf.py" beforeDir="false" afterPath="$PROJECT_DIR$/ekf.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ekf_obj_pose/data.xml" beforeDir="false" afterPath="$PROJECT_DIR$/ekf_obj_pose/data.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ekf_obj_pose/delta_angles.txt" beforeDir="false" afterPath="$PROJECT_DIR$/ekf_obj_pose/delta_angles.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ekf_obj_pose/delta_ct.txt" beforeDir="false" afterPath="$PROJECT_DIR$/ekf_obj_pose/delta_ct.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ekf_obj_pose/h_t.txt" beforeDir="false" afterPath="$PROJECT_DIR$/ekf_obj_pose/h_t.txt" afterDir="false" />
@@ -11,6 +13,8 @@
       <change beforePath="$PROJECT_DIR$/ekf_obj_pose/x_gt_palm.txt" beforeDir="false" afterPath="$PROJECT_DIR$/ekf_obj_pose/x_gt_palm.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ekf_obj_pose/x_state_all.txt" beforeDir="false" afterPath="$PROJECT_DIR$/ekf_obj_pose/x_state_all.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ekf_obj_pose/z_t.txt" beforeDir="false" afterPath="$PROJECT_DIR$/ekf_obj_pose/z_t.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/qgFunc.py" beforeDir="false" afterPath="$PROJECT_DIR$/qgFunc.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/robot_control.py" beforeDir="false" afterPath="$PROJECT_DIR$/robot_control.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tactile_perception.py" beforeDir="false" afterPath="$PROJECT_DIR$/tactile_perception.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/util_geometry.py" beforeDir="false" afterPath="$PROJECT_DIR$/util_geometry.py" afterDir="false" />
     </list>
@@ -53,9 +57,14 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../ekf_V3a" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="python.debugger.dataview.coloredbydefault" value="false" />
     <property name="settings.editor.selected.configurable" value="PyScientificConfigurable" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
   </component>
   <component name="RunManager" selected="Python.ekf_obj_pose">
     <configuration name="ekf_obj_pose" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
@@ -127,10 +136,10 @@
     <recent_temporary>
       <list>
         <item itemvalue="Python.ekf_obj_pose" />
+        <item itemvalue="Python.plotter" />
         <item itemvalue="Python.test" />
-        <item itemvalue="Python.plotter" />
         <item itemvalue="Python.ekf_obj_pose" />
-        <item itemvalue="Python.plotter" />
+        <item itemvalue="Python.test" />
       </list>
     </recent_temporary>
   </component>
@@ -150,6 +159,9 @@
       <workItem from="1669253170496" duration="5494000" />
       <workItem from="1669272644178" duration="601000" />
       <workItem from="1669292641485" duration="4957000" />
+      <workItem from="1669448992697" duration="7745000" />
+      <workItem from="1669513499360" duration="4031000" />
+      <workItem from="1669529435648" duration="4648000" />
     </task>
     <task id="LOCAL-00001" summary="Use fixed tac to get ju">
       <created>1669018478496</created>
@@ -176,12 +188,23 @@
     <MESSAGE value="ju and _ju" />
     <option name="LAST_COMMIT_MESSAGE" value="ju and _ju" />
   </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/robot_control.py</url>
+          <line>1377</line>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/ekf_V3s$test.coverage" NAME="test Coverage Results" MODIFIED="1669294490072" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ekf_V3s$test.coverage" NAME="test Coverage Results" MODIFIED="1669515888396" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ekf_V3s$robot_control.coverage" NAME="robot_control Coverage Results" MODIFIED="1667222352952" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/ekf_V3s$test1.coverage" NAME="test1 Coverage Results" MODIFIED="1667735563624" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ekf_V3s$ekf_obj_pose.coverage" NAME="ekf_obj_pose Coverage Results" MODIFIED="1669341130328" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/ekf_obj_pose" />
+    <SUITE FILE_PATH="coverage/ekf_V3s$ekf_obj_pose.coverage" NAME="ekf_obj_pose Coverage Results" MODIFIED="1669536640083" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/ekf_obj_pose" />
     <SUITE FILE_PATH="coverage/ekf_V3s$tactile_plotter.coverage" NAME="tactile_plotter Coverage Results" MODIFIED="1667875458008" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ekf_V3s$plotter.coverage" NAME="plotter Coverage Results" MODIFIED="1669296106464" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ekf_V3s$plotter.coverage" NAME="plotter Coverage Results" MODIFIED="1669534514594" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

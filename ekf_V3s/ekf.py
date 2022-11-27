@@ -1,5 +1,5 @@
 import copy
-
+import qgFunc as qg
 import numpy as np
 
 import qgFunc
@@ -47,6 +47,7 @@ class EKF:
         self.save_error_rpy = []
         self.delta_angle = []
         self.scale_kp = 0.3
+        self.bad_rv_cnt = 0
 
     def set_store_flag(self, flag):
         self.save_model = flag
@@ -108,18 +109,47 @@ class EKF:
                       tacperception.is_mf_contact,
                       tacperception.is_rf_contact,
                       tacperception.is_th_contact]
+        T_tip_palm = [robctrl.T_index_palm, robctrl.T_middle_palm, robctrl.T_ring_palm, robctrl.T_thumb_palm]
+        # T_taxel_in_palm0 = self.get_T_taxel(pos=chosen_pos0, rpy=chosen_rpy0,
+        #                                     T_tip_in_palm=self.T_index_palm)
+        # T_taxel_in_palm1 = self.get_T_taxel(pos=chosen_pos1, rpy=chosen_rpy1,
+        #                                     T_tip_in_palm=self.T_middle_palm)
+        # T_taxel_in_palm2 = self.get_T_taxel(pos=chosen_pos2, rpy=chosen_rpy2,
+        #                                     T_tip_in_palm=self.T_ring_palm)
+        # T_taxel_in_palm3 = self.get_T_taxel(pos=chosen_pos3, rpy=chosen_rpy3,
+        #                                     T_tip_in_palm=self.T_thumb_palm)
         for i in range(4):
             c_point_name = tacperception.get_contact_taxel_name(sim, model, hand_param[i + 1][0], z_h_flag="z")
             if c_point_name is None:
-            # if not is_contact[i]:
                 print("none")
                 c_point_name = tacperception.last_contact[i][0]
+
             # print("_ju cname: ", c_point_name)
-            cur_s = tacperception.contact_renew(sim=sim, idx=i, tac_name=c_point_name, model="cur", xstate=x_state)
+            # cur_s = tacperception.contact_renew(sim=sim, idx=i, tac_name=c_point_name, model="cur")
+            cur_s = tacperception.contact_renew2(sim=sim, idx=i, tac_name=c_point_name, model="cur",
+                                                 T_tip_palm=T_tip_palm[i])
             # cur_s = tacperception.contact_renew(sim=sim, idx=i, tac_name=tacperception.last_contact[i][0], model="cur", xstate=x_state)
             print(tacperception.cur_contact[i][1], tacperception.last_contact[i][1])
             # print(is_contact)
             # _ju.extend(tacperception.cur_contact[i][1] - tacperception.last_contact[i][1])
+            _dis = tacperception.cur_contact[i][1] - tacperception.last_contact[i][1]
+            # if abs(_dis[5]) > abs(tacperception.cur_contact[i][1][5]) or abs(_dis[5]) > abs(tacperception.last_contact[i][1][5]):
+            # if tacperception.cur_contact[i][1][5] * tacperception.last_contact[i][1][5] < 0 or \
+            #         tacperception.cur_contact[i][1][4] * tacperception.last_contact[i][1][4] < 0 or \
+            #         tacperception.cur_contact[i][1][3] * tacperception.last_contact[i][1][3] < 0:
+            #     self.bad_rv_cnt += 1
+            #     if not self.bad_rv_cnt == 1:
+            #         print("  ~~~~Bad rotvec~~~", self.bad_rv_cnt)
+            #         # c_point_name = tacperception.last_contact[i][0]
+            #         # tacperception.cur_contact[i][0] = copy.deepcopy(tacperception.last_contact[i][0])
+            #         tacperception.cur_contact[i][1][3] = qg.same_sign(src=tacperception.last_contact[i][1][3],
+            #                                                           tgt=tacperception.cur_contact[i][1][3])
+            #         tacperception.cur_contact[i][1][4] = qg.same_sign(src=tacperception.last_contact[i][1][4],
+            #                                                           tgt=tacperception.cur_contact[i][1][4])
+            #         tacperception.cur_contact[i][1][5] = qg.same_sign(src=tacperception.last_contact[i][1][5],
+            #                                                           tgt=tacperception.cur_contact[i][1][5])
+            #
+            #         print("    new cur:", tacperception.cur_contact[i][1])
             if is_contact[i]:
                 _ju.extend(tacperception.cur_contact[i][1] - tacperception.last_contact[i][1])
             else:
@@ -127,9 +157,9 @@ class EKF:
             tacperception.last_contact[i][0] = copy.deepcopy(c_point_name)
             tacperception.last_contact[i][1] = copy.deepcopy(cur_s)
         ju_judge = ju - _ju
-        print("..2 ju compare: ", ju_judge.shape, ju_judge)\
-        # print("\n_ju: ", _ju)
-        # ju = _ju
+        print("..2 ju compare: ", ju_judge.shape, ju_judge) \
+            # print("\n_ju: ", _ju)
+        ju = _ju
 
         prediction = np.matmul(G_pinv, ju)
         # pq_cup_in_palm = ug.get_relative_posquat(sim, src="palm_link", tgt="cup")

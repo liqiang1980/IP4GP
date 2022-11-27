@@ -6,7 +6,8 @@ import copy
 import xml.etree.ElementTree as ET
 
 coe = np.array([129.4, 1.984, 139., -0.666, 0.32, -0.207])  # 6 coefficients of the surface
-xml_path = "../../EKF_V5/allegro_hand_description/UR5_allegro_test.xml"
+# xml_path = "../../EKF_V5/allegro_hand_description/UR5_allegro_test.xml"
+xml_path = "../../robots/UR5_tactile_allegro_hand.xml"
 xml_tree = ET.parse(xml_path)
 xml_root = xml_tree.getroot()
 
@@ -27,7 +28,7 @@ def get_poseuler_from_xml(nodelist):
     """
     pos = nodelist.get('pos')
     euler = nodelist.get('euler')
-    print(">>FIND:", nodelist.tag, ':', nodelist.attrib)
+    # print(">>FIND:", nodelist.tag, ':', nodelist.attrib)
     return pos, euler
 
 
@@ -794,8 +795,21 @@ def get_taxel_poseuler(taxel_name):
             break
     pos = np.fromstring(pos, dtype=float, sep=' ')
     euler = np.fromstring(euler, dtype=float, sep=' ')
-    print('TOUCH_poseuler_array:', pos, euler)
+    # print('TOUCH_poseuler_array:', pos, euler)
     return pos, euler
+
+
+def get_T_taxel(pos, rpy, T_tip_in_palm):
+    """
+    Translate posrpy to T
+    """
+    R_taxl_in_tip = rpy2R(rpy)  # Taxel in tip
+    T_taxel_in_tip = np.mat(np.eye(4))
+    T_taxel_in_tip[:3, :3] = R_taxl_in_tip
+    T_taxel_in_tip[:3, 3] = np.mat(pos).T
+    T_taxel_in_palm = np.dot(T_tip_in_palm, T_taxel_in_tip)
+    # T_taxel_in_W = np.matmul(self._dataClass.T_hnd_W, T_taxel_in_palm)
+    return T_taxel_in_palm
 
 
 def id2name_global(taxel_id):
@@ -879,3 +893,9 @@ def vec2rot(vec):
     rot[:3, 2] = vec.T
     # print("    vec==rot:", rot)
     return rot
+
+
+def same_sign(src, tgt):
+    if src * tgt >= 0:
+        return tgt
+    return -tgt
