@@ -67,8 +67,8 @@ class EKF:
             f_name = f_part[0]
             tac_name = tacp.cur_tac[f_name][0]  # If no contact, cur-tac info is updated by last-tac
             tac_posrotvec = tacp.cur_tac[f_name][1]
-            cur_s = tacp.contact_renew(sim=sim, idx=i, tac_name=tac_name, model="cur",
-                                        T_tip_palm=T_tip_palm[i])
+            # cur_s = tacp.contact_renew(sim=sim, idx=i, tac_name=tac_name, model="cur",
+            #                             T_tip_palm=T_tip_palm[i])
             if not tacp.is_contact[f_name]:  # this part is no-contact, pass
                 continue
             pos_tac_palm = tac_posrotvec[:3]
@@ -76,10 +76,10 @@ class EKF:
             tmp_G = ug.get_Grasp_matrix(pos_tac_palm=pos_tac_palm, pos_cup_palm=pos_cup_palm)
             Grasping_matrix[:, 0 + i * 6: 6 + i * 6] = tmp_G
             # self.J_fingers[0 + i * 6: 6 + i * 6, 0 + i * 4: 4 + i * 4] = self.J[i, :, :]
-            ju[6 * i: 6 * i + 6] =
-
-        if is_contact[i]:
-            ju.extend(tacp.cur_contact[i][1] - tacp.last_contact[i][1])
+            # ju[6 * i: 6 * i + 6] =
+        #
+        # if is_contact[i]:
+        #     ju.extend(tacp.cur_contact[i][1] - tacp.last_contact[i][1])
 
         """ G_pinv calculate: 2 type """
         if tac_const.GT_FLAG == '1G':  # 4 G splice and calculate big GT_pinv

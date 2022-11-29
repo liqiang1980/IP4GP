@@ -1,52 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b4db863a-c54e-40f9-bf84-65ef2e7be6d3" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/forward_kinematics.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/trans_component.py" afterDir="false" />
+    <list default="true" id="554b2367-2b20-4765-ad37-5cb0f089244f" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/G&amp;J_verification/cup_1.obj" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/G&amp;J_verification/data.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/G&amp;J_verification/err_inHand_v3bi.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/G&amp;J_verification/fingertip_part.obj" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/G&amp;J_verification/in_hand_v3B.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/G&amp;J_verification/verification_main.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config_param.py" beforeDir="false" afterPath="$PROJECT_DIR$/config_param.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ekf.py" beforeDir="false" afterPath="$PROJECT_DIR$/ekf.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ekf_GJ.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ekf_obj_pose/data.xml" beforeDir="false" afterPath="$PROJECT_DIR$/ekf_obj_pose/data.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ekf_obj_pose/ekf_obj_pose.py" beforeDir="false" afterPath="$PROJECT_DIR$/ekf_obj_pose/ekf_obj_pose.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/qgFunc.py" beforeDir="false" afterPath="$PROJECT_DIR$/qgFunc.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/robot_control.py" beforeDir="false" afterPath="$PROJECT_DIR$/robot_control.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tactile_perception.py" beforeDir="false" afterPath="$PROJECT_DIR$/tactile_perception.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/util_geometry.py" beforeDir="false" afterPath="$PROJECT_DIR$/util_geometry.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="FileTemplateManagerImpl">
-    <option name="RECENT_TEMPLATES">
-      <list>
-        <option value="Python Script" />
-      </list>
-    </option>
-  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
-  <component name="HighlightingSettingsPerFile">
-    <setting file="file://$PROJECT_DIR$/plotter.py" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/tactile_perception.py" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/ekf_obj_pose/ekf_obj_pose.py" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/Plot_plus.py" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/tactile_plotter.py" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/robot_control.py" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/test.py" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/util_geometry.py" root0="FORCE_HIGHLIGHTING" />
-  </component>
-  <component name="ProjectId" id="2I1mNeb7J3mzaXTLFb5C24H99P5" />
+  <component name="ProjectId" id="2ID7ecxzrthNN6ZDvBmmSBqzSUm" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -91,12 +60,12 @@
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="b4db863a-c54e-40f9-bf84-65ef2e7be6d3" name="Changes" comment="" />
-      <created>1669357424897</created>
+      <changelist id="554b2367-2b20-4765-ad37-5cb0f089244f" name="Changes" comment="" />
+      <created>1669704396775</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1669357424897</updated>
-      <workItem from="1669357427029" duration="4043000" />
+      <updated>1669704396775</updated>
+      <workItem from="1669704398824" duration="862000" />
     </task>
     <servers />
   </component>
@@ -104,11 +73,6 @@
     <option name="version" value="3" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/ekf_V3s$test.coverage" NAME="test Coverage Results" MODIFIED="1669515888396" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ekf_V3s$robot_control.coverage" NAME="robot_control Coverage Results" MODIFIED="1667222352952" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ekf_V3s$test1.coverage" NAME="test1 Coverage Results" MODIFIED="1667735563624" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ekf_V3s$ekf_obj_pose.coverage" NAME="ekf_obj_pose Coverage Results" MODIFIED="1669638477883" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/ekf_obj_pose" />
-    <SUITE FILE_PATH="coverage/ekf_V3s$tactile_plotter.coverage" NAME="tactile_plotter Coverage Results" MODIFIED="1667875458008" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/ekf_V3s$plotter.coverage" NAME="plotter Coverage Results" MODIFIED="1669534514594" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ekf_V3s$ekf_obj_pose.coverage" NAME="ekf_obj_pose Coverage Results" MODIFIED="1669704553145" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/ekf_obj_pose" />
   </component>
 </project>

@@ -21,6 +21,7 @@ class ForwardKinematics:
         self.kdl_chain = {}
         self.kdl_fk = {}
         self.T_part_in_palm = {}
+        self.
         """ Initialization """
         for f_part in self.f_param:
             f_name = f_part[0]

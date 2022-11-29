@@ -113,7 +113,7 @@ class cls_tactile_perception:
     #         self.cur_tac[part_name][1] = pv_tac_palm
     #         return False
 
-    def is_finger_contact(self, sim, model, f_part):
+    def is_finger_contact(self, sim, model, f_part, fk):
         """
         Detect if this finger part contacts.
         Yes:
@@ -131,7 +131,7 @@ class cls_tactile_perception:
             """ Update contact_tac name & position & rotvec """
             tac_name, tac_id = self.get_contact_taxel_name(sim=sim, model=model, f_part=f_part)
             # pv_tac_palm = ug.get_relative_posrotvec(sim=sim, src="palm_link", tgt=tac_name)
-            pv_tac_palm = self.contact_renew(sim=sim, model=model, tac_name=tac_name, f_part=f_part)
+            pv_tac_palm = self.contact_renew(sim=sim, model=model, tac_name=tac_name, f_part=f_part, fk=fk)
             self.cur_tac[part_name][0] = tac_name
             self.cur_tac[part_name][1] = pv_tac_palm
             return True
@@ -139,7 +139,8 @@ class cls_tactile_perception:
             self.is_contact[part_name] = False
             """ If not contact, use last tac to update cur tac info """
             tac_name = self.last_tac[part_name][0]
-            pv_tac_palm = ug.get_relative_posrotvec(sim=sim, src="palm_link", tgt=tac_name)
+            # pv_tac_palm = ug.get_relative_posrotvec(sim=sim, src="palm_link", tgt=tac_name)
+            pv_tac_palm = self.contact_renew(sim=sim, model=model, tac_name=tac_name, f_part=f_part, fk=fk)
             self.cur_tac[part_name][0] = tac_name
             self.cur_tac[part_name][1] = pv_tac_palm
             return False
@@ -150,10 +151,10 @@ class cls_tactile_perception:
             self.last_tac[f_name][0] = self.cur_tac[f_name][0]
             self.last_tac[f_name][1] = self.cur_tac[f_name][1]
 
-    def contact_renew(self, sim, model, tac_name, f_part):
+    def contact_renew(self, sim, model, tac_name, f_part, fk):
         f_name = f_part[0]
         default_jnt = f_part[5]
-        default_pq = ug.get_relative_posquat(sim=sim, src="palm_link", tgt=default_jnt)
+        default_jnt_R = fk.T_part_in_palm[f_name][:3, :3]
         default_rotvec = ug.quat2rotvec_hacking(default_pq[3:])
         pos0, rpy0 = qg.get_taxel_poseuler(taxel_name=tac_name, xml_path=self.xml_path)  # The 'euler' in xml are 'rpy' in fact
         T_tac_palm = qg.get_T_taxel(pos=pos0, rpy=rpy0, T_tip_in_palm=self.fk.T_part_in_palm[f_name])

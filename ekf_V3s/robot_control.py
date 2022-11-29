@@ -217,7 +217,7 @@ class ROBCTRL:
         3. cur_contact_tac state 
         """
         for f_part in f_param:
-            if tacp.is_finger_contact(sim=sim, model=model, f_part=f_part):
+            if tacp.is_finger_contact(sim=sim, model=model, f_part=f_part, fk=fk):
                 f_num += 1  # The number of contact finger parts
         """ Update gd_state """
         gd_posquat = ug.get_relative_posquat(sim, "palm_link", "cup")
