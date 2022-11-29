@@ -11,6 +11,7 @@ import numpy as np
 from threading import Thread
 import sys, termios, tty, os, time
 import matplotlib.pyplot as plt
+import forward_kinematics
 
 
 class HeatmapLoop(Thread):
@@ -63,7 +64,7 @@ class MainLoop(threading.Thread):
             #     fct.ctrl_finger(sim, 0.002, 0.000001, hand_param[4][0])
             """EKF process"""
             rob_control.interaction(sim, model, viewer, hand_param, object_param, alg_param, grasping_ekf,
-                                    tacperception, char)
+                                    tacperception, fk, char)
 
             """Update tacdata for heapmap plot"""
             tacperception.update_tacdata(sim=sim)
@@ -92,7 +93,6 @@ def function02(arg, name):
     global char
     while True:
         char = getch()
-
         if (char == "p"):
             print("Stop!")
             exit(0)
@@ -102,27 +102,35 @@ def function02(arg, name):
 hand_param, object_param, alg_param = config_param.pass_arg()
 
 # init mujoco environment
+xml_path = "../../robots/UR5_tactile_allegro_hand.xml"
 if int(object_param[3]) == 1:
-    model, sim, viewer = mu_env.init_mujoco("../../robots/UR5_tactile_allegro_hand_obj_frozen.xml")
+    xml_path = "../../robots/UR5_tactile_allegro_hand_obj_frozen.xml"
+    # model, sim, viewer = mu_env.init_mujoco("../../robots/UR5_tactile_allegro_hand_obj_frozen.xml")
 elif int(object_param[3]) == 2:
-    model, sim, viewer = mu_env.init_mujoco("../../robots/UR5_tactile_allegro_hand_obj_upsidedown.xml")
+    xml_path = "../../robots/UR5_tactile_allegro_hand_obj_upsidedown.xml"
+    # model, sim, viewer = mu_env.init_mujoco("../../robots/UR5_tactile_allegro_hand_obj_upsidedown.xml")
 elif int(object_param[3]) == 3:
-    model, sim, viewer = mu_env.init_mujoco("../../robots/UR5_tactile_allegro_hand_cylinder.xml")
+    xml_path = "../../robots/UR5_tactile_allegro_hand_cylinder.xml"
+    # model, sim, viewer = mu_env.init_mujoco("../../robots/UR5_tactile_allegro_hand_cylinder.xml")
 elif int(object_param[3]) == 4:
-    model, sim, viewer = mu_env.init_mujoco("../../robots/UR5_tactile_allegro_hand_cylinder_frozen.xml")
-else:
-    model, sim, viewer = mu_env.init_mujoco()
+    xml_path = "../../robots/UR5_tactile_allegro_hand_cylinder_frozen.xml"
+    # model, sim, viewer = mu_env.init_mujoco("../../robots/UR5_tactile_allegro_hand_cylinder_frozen.xml")
+# else:
+#     model, sim, viewer = mu_env.init_mujoco()
+model, sim, viewer = mu_env.init_mujoco(filename=xml_path)
 
 ctrl_wrist_pos, ctrl_wrist_quat = \
     mu_env.init_robot_object_mujoco(sim, object_param)
 mu_env.config_fcl("cup_1.obj", "fingertip_part.obj")
 
-# instantiate ekf class
+""" Instantiate FK class """
+fk = forward_kinematics.ForwardKinematics(hand_param=hand_param)
+""" Instantiate ekf class """
 grasping_ekf = ekf.EKF()
 grasping_ekf.set_contact_flag(False)
 grasping_ekf.set_store_flag(alg_param[0])
 
-tacperception = tactile_perception.cls_tactile_perception()
+tacperception = tactile_perception.cls_tactile_perception(xml_path=xml_path, fk=fk)
 
 # init robot
 rob_control = robctrl.ROBCTRL()

@@ -6,9 +6,9 @@ import copy
 import xml.etree.ElementTree as ET
 
 coe = np.array([129.4, 1.984, 139., -0.666, 0.32, -0.207])  # 6 coefficients of the surface
-xml_path = "../../EKF_V5/allegro_hand_description/UR5_allegro_test.xml"
-xml_tree = ET.parse(xml_path)
-xml_root = xml_tree.getroot()
+# xml_path = "../../EKF_V5/allegro_hand_description/UR5_allegro_test.xml"
+# xml_tree = ET.parse(xml_path)
+# xml_root = xml_tree.getroot()
 
 
 def if_match(nodelist, name):
@@ -295,7 +295,7 @@ def R2vec(R):
     """
     Input R mat, return corresponding vec vector.
     """
-    n_unit = Rotation.from_dcm(R).as_rotvec()
+    n_unit = Rotation.from_matrix(R).as_rotvec()
     return n_unit
 
 
@@ -731,10 +731,24 @@ def cal_col_in_J(A):
     return col_J
 
 
-def get_taxel_poseuler(taxel_name):
+def get_T_taxel(pos, rpy, T_tip_in_palm):
+    """
+    Translate posrpy to T
+    """
+    R_taxl_in_tip = rpy2R(rpy)  # Taxel in tip
+    T_taxel_in_tip = np.mat(np.eye(4))
+    T_taxel_in_tip[:3, :3] = R_taxl_in_tip
+    T_taxel_in_tip[:3, 3] = np.mat(pos).T
+    T_taxel_in_palm = np.dot(T_tip_in_palm, T_taxel_in_tip)
+    return T_taxel_in_palm
+
+
+def get_taxel_poseuler(taxel_name, xml_path):
     """
     Input taxel_name string, return pos and euler.
     """
+    xml_tree = ET.parse(xml_path)
+    xml_root = xml_tree.getroot()
     pos = np.zeros(3)
     euler = np.zeros(3)
     nodes = xml_root.findall('worldbody/body')

@@ -5,12 +5,12 @@ from mujoco_py import functions
 import PyKDL as kdl
 
 import robot_control
-import tactile_perception as tacperception
-import tactile_allegro_mujo_const
+import tactile_allegro_mujo_const as tac_const
 import robot_control as robcontrol
 import sympy as sy
 from math import sin, cos, sqrt
 import time
+
 
 def calculate_cov(mat):
     average = np.average(mat, axis=0)  # axis=0 按列求均值
@@ -54,24 +54,12 @@ def delta_pose2next_pose(d_pose, pose_0):
         theta = delta_angles_norm
         omega_hat = cross_product_matrix_from_vector3d(omega)
         d_r = np.mat(np.eye(3)) + omega_hat * math.sin(theta) + np.matmul(omega_hat, omega_hat) * (
-                    1.0 - math.cos(theta))
+                1.0 - math.cos(theta))
         quat_t = Rotation.from_dcm(np.matmul(d_r, r_0)).as_quat()
         pose_t[3:] = quat_t
     p_t = pose_0[:3] + d_pose[:3]
     pose_t[:3] = p_t
     return pose_t
-
-
-def get_G_contact(pos_contact, x_state):
-    #   pose_contact is the pose of active taxel which comes from the ground truth
-    #   x_state is the current estimated object's pose
-    S = get_S(pos_contact[:3] - x_state[:3])  # Get S(c_i - p), palm frame
-    # T_contact = posquat2trans(pos_contact)
-    # T_contact = get_T(sim, c_point_name)  # contact point in cup frame
-    # R_contact = T_contact[:3, :3]  # Get R of contact point
-    R_contact = np.mat(np.eye(3))  # Get R of contact point
-    G_contact = get_G(R_contact, S)
-    return G_contact
 
 
 def normalization(data):
@@ -104,6 +92,7 @@ def get_relative_posquat_geom(sim, src, tgt):
     srcHtgt = np.matmul(np.linalg.inv(trans_src), trans_tgt)
     return trans2posquat(srcHtgt)
 
+
 def pose_trans_part_to_world(sim, part_name, position, orien):
     quat = sim.data.get_body_xquat(part_name)
     quat = np.hstack((quat[1:], quat[0]))  # Change to x y z w
@@ -113,6 +102,7 @@ def pose_trans_part_to_world(sim, part_name, position, orien):
     o_ret = np.matmul(palm_rot, orien)
     return p_ret, o_ret
 
+
 def pose_trans_palm_to_world(sim, position, orien):
     quat = sim.data.get_body_xquat("palm_link")
     quat = np.hstack((quat[1:], quat[0]))  # Change to x y z w
@@ -121,6 +111,8 @@ def pose_trans_palm_to_world(sim, position, orien):
     p_ret = palm_position + np.ravel(np.matmul(palm_rot, position))
     o_ret = np.matmul(palm_rot, orien)
     return p_ret, o_ret
+
+
 def pose_trans_world_to_palm(sim, position, orien):
     quat = sim.data.get_body_xquat("palm_link")
     quat = np.hstack((quat[1:], quat[0]))  # Change to x y z w
@@ -128,8 +120,9 @@ def pose_trans_world_to_palm(sim, position, orien):
     palm_position = sim.data.get_body_xpos("palm_link")
 
     p_ret = np.matmul(palm_rot.transpose(), position - palm_position)
-    o_ret = np.matmul(orien,palm_rot.transpose())
+    o_ret = np.matmul(orien, palm_rot.transpose())
     return p_ret, o_ret
+
 
 def vec_world_to_palm(sim, vec):
     quat = sim.data.get_body_xquat("palm_link")
@@ -138,12 +131,14 @@ def vec_world_to_palm(sim, vec):
     v_ret = np.matmul(palm_rot.transpose(), vec)
     return v_ret
 
+
 def vec_palm_to_world(sim, vec):
     quat = sim.data.get_body_xquat("palm_link")
     quat = np.hstack((quat[1:], quat[0]))  # Change to x y z w
     palm_rot = Rotation.from_quat(quat).as_matrix()
     v_ret = np.matmul(palm_rot, vec)
     return v_ret
+
 
 # 获得相对的位置姿态的四元数
 # outputs: position, rotation:w x y z
@@ -396,6 +391,7 @@ def pos_quat2pos_xyz_rpy_xyzw(pos_quat):
     pos_xyz_angle[-3:] = euler0
     return pos_xyz_angle
 
+
 # function from quaterion to Euler angle
 def pos_quat2axis_angle(pos_quat):
     # input must be w x y z
@@ -406,13 +402,16 @@ def pos_quat2axis_angle(pos_quat):
     pos_xyz_axis_angle[3:] = axis_angle
     return pos_xyz_axis_angle
 
+
 def pos_euler_xyz_2_matrix(euler):
     rot = Rotation.from_euler('xyz', euler)
     return rot.as_matrix()
 
+
 def rotvec_2_Matrix(rotvec):
     rot = Rotation.from_rotvec(rotvec).as_matrix()
     return rot
+
 
 def move_ik(sim, ee_tget_posquat, gripper_action=0.04):
     # ee_target is in world frame
@@ -639,6 +638,7 @@ def get_T(sim, body_name):  # 获取palm参考系下的T矩阵（trans矩阵）
     T_contact = posquat2trans(get_relative_posquat(sim, "palm_link", body_name))
     return T_contact
 
+
 def get_relative_T(sim, body_src, body_tgt):  # 获取palm参考系下的T矩阵（trans矩阵）
     # Get T of contact point
     T_contact = posquat2trans(get_relative_posquat(sim, body_src, body_tgt))
@@ -651,30 +651,9 @@ def get_T_cup(sim, body_name):  # 获取cup参考系下的T矩阵（trans矩阵�
     return T_contact
 
 
-def get_S(r):
-    S = np.zeros((3, 3))
-    S[0, 1] = -r[2]
-    S[0, 2] = r[1]
-    S[1, 0] = r[2]
-    S[1, 2] = -r[0]
-    S[2, 0] = -r[1]
-    S[2, 1] = r[0]
-
-    # print("cHeck S:", S)
-    return S
-
-
 def mul_three(mat_1, mat_2, mat_3):
     mat = np.matmul(mat_1, np.matmul(mat_2, mat_3))
     return mat
-
-
-def get_G(R_contact, S):
-    G_upper = np.hstack((R_contact, np.zeros((3, 3))))
-    G_lower = np.hstack((np.matmul(S, R_contact), R_contact))
-    G_contact = np.vstack((G_upper, G_lower))  # Get grasp matrix G of contact point
-    # print("  >>Check G:", G_contact)
-    return G_contact
 
 
 def get_P(V_o, V_c):
@@ -725,6 +704,7 @@ def Euler2posquat1D(Eula):
     # print(posquat)
     return posquat
 
+
 def posquat2posrotvec(posquat):
     posrotvec = np.zeros(6)
     posrotvec[:3] = posquat[:3]
@@ -736,7 +716,12 @@ def posquat2posrotvec(posquat):
 def posquat2posrotvec_hacking(posquat):
     posrotvec = np.zeros(6)
     posrotvec[:3] = posquat[:3]
-    _quat = np.hstack((posquat[4:], posquat[3]))
+    posrotvec[3:] = quat2rotvec_hacking(posquat[3:])
+    return posrotvec
+
+
+def quat2rotvec_hacking(quat):
+    _quat = np.hstack((quat[1:], quat[0]))  # change wxyz to xyzw
     rm = Rotation.from_quat(_quat).as_matrix()
     # compute rot_vec
     theta_tmp = math.acos((np.trace(rm) - 1.0) / 2.0)
@@ -751,14 +736,17 @@ def posquat2posrotvec_hacking(posquat):
         omega = omega_tmp
         theta = theta_tmp
 
-    posrotvec[3:] = theta * omega
-    return posrotvec
+    rotvec = theta * omega
+    return rotvec
+
 
 def getrotvecfromposquat(posquat):
     posrotvec = np.zeros(6)
     posrotvec[:3] = posquat[:3]
     _quat = np.hstack((posquat[4:], posquat[3]))
     return Rotation.from_quat(_quat).as_matrix()
+
+
 def posquat2pos_p_o(posquat):
     # pos_p = np.zeros(3)
     # pos_o = np.zeros(3, 3)
@@ -767,10 +755,10 @@ def posquat2pos_p_o(posquat):
     pos_o = Rotation.from_quat(_quat).as_matrix()
     return pos_p, pos_o
 
+
 def rm2rotvec(rm):
     rmrotvec = Rotation.from_matrix(rm).as_rotvec()
     return rmrotvec
-
 
 
 def joint_kdl_to_list(q):
@@ -778,143 +766,176 @@ def joint_kdl_to_list(q):
         return None
     return [q[i] for i in range(q.rows())]
 
-def contact_compute(sim, model, fingername, tacperception, x_state, cur_angles, robctrl):
-    # body jocobian matrix and velocity
-    G_contact = np.zeros([6, 6])
-    if not tactile_allegro_mujo_const.betterJ_FLAG:
-        if fingername == 'ff':
-            cur_jnt = cur_angles[0:4]
-            if tacperception.is_ff_contact == True:
-                pos_contact = tacperception.get_contact_taxel_position(sim, model, fingername, "palm_link")
-                #    the G_contact is partial grasping matrix because the noised object pose, refer to:
-                #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
-                #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
-                G_contact = get_G_contact(pos_contact, x_state)
-                # Get Jacobi J
-                Jac = robctrl.kdl_kin_ff.jacobian(cur_jnt)
-                # G_contact = G_contact.transpose()
-            else:
-                G_contact = np.zeros([6, 6])
-                Jac = np.zeros([6, 4])
-        if fingername == 'mf':
-            cur_jnt = cur_angles[4:8]
 
-            if tacperception.is_mf_contact == True:
-                pos_contact = tacperception.get_contact_taxel_position(sim, \
-                                                                       model, fingername, "palm_link")
-                #    the G_contact is partial grasping matrix because the noised object pose, refer to:
-                #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
-                #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
-                G_contact = get_G_contact(pos_contact, x_state)
-                # Get Jacobi J
-                Jac = robctrl.kdl_kin_mf.jacobian(cur_jnt)
-                # G_contact = G_contact.transpose()
-            else:
-                G_contact = np.zeros([6, 6])
-                Jac = np.zeros([6, 4])
-        if fingername == 'rf':
-            cur_jnt = cur_angles[8:12]
-            if tacperception.is_rf_contact == True:
-                pos_contact = tacperception.get_contact_taxel_position(sim, \
-                                                                       model, fingername, "palm_link")
-                #    the G_contact is partial grasping matrix because the noised object pose, refer to:
-                #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
-                #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
-                G_contact = get_G_contact(pos_contact, x_state)
-                # Get Jacobi J
-                Jac = robctrl.kdl_kin_rf.jacobian(cur_jnt)
-                # G_contact = G_contact.transpose()
-            else:
-                G_contact = np.zeros([6, 6])
-                Jac = np.zeros([6, 4])
+# def get_Grasp_matrix_old(sim, model, fingername, tacp, xstate_aug, robctrl):
+#     G_contact = np.zeros([6, 6])
+#     if not tac_const.betterJ_FLAG:
+#         if fingername == 'ff':
+#             cur_jnt = cur_angles[0:4]
+#             if tacp.is_ff_contact == True:
+#                 pos_contact = tacp.get_contact_taxel_position(sim, model, fingername, "palm_link")
+#                 #    the G_contact is partial grasping matrix because the noised object pose, refer to:
+#                 #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
+#                 #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
+#                 G_contact = get_G_contact(pos_contact, x_state)
+#                 # Get Jacobi J
+#                 Jac = robctrl.kdl_kin_ff.jacobian(cur_jnt)
+#                 # G_contact = G_contact.transpose()
+#             else:
+#                 G_contact = np.zeros([6, 6])
+#                 Jac = np.zeros([6, 4])
+#         if fingername == 'mf':
+#             cur_jnt = cur_angles[4:8]
+#
+#             if tacp.is_mf_contact == True:
+#                 pos_contact = tacp.get_contact_taxel_position(sim, \
+#                                                               model, fingername, "palm_link")
+#                 #    the G_contact is partial grasping matrix because the noised object pose, refer to:
+#                 #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
+#                 #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
+#                 G_contact = get_G_contact(pos_contact, x_state)
+#                 # Get Jacobi J
+#                 Jac = robctrl.kdl_kin_mf.jacobian(cur_jnt)
+#                 # G_contact = G_contact.transpose()
+#             else:
+#                 G_contact = np.zeros([6, 6])
+#                 Jac = np.zeros([6, 4])
+#         if fingername == 'rf':
+#             cur_jnt = cur_angles[8:12]
+#             if tacp.is_rf_contact == True:
+#                 pos_contact = tacp.get_contact_taxel_position(sim, \
+#                                                               model, fingername, "palm_link")
+#                 #    the G_contact is partial grasping matrix because the noised object pose, refer to:
+#                 #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
+#                 #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
+#                 G_contact = get_G_contact(pos_contact, x_state)
+#                 # Get Jacobi J
+#                 Jac = robctrl.kdl_kin_rf.jacobian(cur_jnt)
+#                 # G_contact = G_contact.transpose()
+#             else:
+#                 G_contact = np.zeros([6, 6])
+#                 Jac = np.zeros([6, 4])
+#
+#         if fingername == 'th':
+#             cur_jnt = cur_angles[12:16]
+#
+#             if tacp.is_th_contact == True:
+#                 pos_contact = tacp.get_contact_taxel_position(sim, \
+#                                                               model, fingername, "palm_link")
+#                 #    the G_contact is partial grasping matrix because the noised object pose, refer to:
+#                 #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
+#                 #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
+#                 G_contact = get_G_contact(pos_contact, x_state)
+#                 # Get Jacobi J
+#                 Jac = robctrl.kdl_kin_th.jacobian(cur_jnt)
+#                 # G_contact = G_contact.transpose()
+#             else:
+#                 G_contact = np.zeros([6, 6])
+#                 Jac = np.zeros([6, 4])
+#     else:
+#         if fingername == 'ff':
+#             if tacp.is_ff_contact == True:
+#                 taxel_name = tacp.get_contact_taxel_name(sim, model, 'ff', z_h_flag="z")
+#                 pos_contact = tacp.get_contact_taxel_position_from_name(sim, \
+#                                                                         model, fingername, "palm_link", taxel_name)
+#                 #    the G_contact is partial grasping matrix because the noised object pose, refer to:
+#                 #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
+#                 #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
+#                 G_contact = get_G_contact(pos_contact, x_state)
+#                 cur_jnt = cur_angles[0:4]
+#                 Jac = robctrl.robjac_offset(sim, fingername, cur_jnt, taxel_name)
+#                 # G_contact = G_contact.transpose()
+#             else:
+#                 G_contact = np.zeros([6, 6])
+#                 Jac = np.zeros([6, 4])
+#
+#         if fingername == 'mf':
+#
+#             if tacp.is_mf_contact == True:
+#                 taxel_name = tacp.get_contact_taxel_name(sim, model, 'mf', z_h_flag="z")
+#                 pos_contact = tacp.get_contact_taxel_position_from_name(sim, \
+#                                                                         model, fingername, "palm_link", taxel_name)
+#                 #    the G_contact is partial grasping matrix because the noised object pose, refer to:
+#                 #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
+#                 #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
+#                 G_contact = get_G_contact(pos_contact, x_state)
+#                 cur_jnt = cur_angles[4:8]
+#                 Jac = robctrl.robjac_offset(sim, fingername, cur_jnt, taxel_name)
+#                 # G_contact = G_contact.transpose()
+#             else:
+#                 G_contact = np.zeros([6, 6])
+#                 Jac = np.zeros([6, 4])
+#
+#         if fingername == 'rf':
+#
+#             if tacp.is_rf_contact == True:
+#                 taxel_name = tacp.get_contact_taxel_name(sim, model, 'rf', z_h_flag="z")
+#                 pos_contact = tacp.get_contact_taxel_position_from_name(sim, \
+#                                                                         model, fingername, "palm_link", taxel_name)
+#                 #    the G_contact is partial grasping matrix because the noised object pose, refer to:
+#                 #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
+#                 #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
+#                 G_contact = get_G_contact(pos_contact, x_state)
+#                 cur_jnt = cur_angles[8:12]
+#                 Jac = robctrl.robjac_offset(sim, fingername, cur_jnt, taxel_name)
+#                 # G_contact = G_contact.transpose()
+#             else:
+#                 G_contact = np.zeros([6, 6])
+#                 Jac = np.zeros([6, 4])
+#
+#         if fingername == 'th':
+#
+#             if tacp.is_th_contact == True:
+#                 taxel_name = tacp.get_contact_taxel_name(sim, model, 'th', z_h_flag="z")
+#                 pos_contact = tacp.get_contact_taxel_position_from_name(sim, \
+#                                                                         model, fingername, "palm_link", taxel_name)
+#                 #    the G_contact is partial grasping matrix because the noised object pose, refer to:
+#                 #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
+#                 #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
+#                 G_contact = get_G_contact(pos_contact, x_state)
+#                 cur_jnt = cur_angles[12:16]
+#                 Jac = robctrl.robjac_offset(sim, fingername, cur_jnt, taxel_name)
+#                 # G_contact = G_contact.transpose()
+#             else:
+#                 G_contact = np.zeros([6, 6])
+#                 Jac = np.zeros([6, 4])
+#
+#     # return G_contact, Jac
+#     return G_contact
 
-        if fingername == 'th':
-            cur_jnt = cur_angles[12:16]
 
-            if tacperception.is_th_contact == True:
-                pos_contact = tacperception.get_contact_taxel_position(sim, \
-                                                                       model, fingername, "palm_link")
-                #    the G_contact is partial grasping matrix because the noised object pose, refer to:
-                #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
-                #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
-                G_contact = get_G_contact(pos_contact, x_state)
-                # Get Jacobi J
-                Jac = robctrl.kdl_kin_th.jacobian(cur_jnt)
-                # G_contact = G_contact.transpose()
-            else:
-                G_contact = np.zeros([6, 6])
-                Jac = np.zeros([6, 4])
-    else:
-        if fingername == 'ff':
-            if tacperception.is_ff_contact == True:
-                taxel_name = tacperception.get_contact_taxel_name(sim, model, 'ff', z_h_flag="z")
-                pos_contact = tacperception.get_contact_taxel_position_from_name(sim, \
-                                                model, fingername, "palm_link", taxel_name)
-                #    the G_contact is partial grasping matrix because the noised object pose, refer to:
-                #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
-                #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
-                G_contact = get_G_contact(pos_contact, x_state)
-                cur_jnt = cur_angles[0:4]
-                Jac = robctrl.robjac_offset(sim, fingername, cur_jnt, taxel_name)
-                # G_contact = G_contact.transpose()
-            else:
-                G_contact = np.zeros([6, 6])
-                Jac = np.zeros([6, 4])
-
-        if fingername == 'mf':
-
-            if tacperception.is_mf_contact == True:
-                taxel_name = tacperception.get_contact_taxel_name(sim, model, 'mf', z_h_flag="z")
-                pos_contact = tacperception.get_contact_taxel_position_from_name(sim, \
-                                                                       model, fingername, "palm_link",taxel_name)
-                #    the G_contact is partial grasping matrix because the noised object pose, refer to:
-                #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
-                #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
-                G_contact = get_G_contact(pos_contact, x_state)
-                cur_jnt = cur_angles[4:8]
-                Jac = robctrl.robjac_offset(sim, fingername, cur_jnt, taxel_name)
-                # G_contact = G_contact.transpose()
-            else:
-                G_contact = np.zeros([6, 6])
-                Jac = np.zeros([6, 4])
+def get_S(r):
+    S = np.mat(np.zeros([3, 3]))
+    S[0, 1] = -r[2]
+    S[0, 2] = r[1]
+    S[1, 0] = r[2]
+    S[1, 2] = -r[0]
+    S[2, 0] = -r[1]
+    S[2, 1] = r[0]
+    return S
 
 
-        if fingername == 'rf':
+def get_G(R_contact, S):
+    G_upper = np.hstack((R_contact, np.zeros((3, 3))))
+    G_lower = np.hstack((np.matmul(S, R_contact), R_contact))
+    G_contact = np.vstack((G_upper, G_lower))  # Get grasp matrix G of contact point
+    return G_contact
 
-            if tacperception.is_rf_contact == True:
-                taxel_name = tacperception.get_contact_taxel_name(sim, model, 'rf', z_h_flag="z")
-                pos_contact = tacperception.get_contact_taxel_position_from_name(sim, \
-                                                                       model, fingername, "palm_link",taxel_name)
-                #    the G_contact is partial grasping matrix because the noised object pose, refer to:
-                #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
-                #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
-                G_contact = get_G_contact(pos_contact, x_state)
-                cur_jnt = cur_angles[8:12]
-                Jac = robctrl.robjac_offset(sim, fingername, cur_jnt, taxel_name)
-                # G_contact = G_contact.transpose()
-            else:
-                G_contact = np.zeros([6, 6])
-                Jac = np.zeros([6, 4])
 
-        if fingername == 'th':
-
-            if tacperception.is_th_contact == True:
-                taxel_name = tacperception.get_contact_taxel_name(sim, model, 'th', z_h_flag="z")
-                pos_contact = tacperception.get_contact_taxel_position_from_name(sim, \
-                                                                       model, fingername, "palm_link",taxel_name)
-                #    the G_contact is partial grasping matrix because the noised object pose, refer to:
-                #    Eq.2.14, Chapter 2 Robot Grasping Foundations/ B. León et al., From Robot to Human Grasping Simulation,
-                #    Cognitive Systems Monographs 19, DOI: 10.1007/978-3-319-01833-1_2
-                G_contact = get_G_contact(pos_contact, x_state)
-                cur_jnt = cur_angles[12:16]
-                Jac = robctrl.robjac_offset(sim, fingername, cur_jnt, taxel_name)
-                # G_contact = G_contact.transpose()
-            else:
-                G_contact = np.zeros([6, 6])
-                Jac = np.zeros([6, 4])
-
-    return G_contact, Jac
-    # return G_contact, Jac, u_t0, cur_jnt
+def get_Grasp_matrix(pos_tac_palm, pos_cup_palm):
+    """
+    pos_contact: position of contact tac in CUR EKF round
+    x_state: position of estimated object, come from LAST EKF round
+    ALL in palm frame.
+    """
+    # S = get_S(pos_contact[:3] - x_state[:3])  # Get S(c_i - p), palm frame
+    S = get_S(pos_tac_palm - pos_cup_palm)  # Get S(c_i - p), palm frame
+    # T_contact = posquat2trans(pos_contact)
+    # T_contact = get_T(sim, c_point_name)  # contact point in cup frame
+    # R_contact = T_contact[:3, :3]  # Get R of contact point
+    R_contact = np.mat(np.eye(3))  # Get R of contact point
+    G_contact = get_G(R_contact, S)
+    return G_contact
 
 
 def H_calculator(W1, W2, W3, pos_CO_x, pos_CO_y, pos_CO_z):
@@ -925,354 +946,356 @@ def H_calculator(W1, W2, W3, pos_CO_x, pos_CO_y, pos_CO_z):
     H = sy.Matrix([
         [1, 0, 0, pos_CO_x * (
                 W1 * (-W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
-                math.sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
-                                1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
-                                2 * W1 * W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W1 * W3 ** 2 / (
-                                    W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2)) + pos_CO_y * (
-                     -2 * W1 ** 2 * W2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 ** 2 * W2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - W1 * W3 * cos(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 * W3 * sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 * (
-                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2)) + pos_CO_z * (
-                     -2 * W1 ** 2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 ** 2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * W2 * cos(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 * W2 * sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 * (
-                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (W1 ** 2 + W2 ** 2 + W3 ** 2)),
+            math.sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
+                        1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
+                        2 * W1 * W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W1 * W3 ** 2 / (
+                        W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2)) + pos_CO_y * (
+                 -2 * W1 ** 2 * W2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 ** 2 * W2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - W1 * W3 * cos(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 * W3 * sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 * (
+                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2)) + pos_CO_z * (
+                 -2 * W1 ** 2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 ** 2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * W2 * cos(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 * W2 * sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 * (
+                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (W1 ** 2 + W2 ** 2 + W3 ** 2)),
          pos_CO_x * (W2 * (-W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
              sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
-                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
-                                 2 * W2 ** 3 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W2 * W3 ** 2 / (
-                                     W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W2 / (
-                                             W1 ** 2 + W2 ** 2 + W3 ** 2))) + pos_CO_y * (
-                     -2 * W1 * W2 ** 2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 ** 2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * (
-                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 * W3 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2)) + pos_CO_z * (
-                     -2 * W1 * W2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 ** 2 * cos(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 ** 2 * sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)), pos_CO_x * (
-                     W3 * (-W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
-                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
-                                 2 * W2 ** 2 * W3 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W3 ** 3 / (
-                                     W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W3 / (
-                                             W1 ** 2 + W2 ** 2 + W3 ** 2))) + pos_CO_y * (
-                     -2 * W1 * W2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - W3 ** 2 * cos(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W3 ** 2 * sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) + pos_CO_z * (
-                     -2 * W1 * W3 ** 2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W3 ** 2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * (
-                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 * W3 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2))],
+                             1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
+                             2 * W2 ** 3 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W2 * W3 ** 2 / (
+                             W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W2 / (
+                                     W1 ** 2 + W2 ** 2 + W3 ** 2))) + pos_CO_y * (
+                 -2 * W1 * W2 ** 2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 ** 2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * (
+                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 * W3 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2)) + pos_CO_z * (
+                 -2 * W1 * W2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 ** 2 * cos(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 ** 2 * sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)), pos_CO_x * (
+                 W3 * (-W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
+                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
+                         2 * W2 ** 2 * W3 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W3 ** 3 / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W3 / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2))) + pos_CO_y * (
+                 -2 * W1 * W2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - W3 ** 2 * cos(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W3 ** 2 * sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) + pos_CO_z * (
+                 -2 * W1 * W3 ** 2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W3 ** 2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * (
+                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 * W3 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2))],
         [0, 1, 0, pos_CO_x * (-2 * W1 ** 2 * W2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                    W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 ** 2 * W2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                          W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * W3 * cos(
+                W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 ** 2 * W2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                      W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * W3 * cos(
             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 * W3 * sin(
             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 * (
-                                          1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                          W1 ** 2 + W2 ** 2 + W3 ** 2)) + pos_CO_y * (
-                     W1 * (-W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
-                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
-                                 2 * W1 ** 3 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W1 * W3 ** 2 / (
-                                     W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W1 / (
-                                             W1 ** 2 + W2 ** 2 + W3 ** 2))) + pos_CO_z * (
-                     -W1 ** 2 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 ** 2 * sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W1 * W2 * W3 * (
-                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)), pos_CO_x * (
-                     -2 * W1 * W2 ** 2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 ** 2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * (
-                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 * W3 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2)) + pos_CO_y * (
-                     W2 * (-W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
-                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
-                                 2 * W1 ** 2 * W2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W2 * W3 ** 2 / (
-                                     W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2)) + pos_CO_z * (
-                     -W1 * W2 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 * W2 * sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W2 ** 2 * W3 * (
-                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W2 ** 2 * W3 * sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 * (
-                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (W1 ** 2 + W2 ** 2 + W3 ** 2)),
+                                      1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                      W1 ** 2 + W2 ** 2 + W3 ** 2)) + pos_CO_y * (
+                 W1 * (-W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
+                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
+                         2 * W1 ** 3 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W1 * W3 ** 2 / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W1 / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2))) + pos_CO_z * (
+                 -W1 ** 2 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 ** 2 * sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W1 * W2 * W3 * (
+                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)), pos_CO_x * (
+                 -2 * W1 * W2 ** 2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 ** 2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * (
+                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 * W3 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2)) + pos_CO_y * (
+                 W2 * (-W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
+                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
+                         2 * W1 ** 2 * W2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W2 * W3 ** 2 / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2)) + pos_CO_z * (
+                 -W1 * W2 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 * W2 * sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W2 ** 2 * W3 * (
+                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W2 ** 2 * W3 * sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 * (
+                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (W1 ** 2 + W2 ** 2 + W3 ** 2)),
          pos_CO_x * (-2 * W1 * W2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                     W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 ** 2 * cos(
+                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                             W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 ** 2 * cos(
              sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 * sin(
              sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + sin(
              sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) + pos_CO_y * (
-                     W3 * (-W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
-                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
-                                 2 * W1 ** 2 * W3 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W3 ** 3 / (
-                                     W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W3 / (
-                                             W1 ** 2 + W2 ** 2 + W3 ** 2))) + pos_CO_z * (
-                     -W1 * W3 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 * W3 * sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W2 * W3 ** 2 * (
-                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W2 * W3 ** 2 * sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 * (
-                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (W1 ** 2 + W2 ** 2 + W3 ** 2))],
+                 W3 * (-W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
+                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
+                         2 * W1 ** 2 * W3 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W3 ** 3 / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W3 / (
+                                 W1 ** 2 + W2 ** 2 + W3 ** 2))) + pos_CO_z * (
+                 -W1 * W3 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 * W3 * sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W2 * W3 ** 2 * (
+                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W2 * W3 ** 2 * sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 * (
+                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (W1 ** 2 + W2 ** 2 + W3 ** 2))],
         [0, 0, 1, pos_CO_x * (-2 * W1 ** 2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                    W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 ** 2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                          W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - W1 * W2 * cos(
+                W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 ** 2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                      W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - W1 * W2 * cos(
             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 * W2 * sin(
             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 * (
-                                          1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                          W1 ** 2 + W2 ** 2 + W3 ** 2)) + pos_CO_y * (
-                     W1 ** 2 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 ** 2 * sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W1 * W2 * W3 * (
-                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) + pos_CO_z * (
-                     W1 * (-W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
-                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
-                                 2 * W1 ** 3 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W1 * W2 ** 2 / (
-                                     W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W1 / (W1 ** 2 + W2 ** 2 + W3 ** 2))),
+                                      1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                      W1 ** 2 + W2 ** 2 + W3 ** 2)) + pos_CO_y * (
+                 W1 ** 2 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 ** 2 * sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W1 * W2 * W3 * (
+                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) + pos_CO_z * (
+                 W1 * (-W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
+                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
+                         2 * W1 ** 3 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W1 * W2 ** 2 / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W1 / (W1 ** 2 + W2 ** 2 + W3 ** 2))),
          pos_CO_x * (-2 * W1 * W2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                     W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - W2 ** 2 * cos(
+                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                             W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - W2 ** 2 * cos(
              sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 ** 2 * sin(
              sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - sin(
              sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) + pos_CO_y * (
-                     W1 * W2 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 * W2 * sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W2 ** 2 * W3 * (
-                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W2 ** 2 * W3 * sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 * (
-                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2)) + pos_CO_z * (
-                     W2 * (-W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
-                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
-                                 2 * W1 ** 2 * W2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W2 ** 3 / (
-                                     W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W2 / (W1 ** 2 + W2 ** 2 + W3 ** 2))),
+                 W1 * W2 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 * W2 * sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W2 ** 2 * W3 * (
+                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W2 ** 2 * W3 * sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 * (
+                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2)) + pos_CO_z * (
+                 W2 * (-W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
+                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
+                         2 * W1 ** 2 * W2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W2 ** 3 / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W2 / (W1 ** 2 + W2 ** 2 + W3 ** 2))),
          pos_CO_x * (-2 * W1 * W3 ** 2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                     W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W3 ** 2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * (
-                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 * W3 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2)) + pos_CO_y * (
-                     W1 * W3 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 * W3 * sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W2 * W3 ** 2 * (
-                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W2 * W3 ** 2 * sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 * (
-                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2)) + pos_CO_z * (
-                     W3 * (-W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
-                 sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
-                                 1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
-                                 2 * W1 ** 2 * W3 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W2 ** 2 * W3 / (
-                                     W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2))]
+                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W3 ** 2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                             W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * (
+                             1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                             W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 * W3 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                             W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                             W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2)) + pos_CO_y * (
+                 W1 * W3 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 * W3 * sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W2 * W3 ** 2 * (
+                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W2 * W3 ** 2 * sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 * (
+                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2)) + pos_CO_z * (
+                 W3 * (-W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
+                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
+                         2 * W1 ** 2 * W3 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W2 ** 2 * W3 / (
+                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2))]
     ])
     return H
 
+
 def H_calculator_pn(W1, W2, W3, normal_CO_x, normal_CO_y, normal_CO_z):
     H = sy.Matrix([[0, 0, 0, normal_CO_x * (
-                W1 * (-W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
-            sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
-                            1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
-                            2 * W1 * W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W1 * W3 ** 2 / (
-                                W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2)) + normal_CO_y * (
-                             -2 * W1 ** 2 * W2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 ** 2 * W2 * sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - W1 * W3 * cos(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 * W3 * sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 * (
-                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                         W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_z * (
-                             -2 * W1 ** 2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 ** 2 * W3 * sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * W2 * cos(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 * W2 * sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 * (
-                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (W1 ** 2 + W2 ** 2 + W3 ** 2)),
-                 normal_CO_x * (W2 * (
-                             -W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
-                     sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
-                                            1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
-                                            2 * W2 ** 3 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W2 * W3 ** 2 / (
-                                                W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W2 / (
-                                                        W1 ** 2 + W2 ** 2 + W3 ** 2))) + normal_CO_y * (
-                             -2 * W1 * W2 ** 2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 ** 2 * sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * (
-                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                         W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 * W3 * cos(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 * W3 * sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (
-                                         3 / 2)) + normal_CO_z * (
-                             -2 * W1 * W2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 ** 2 * cos(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 ** 2 * sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)), normal_CO_x * (W3 * (
-                    -W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+            W1 * (-W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
+                    1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
+                    2 * W1 * W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W1 * W3 ** 2 / (
+                    W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2)) + normal_CO_y * (
+                            -2 * W1 ** 2 * W2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                            W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 ** 2 * W2 * sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - W1 * W3 * cos(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 * W3 * sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 * (
+                                    1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                    W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_z * (
+                            -2 * W1 ** 2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                            W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 ** 2 * W3 * sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * W2 * cos(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 * W2 * sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 * (
+                                    1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (W1 ** 2 + W2 ** 2 + W3 ** 2)),
+                    normal_CO_x * (W2 * (
+                            -W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (
+                                           1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (
+                                           2 * W2 ** 3 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W2 * W3 ** 2 / (
+                                           W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W2 / (
+                                                   W1 ** 2 + W2 ** 2 + W3 ** 2))) + normal_CO_y * (
+                            -2 * W1 * W2 ** 2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                            W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 ** 2 * sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * (
+                                    1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                    W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 * W3 * cos(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 * W3 * sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (
+                                    3 / 2)) + normal_CO_z * (
+                            -2 * W1 * W2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                            W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 ** 2 * cos(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 ** 2 * sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)), normal_CO_x * (W3 * (
+                -W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (1 - cos(
             sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (2 * W2 ** 2 * W3 / (
-                    W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W3 ** 3 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W3 / (
-                                                               W1 ** 2 + W2 ** 2 + W3 ** 2))) + normal_CO_y * (
-                             -2 * W1 * W2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - W3 ** 2 * cos(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W3 ** 2 * sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_z * (
-                             -2 * W1 * W3 ** 2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W3 ** 2 * sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * (
-                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                         W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 * W3 * cos(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 * W3 * sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2))],
-                [0, 0, 0, normal_CO_x * (-2 * W1 ** 2 * W2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                            W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 ** 2 * W2 * sin(
-                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * W3 * cos(
-                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 * W3 * sin(
-                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 * (
-                                                     1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                                     W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_y * (W1 * (
+                W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W3 ** 3 / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W3 / (
+                                                           W1 ** 2 + W2 ** 2 + W3 ** 2))) + normal_CO_y * (
+                            -2 * W1 * W2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                            W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - W3 ** 2 * cos(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W3 ** 2 * sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_z * (
+                            -2 * W1 * W3 ** 2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                            W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W3 ** 2 * sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * (
+                                    1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                    W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 * W3 * cos(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 * W3 * sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2))],
+                   [0, 0, 0, normal_CO_x * (-2 * W1 ** 2 * W2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                           W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 ** 2 * W2 * sin(
+                       sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * W3 * cos(
+                       sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 * W3 * sin(
+                       sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 * (
+                                                    1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                                    W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_y * (W1 * (
+                           -W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+                       sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (1 - cos(
+                       sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (2 * W1 ** 3 / (
+                           W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W1 * W3 ** 2 / (
+                                                                      W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W1 / (
+                                                                      W1 ** 2 + W2 ** 2 + W3 ** 2))) + normal_CO_z * (
+                            -W1 ** 2 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                            W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 ** 2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                    W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W1 * W2 * W3 * (
+                                    1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                    W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)), normal_CO_x * (
+                            -2 * W1 * W2 ** 2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                            W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 ** 2 * sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * (
+                                    1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                    W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 * W3 * cos(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 * W3 * sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (
+                                    3 / 2)) + normal_CO_y * (W2 * (
+                           -W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+                       sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (1 - cos(
+                       sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (2 * W1 ** 2 * W2 / (
+                           W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W2 * W3 ** 2 / (
+                                                                      W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2)) + normal_CO_z * (
+                            -W1 * W2 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                            W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 * W2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                    W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W2 ** 2 * W3 * (
+                                    1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                    W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W2 ** 2 * W3 * sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 * (
+                                    1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (W1 ** 2 + W2 ** 2 + W3 ** 2)),
+                    normal_CO_x * (-2 * W1 * W2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                            W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 ** 2 * cos(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 * sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_y * (W3 * (
                             -W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
-                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (1 - cos(
-                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (2 * W1 ** 3 / (
-                            W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W1 * W3 ** 2 / (
-                                                                       W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W1 / (
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (1 - cos(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (2 * W1 ** 2 * W3 / (
+                            W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W3 ** 3 / (
+                                                                       W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W3 / (
                                                                        W1 ** 2 + W2 ** 2 + W3 ** 2))) + normal_CO_z * (
-                             -W1 ** 2 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 ** 2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W1 * W2 * W3 * (
-                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)), normal_CO_x * (
-                             -2 * W1 * W2 ** 2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 ** 2 * sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * (
-                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                         W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 * W3 * cos(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 * W3 * sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (
-                                         3 / 2)) + normal_CO_y * (W2 * (
-                            -W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
-                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (1 - cos(
-                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (2 * W1 ** 2 * W2 / (
-                            W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W2 * W3 ** 2 / (
-                                                                       W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2)) + normal_CO_z * (
-                             -W1 * W2 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 * W2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W2 ** 2 * W3 * (
-                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W2 ** 2 * W3 * sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 * (
-                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (W1 ** 2 + W2 ** 2 + W3 ** 2)),
-                 normal_CO_x * (-2 * W1 * W2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                             W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(
-                     sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 ** 2 * cos(
-                     sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 * sin(
-                     sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + sin(
-                     sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_y * (W3 * (
-                             -W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W3 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
-                     sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (1 - cos(
-                     sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (2 * W1 ** 2 * W3 / (
-                             W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W3 ** 3 / (
-                                                                        W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W3 / (
-                                                                        W1 ** 2 + W2 ** 2 + W3 ** 2))) + normal_CO_z * (
-                             -W1 * W3 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W2 * W3 ** 2 * (
-                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W2 * W3 ** 2 * sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 * (
-                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (W1 ** 2 + W2 ** 2 + W3 ** 2))],
-                [0, 0, 0, normal_CO_x * (-2 * W1 ** 2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                            W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 ** 2 * W3 * sin(
-                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - W1 * W2 * cos(
-                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 * W2 * sin(
-                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 * (
-                                                     1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                                     W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_y * (
-                             W1 ** 2 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 ** 2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W1 * W2 * W3 * (
-                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_z * (W1 * (
-                            -W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
-                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (1 - cos(
-                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (2 * W1 ** 3 / (
-                            W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W1 * W2 ** 2 / (
-                                                                       W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W1 / (
-                                                                       W1 ** 2 + W2 ** 2 + W3 ** 2))), normal_CO_x * (
-                             -2 * W1 * W2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - W2 ** 2 * cos(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 ** 2 * sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_y * (
-                             W1 * W2 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 * W2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W2 ** 2 * W3 * (
-                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                         W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W2 ** 2 * W3 * sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 * (
-                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                         W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_z * (W2 * (
-                            -W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
-                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (1 - cos(
-                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (2 * W1 ** 2 * W2 / (
-                            W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W2 ** 3 / (
-                                                                       W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W2 / (
-                                                                       W1 ** 2 + W2 ** 2 + W3 ** 2))), normal_CO_x * (
-                             -2 * W1 * W3 ** 2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                 W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W3 ** 2 * sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * (
-                                         1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
-                                         W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 * W3 * cos(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 * W3 * sin(
-                         sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (
-                                         3 / 2)) + normal_CO_y * (W1 * W3 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                            W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
-                                                                              W1 ** 2 + W2 ** 2 + W3 ** 2) ** (
-                                                                              3 / 2) - 2 * W2 * W3 ** 2 * (1 - cos(
-                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W2 * W3 ** 2 * sin(
-                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 * (1 - cos(
-                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_z * (W3 * (
-                            -W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
-                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (1 - cos(
-                    sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (2 * W1 ** 2 * W3 / (
-                            W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W2 ** 2 * W3 / (
-                                                                       W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2))]])
+                            -W1 * W3 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                            W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                    W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W2 * W3 ** 2 * (
+                                    1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                    W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W2 * W3 ** 2 * sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 * (
+                                    1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (W1 ** 2 + W2 ** 2 + W3 ** 2))],
+                   [0, 0, 0, normal_CO_x * (-2 * W1 ** 2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                           W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 ** 2 * W3 * sin(
+                       sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - W1 * W2 * cos(
+                       sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W1 * W2 * sin(
+                       sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 * (
+                                                    1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                                    W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_y * (
+                            W1 ** 2 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                            W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 ** 2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                    W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W1 * W2 * W3 * (
+                                    1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                    W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_z * (W1 * (
+                           -W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+                       sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (1 - cos(
+                       sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (2 * W1 ** 3 / (
+                           W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W1 * W2 ** 2 / (
+                                                                      W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W1 / (
+                                                                      W1 ** 2 + W2 ** 2 + W3 ** 2))), normal_CO_x * (
+                            -2 * W1 * W2 * W3 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                            W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W2 * W3 * sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - W2 ** 2 * cos(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 ** 2 * sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_y * (
+                            W1 * W2 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                            W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 * W2 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                    W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) - 2 * W2 ** 2 * W3 * (
+                                    1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                    W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W2 ** 2 * W3 * sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W3 * (
+                                    1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                    W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_z * (W2 * (
+                           -W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+                       sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (1 - cos(
+                       sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (2 * W1 ** 2 * W2 / (
+                           W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W2 ** 3 / (
+                                                                      W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 - 2 * W2 / (
+                                                                      W1 ** 2 + W2 ** 2 + W3 ** 2))), normal_CO_x * (
+                            -2 * W1 * W3 ** 2 * (1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                            W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W1 * W3 ** 2 * sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W1 * (
+                                    1 - cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (
+                                    W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 * W3 * cos(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) + W2 * W3 * sin(
+                        sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (
+                                    3 / 2)) + normal_CO_y * (W1 * W3 * cos(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                           W1 ** 2 + W2 ** 2 + W3 ** 2) - W1 * W3 * sin(sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (
+                                                                     W1 ** 2 + W2 ** 2 + W3 ** 2) ** (
+                                                                     3 / 2) - 2 * W2 * W3 ** 2 * (1 - cos(
+                       sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + W2 * W3 ** 2 * sin(
+                       sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / (W1 ** 2 + W2 ** 2 + W3 ** 2) ** (3 / 2) + W2 * (1 - cos(
+                       sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) / (W1 ** 2 + W2 ** 2 + W3 ** 2)) + normal_CO_z * (W3 * (
+                           -W1 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2) - W2 ** 2 / (W1 ** 2 + W2 ** 2 + W3 ** 2)) * sin(
+                       sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2)) / sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2) + (1 - cos(
+                       sqrt(W1 ** 2 + W2 ** 2 + W3 ** 2))) * (2 * W1 ** 2 * W3 / (
+                           W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2 + 2 * W2 ** 2 * W3 / (
+                                                                      W1 ** 2 + W2 ** 2 + W3 ** 2) ** 2))]])
 
     # print(H)
     return H
+
 
 def F_calculator_4Ginv(ju):
     """
@@ -1464,17 +1487,21 @@ def F_calculator_4Ginv(ju):
     #       F[5, :])
     return F
 
+
 def normalize(v):
     norm = np.linalg.norm(v)
     if norm == 0:
-       return v
+        return v
     return v / norm
+
 
 def normalize_scale(v):
     norm = np.linalg.norm(v)
     if norm == 0:
-       return v
+        return v
     return v / norm, norm
+
+
 def vec2rot(vec):
     rot = np.zeros([3, 3])
     rot_x = np.zeros(3)
@@ -1482,8 +1509,8 @@ def vec2rot(vec):
     if vec_normalize[2] != 1.0:
         x = vec_normalize[0]
         y = vec_normalize[1]
-        rot_x[0] = y / math.sqrt(x**2 + y**2)
-        rot_x[1] = - x / math.sqrt(x**2 + y**2)
+        rot_x[0] = y / math.sqrt(x ** 2 + y ** 2)
+        rot_x[1] = - x / math.sqrt(x ** 2 + y ** 2)
         rot_y = np.cross(vec_normalize, rot_x)
         rot[:3, 0] = rot_x
         rot[:3, 1] = rot_y
@@ -1493,4 +1520,3 @@ def vec2rot(vec):
     rot[:3, 2] = vec_normalize.T
     # print("    vec==rot:", rot)
     return rot
-

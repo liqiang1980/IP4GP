@@ -3,6 +3,7 @@ import tactile_allegro_mujo_const
 import tactile_allegro_mujo_const as tacCONST
 import util_geometry as ug
 import object_geometry as og
+import qgFunc as qg
 import time
 from scipy.spatial.transform import Rotation as R
 
@@ -14,13 +15,10 @@ class taxel_pose:
 
 
 class cls_tactile_perception:
-    def __init__(self):
+    def __init__(self, xml_path, fk):
+        self.xml_path = xml_path
+        self.fk = fk
         self.c_point_name = []
-        # # contact finger number
-        # self.fin_num = 0 （该变量需要在每一轮清零，不应当设为对象私有变量，应当设为函数局部变量）
-        # # identify which fingers are contacted
-        # self.fin_tri = np.zeros(0)
-        # tuple variable to tell (contact_finger_name, reference_frame, contacted_pose)
         self.tuple_fin_ref_pose = ()
         """Record which f_part is contact in current interaction round"""
         self.is_contact = {"ff": False, "ffd": False, "ffq": False,
@@ -93,16 +91,47 @@ class cls_tactile_perception:
         self.get_tip_center_pose(sim, model, 'rf_tip', ref_frame)
         self.get_tip_center_pose(sim, model, 'th_tip', ref_frame)
 
-    def is_finger_contact(self, sim, model, hand_param_part):
-        part_name = hand_param_part[0]
-        min_id = hand_param_part[3][0]
-        max_id = hand_param_part[3][1]
+    # def is_finger_contact(self, sim, model, hand_param_part):
+    #     part_name = hand_param_part[0]
+    #     min_id = hand_param_part[3][0]
+    #     max_id = hand_param_part[3][1]
+    #     if (np.array(sim.data.sensordata[min_id:max_id]) > 0.0).any():
+    #         """ Update contact_flags """
+    #         self.is_contact[part_name] = True
+    #         """ Update contact_tac name & position & rotvec """
+    #         tac_name, tac_id = self.get_contact_taxel_name(sim=sim, model=model, f_part=hand_param_part)
+    #         pv_tac_palm = ug.get_relative_posrotvec(sim=sim, src="palm_link", tgt=tac_name)
+    #         self.cur_tac[part_name][0] = tac_name
+    #         self.cur_tac[part_name][1] = pv_tac_palm
+    #         return True
+    #     else:
+    #         self.is_contact[part_name] = False
+    #         """ If not contact, use last tac to update cur tac info """
+    #         tac_name = self.last_tac[part_name][0]
+    #         pv_tac_palm = ug.get_relative_posrotvec(sim=sim, src="palm_link", tgt=tac_name)
+    #         self.cur_tac[part_name][0] = tac_name
+    #         self.cur_tac[part_name][1] = pv_tac_palm
+    #         return False
+
+    def is_finger_contact(self, sim, model, f_part):
+        """
+        Detect if this finger part contacts.
+        Yes:
+            Update cur_tac_name by contact area center tac method.
+            Update cur_tac_pos by fk.
+            Update cur_tac_rotvec by default jnt
+        No：
+        """
+        part_name = f_part[0]
+        min_id = f_part[3][0]
+        max_id = f_part[3][1]
         if (np.array(sim.data.sensordata[min_id:max_id]) > 0.0).any():
             """ Update contact_flags """
             self.is_contact[part_name] = True
             """ Update contact_tac name & position & rotvec """
-            tac_name, tac_id = self.get_contact_taxel_name(sim=sim, model=model, f_part=hand_param_part)
-            pv_tac_palm = ug.get_relative_posrotvec(sim=sim, src="palm_link", tgt=tac_name)
+            tac_name, tac_id = self.get_contact_taxel_name(sim=sim, model=model, f_part=f_part)
+            # pv_tac_palm = ug.get_relative_posrotvec(sim=sim, src="palm_link", tgt=tac_name)
+            pv_tac_palm = self.contact_renew(sim=sim, model=model, tac_name=tac_name, f_part=f_part)
             self.cur_tac[part_name][0] = tac_name
             self.cur_tac[part_name][1] = pv_tac_palm
             return True
@@ -120,6 +149,25 @@ class cls_tactile_perception:
             f_name = f_part[0]
             self.last_tac[f_name][0] = self.cur_tac[f_name][0]
             self.last_tac[f_name][1] = self.cur_tac[f_name][1]
+
+    def contact_renew(self, sim, model, tac_name, f_part):
+        f_name = f_part[0]
+        default_jnt = f_part[5]
+        default_pq = ug.get_relative_posquat(sim=sim, src="palm_link", tgt=default_jnt)
+        default_rotvec = ug.quat2rotvec_hacking(default_pq[3:])
+        pos0, rpy0 = qg.get_taxel_poseuler(taxel_name=tac_name, xml_path=self.xml_path)  # The 'euler' in xml are 'rpy' in fact
+        T_tac_palm = qg.get_T_taxel(pos=pos0, rpy=rpy0, T_tip_in_palm=self.fk.T_part_in_palm[f_name])
+        pos_tac_in_palm = np.ravel(T_tac_palm[:3, 3].T)
+        rotvec_tac_in_palm = default_rotvec
+        if model == "last":
+            self.last_tac[f_name][0] = tac_name
+            self.last_tac[f_name][1][:3] = pos_tac_in_palm
+            self.last_tac[f_name][1][3:] = rotvec_tac_in_palm
+        elif model == "cur":
+            self.cur_tac[f_name][0] = tac_name
+            self.cur_tac[f_name][1][:3] = pos_tac_in_palm
+            self.cur_tac[f_name][1][3:] = rotvec_tac_in_palm
+        return self.cur_tac[f_name][1]  # return posrotvec
 
 
     def get_contact_taxel_name_pressure(self, sim, model, finger_name):
@@ -341,6 +389,7 @@ class cls_tactile_perception:
         default_tac_id = f_part[4][1]
         taxels_id = self.get_contact_taxel_id(sim=sim, f_part=f_part)
         if taxels_id is None:  # No contact
+            print("～～～～It is weird to get Here～～～～")
             return default_tac_name, default_tac_id
         c_points = taxels_id[0] + tac_id[0]
 

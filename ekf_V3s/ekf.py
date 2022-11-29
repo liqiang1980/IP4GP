@@ -1,8 +1,7 @@
 import numpy as np
-
+import copy
 import qgFunc
-import tactile_allegro_mujo_const
-import tactile_perception as tacperception
+import tactile_allegro_mujo_const as tac_const
 import util_geometry as ug
 import object_geometry as og
 import math
@@ -21,18 +20,12 @@ class EKF:
         ##############   refresh parameters  ###################
         # todo why delta_t set 0.1
         self.delta_t = 0.1
-        # number of triggered fingers
-        self.fin_num = 0
-        # Which fingers are triggered? Mark them with "1"
-        self.fin_tri = np.zeros(4)
-        # grasping matrix of fingers
-        self.G_pinv = np.zeros([6, 6])
-        # Jacobian matrix of fingers
-        self.J = np.zeros([4, 6, 4])
+        # self.fin_num = 0
+        # self.fin_tri = np.zeros(4)
+        # self.G_pinv = np.zeros([6, 6])
+        # self.J = np.zeros([4, 6, 4])
         self.nor_in_p = np.zeros(3)
-        self.G_contact = np.zeros([4, 6, 6])
-        # self.u_t_tmp = np.zeros([4, 4])
-        # self.angle_tmp = np.zeros([4, 4])
+        # self.G_contact = np.zeros([4, 6, 6])
         self.nor_tmp = np.zeros([4, 3])
         self.count_time = 0
         self.save_count_time = []
@@ -51,76 +44,72 @@ class EKF:
     def set_contact_flag(self, flag):
         self.flag = flag
 
-    def state_predictor(self, sim, model, hand_param, object_param, x_state, tacperception,
-                        P_state_cov, cur_angles, last_angles, robctrl):
-        # print("state prediction")
-        Transfer_Fun_Matrix = np.mat(np.zeros((18, 18)))
-        Q_state_noise_cov = np.zeros((18, 18))
-
-        # print('noise ***********************************************', math.fabs(np.random.normal(0, 0.005)))
+    def state_predictor(self, sim, model, hand_param, object_param, xstate_aug,
+                        P_state_cov, tacp, robctrl):
+        f_param = hand_param[1:]
+        dim_x_aug = len(xstate_aug)
+        num_used_f = len(f_param)
+        """ Matrix Initialization: F, P, G """
+        F_Matrix = np.mat(np.zeros((dim_x_aug, dim_x_aug)))
+        Q_state_noise_cov = np.zeros((dim_x_aug, dim_x_aug))
         for i in range(6):
             Q_state_noise_cov[i, i] = math.fabs(np.random.normal(0, 0.001))
+        Grasping_matrix = np.zeros([6, 6 * num_used_f])
+        G_pinv = np.zeros([6, 6 * num_used_f])
+        ju = np.zeros(6 * num_used_f)
 
-        # print('in state predict before', P_state_cov)
-        self.fin_num = tacperception.fin_num
-        self.fin_tri = tacperception.fin_tri
+        """ 
+        G matrix calculate 
+        and
+        Get the twists of contact tacs: These are equivalent to Jac * delta_u
+        """
+        for i, f_part in enumerate(f_param):
+            f_name = f_part[0]
+            tac_name = tacp.cur_tac[f_name][0]  # If no contact, cur-tac info is updated by last-tac
+            tac_posrotvec = tacp.cur_tac[f_name][1]
+            cur_s = tacp.contact_renew(sim=sim, idx=i, tac_name=tac_name, model="cur",
+                                        T_tip_palm=T_tip_palm[i])
+            if not tacp.is_contact[f_name]:  # this part is no-contact, pass
+                continue
+            pos_tac_palm = tac_posrotvec[:3]
+            pos_cup_palm = xstate_aug[:3]
+            tmp_G = ug.get_Grasp_matrix(pos_tac_palm=pos_tac_palm, pos_cup_palm=pos_cup_palm)
+            Grasping_matrix[:, 0 + i * 6: 6 + i * 6] = tmp_G
+            # self.J_fingers[0 + i * 6: 6 + i * 6, 0 + i * 4: 4 + i * 4] = self.J[i, :, :]
+            ju[6 * i: 6 * i + 6] =
 
-        self.Grasping_matrix = np.zeros([6, 6 * 4])
-        ############### Form hand Jacobian matrix #################
-        self.J_fingers = np.zeros([6 * 4, 4 * 4])
-        for i in range(4):
-            self.G_contact[i, :, :], self.J[i, :, :] \
-                = ug.contact_compute(sim, model, hand_param[i + 1][0], tacperception, x_state, cur_angles, robctrl)
-            self.Grasping_matrix[:, 0 + i * 6: 6 + i * 6] = self.G_contact[i, :, :]
-            self.J_fingers[0 + i * 6: 6 + i * 6, 0 + i * 4: 4 + i * 4] = self.J[i, :, :]
+        if is_contact[i]:
+            ju.extend(tacp.cur_contact[i][1] - tacp.last_contact[i][1])
 
-        inv_tmp = np.zeros([6, 6])
-        G_pinv = np.zeros([6, 24])
-        if tactile_allegro_mujo_const.GT_FLAG == '1G':  # 4 G splice and calculate big GT_pinv
-            G_pinv = np.linalg.pinv(self.Grasping_matrix.T)  # Get G_pinv
-        elif tactile_allegro_mujo_const.GT_FLAG == '4G':
-            for i in range(4):
-                inv_tmp = self.Grasping_matrix[:, 0 + i * 6: 6 + i * 6]
+        """ G_pinv calculate: 2 type """
+        if tac_const.GT_FLAG == '1G':  # 4 G splice and calculate big GT_pinv
+            G_pinv = np.linalg.pinv(Grasping_matrix.T)  # Get G_pinv
+        elif tac_const.GT_FLAG == '4G':
+            for i in range(num_used_f):
+                inv_tmp = Grasping_matrix[:, 0 + i * 6: 6 + i * 6]
                 Y_RU = np.copy(inv_tmp[0:3, 3:6])
                 Y_LD = np.copy(inv_tmp[3:6, 0:3])
                 inv_tmp[0:3, 3:6] = Y_LD
                 inv_tmp[3:6, 0:3] = Y_RU
                 G_pinv[:, 0 + i * 6: 6 + i * 6] = inv_tmp  # 4 GT_inv splice a big G
-        # prediction = np.matmul(np.matmul(G_pinv, self.J_fingers), self.u_t)
-        # delta_angles = self.angles - last_angle
-        delta_angles = cur_angles - last_angles
-        self.delta_angle.append(delta_angles[4:8])
-        np.set_printoptions(suppress=True)
-        np.savetxt('delta_angles.txt', self.delta_angle)
-        ju = np.matmul(self.J_fingers, delta_angles)
+
 
         prediction = np.matmul(G_pinv, ju)
-        if tactile_allegro_mujo_const.GT_FLAG == '4G':
-            # F_calculator_4Ginv identity
-            Transfer_Fun_Matrix[:6, :6] = np.mat(np.eye(6))
-            # Transfer_Fun_Matrix[:6, :6] = np.mat(np.eye(6)) + ug.F_calculator_4Ginv(ju=ju)
+        if tac_const.GT_FLAG == '4G':
+            F_Matrix[:6, :6] = np.mat(np.eye(6))
+        prediction = np.append(prediction, [0] * (12 * 3))
+        x_bar = xstate_aug + prediction
 
-        # assume the contact positions on the object do not change.
-        # print("???shape of pre: ", prediction.shape, prediction, G_pinv.shape, ju.shape)
-        prediction = np.append(prediction, [0] * (12*3))
-        # print("???shape of pre: ", prediction.shape, prediction, (1.0/tacperception.fin_num*prediction).shape, (1.0/tacperception.fin_num*prediction))
-        # x_bar = x_state + 1.0 / tacperception.fin_num * prediction
-        x_bar = x_state + prediction
+        P_state_cov = F_Matrix * P_state_cov * F_Matrix.transpose() + Q_state_noise_cov
 
-        P_state_cov = Transfer_Fun_Matrix * P_state_cov * \
-                      Transfer_Fun_Matrix.transpose() + Q_state_noise_cov
-
-        # print('in state predict after', P_state_cov)
-
-        # ju is only for debugging
         return x_bar, P_state_cov
 
     def observe_computation(self, x_bar, tacperception, sim, object_param):
         # print('measurement equation computation')
         contact_position = []
         contact_nv = []
-        self.fin_num = tacperception.fin_num
-        self.fin_tri = tacperception.fin_tri
+        # self.fin_num = tacperception.fin_num
+        # self.fin_tri = tacperception.fin_tri
         _obj_position = x_bar[:3]  # position of object in palm
         _rot = ug.rotvec_2_Matrix(x_bar[3:6])  # rot of object in palm
         for i in range(4):
@@ -129,7 +118,7 @@ class EKF:
                 ##########Get normal of contact point on the cup
                 if int(object_param[3]) == 3:
                     nor_contact_in_cup, res = og.surface_cylinder(x_bar[6 + i * 3], x_bar[6 + i * 3 + 1],
-                                                             x_bar[6 + i * 3 + 2])
+                                                                  x_bar[6 + i * 3 + 2])
                 else:
                     nor_contact_in_cup, res = og.surface_cup(x_bar[6 + i * 3], x_bar[6 + i * 3 + 1],
                                                              x_bar[6 + i * 3 + 2])
@@ -145,8 +134,8 @@ class EKF:
         # print('measurement feedback from sensing (ground truth + noise in simulation)')
         contact_position = []
         contact_nv = []
-        self.fin_num = tacperception.fin_num
-        self.fin_tri = tacperception.fin_tri
+        # self.fin_num = tacperception.fin_num
+        # self.fin_tri = tacperception.fin_tri
 
         for i in range(4):
             if tacperception.fin_tri[i] == 1:
@@ -181,7 +170,7 @@ class EKF:
             normal_c3 = og.surface_cup(pos_c3[0], pos_c3[1], pos_c3[2])[0]  # the normal of contact point in {O}
             normal_c4 = og.surface_cup(pos_c4[0], pos_c4[1], pos_c4[2])[0]  # the normal of contact point in {O}
         # print("  normal_c1:", normal_c1)
-        pn_flag = tactile_allegro_mujo_const.PN_FLAG
+        pn_flag = tac_const.PN_FLAG
         if pn_flag == 'pn':  # use pos and normal as observation variable
             J_h = np.zeros([6 * 4, 6 + 4 * 3])
             R_noi = np.zeros([24, 24])
