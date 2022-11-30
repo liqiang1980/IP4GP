@@ -5,6 +5,7 @@ import numpy as np
 import copy
 import tactile_allegro_mujo_const as tac_const
 import qgFunc as qg
+from scipy.spatial.transform import Rotation
 
 
 class ForwardKinematics:
@@ -20,16 +21,18 @@ class ForwardKinematics:
         self.cur_jnt = np.zeros(self.jnt_num)
         self.kdl_chain = {}
         self.kdl_fk = {}
-        self.T_part_in_palm = {}
-        self.
+        self.T_tip_palm = {}
+        self.R_tip_palm = {}
+        self.rotvec_tip_palm = {}
         """ Initialization """
         for f_part in self.f_param:
             f_name = f_part[0]
             kdl.SetToZero(self.qpos_pos[f_name][0])
             self.kdl_chain[f_name] = self.hand_tree.getChain(chain_root="palm_link", chain_tip=f_part[5])
             self.kdl_fk[f_name] = kdl.ChainFkSolverPos_recursive(self.kdl_chain[f_name])
-            self.T_part_in_palm[f_name] = np.mat(np.eye(4))
-
+            self.T_tip_palm[f_name] = np.mat(np.eye(4))
+            self.R_tip_palm[f_name] = np.mat(np.eye(3))
+            self.rotvec_tip_palm[f_name] = np.zeros(3)
 
         # self.index_qpos = kdl.JntArray(4)
         # self.mid_qpos = kdl.JntArray(4)
@@ -93,36 +96,51 @@ class ForwardKinematics:
 
     def joint_update(self):
         _all_joint = self.cur_jnt
-        self.qpos_pos["ff"][0] = _all_joint[0:4]
-        self.qpos_pos["mf"][0] = _all_joint[4:8]
-        self.qpos_pos["rf"][0] = _all_joint[8:12]
-        self.qpos_pos["th"][0] = _all_joint[12:16]
+        self.qpos_pos["ff"][0][0] = _all_joint[0]
+        self.qpos_pos["ff"][0][1] = _all_joint[1]
+        self.qpos_pos["ff"][0][2] = _all_joint[2]
+        self.qpos_pos["ff"][0][3] = _all_joint[3]
 
-        self.qpos_pos["ffd"][0] = _all_joint[0:3]
-        self.qpos_pos["mfd"][0] = _all_joint[4:7]
-        self.qpos_pos["rfd"][0] = _all_joint[8:11]
-        self.qpos_pos["thd"][0] = _all_joint[12:15]
+        self.qpos_pos["mf"][0][0] = _all_joint[4]
+        self.qpos_pos["mf"][0][1] = _all_joint[5]
+        self.qpos_pos["mf"][0][2] = _all_joint[6]
+        self.qpos_pos["mf"][0][3] = _all_joint[7]
 
-        self.qpos_pos["ffq"][0] = _all_joint[0:2]
-        self.qpos_pos["mfq"][0] = _all_joint[4:6]
-        self.qpos_pos["rfq"][0] = _all_joint[8:10]
+        self.qpos_pos["rf"][0][0] = _all_joint[8]
+        self.qpos_pos["rf"][0][1] = _all_joint[9]
+        self.qpos_pos["rf"][0][2] = _all_joint[10]
+        self.qpos_pos["rf"][0][3] = _all_joint[11]
 
-        # self.index_qpos[0] = _all_joint[0]
-        # self.index_qpos[1] = _all_joint[1]
-        # self.index_qpos[2] = _all_joint[2]
-        # self.index_qpos[3] = _all_joint[3]
-        # self.mid_qpos[0] = _all_joint[4]
-        # self.mid_qpos[1] = _all_joint[5]
-        # self.mid_qpos[2] = _all_joint[6]
-        # self.mid_qpos[3] = _all_joint[7]
-        # self.ring_qpos[0] = _all_joint[8]
-        # self.ring_qpos[1] = _all_joint[9]
-        # self.ring_qpos[2] = _all_joint[10]
-        # self.ring_qpos[3] = _all_joint[11]
-        # self.thumb_qpos[0] = _all_joint[12]
-        # self.thumb_qpos[1] = _all_joint[13]
-        # self.thumb_qpos[2] = _all_joint[14]
-        # self.thumb_qpos[3] = _all_joint[15]
+        self.qpos_pos["th"][0][0] = _all_joint[12]
+        self.qpos_pos["th"][0][1] = _all_joint[13]
+        self.qpos_pos["th"][0][2] = _all_joint[14]
+        self.qpos_pos["th"][0][3] = _all_joint[15]
+
+        self.qpos_pos["ffd"][0][0] = _all_joint[0]
+        self.qpos_pos["ffd"][0][1] = _all_joint[1]
+        self.qpos_pos["ffd"][0][2] = _all_joint[2]
+
+        self.qpos_pos["mfd"][0][0] = _all_joint[4]
+        self.qpos_pos["mfd"][0][1] = _all_joint[5]
+        self.qpos_pos["mfd"][0][2] = _all_joint[6]
+
+        self.qpos_pos["rfd"][0][0] = _all_joint[8]
+        self.qpos_pos["rfd"][0][1] = _all_joint[9]
+        self.qpos_pos["rfd"][0][2] = _all_joint[10]
+
+        self.qpos_pos["thd"][0][0] = _all_joint[12]
+        self.qpos_pos["thd"][0][1] = _all_joint[13]
+        self.qpos_pos["thd"][0][2] = _all_joint[14]
+
+        self.qpos_pos["ffq"][0][0] = _all_joint[0]
+        self.qpos_pos["ffq"][0][1] = _all_joint[1]
+
+        self.qpos_pos["mfq"][0][0] = _all_joint[4]
+        self.qpos_pos["mfq"][0][1] = _all_joint[5]
+
+        self.qpos_pos["rfq"][0][0] = _all_joint[8]
+        self.qpos_pos["rfq"][0][1] = _all_joint[9]
+
 
     def fk_dealer(self):
         """
@@ -140,14 +158,17 @@ class ForwardKinematics:
             f_name = f_part[0]
             if f_name == "palm":
                 break
+            # print(f_name)
             qg.kdl_calc_fk(fk=self.kdl_fk[f_name], q=self.qpos_pos[f_name][0], pos=self.qpos_pos[f_name][1])
             for i in range(3):
                 p[i, 0] = copy.deepcopy(self.qpos_pos[f_name][1].p[i])
                 for j in range(3):
                     M[i, j] = copy.deepcopy(self.qpos_pos[f_name][1].M[i, j])
-            self.T_part_in_palm[f_name][:3, :3] = M
-            self.T_part_in_palm[f_name][:3, 3] = p
-        return self.T_part_in_palm
+            self.T_tip_palm[f_name][:3, :3] = M
+            self.T_tip_palm[f_name][:3, 3] = p
+            self.R_tip_palm[f_name] = M
+            self.rotvec_tip_palm[f_name] = Rotation.from_matrix(self.R_tip_palm[f_name]).as_rotvec()
+        return self.T_tip_palm
 
         # forward kinematics
         # qg.kdl_calc_fk(self.index_fk, self.index_qpos, self.index_pos)

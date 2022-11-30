@@ -26,12 +26,14 @@ def ctrl_finger(sim, input1, input2, f_name):
                "th": [tacCONST.TH_CTRL_2, tacCONST.TH_CTRL_3, tacCONST.TH_CTRL_4]
                }
     _input = 0
-    if not (np.array(sim.data.sensordata[tac_id[f_name][0]:tac_id[f_name][1]]) > 0.0).any():
+    if not (np.array(sim.data.sensordata[tac_id[f_name][0]: tac_id[f_name][1]]) > 0.0).any():
         _input = input1
     else:
         _input = input2
     for cid in ctrl_id[f_name]:
+        # sim.data.ctrl[cid] = sim.data.ctrl[cid] + _input
         sim.data.ctrl[cid] += _input
+        # print("cid:", cid, sim.data.ctrl[cid], _input)
 
 
 def pre_thumb(sim, viewer):
@@ -40,6 +42,24 @@ def pre_thumb(sim, viewer):
         sim.step()
         viewer.render()
 
+def index_finger(sim, input1, input2):
+    # print("|||shape||||ctrl: ", len(sim.data.ctrl))
+
+    if not (np.array(sim.data.sensordata[tacCONST.FF_TAXEL_NUM_MIN: \
+            tacCONST.FF_TAXEL_NUM_MAX]) > 0.0).any():
+        sim.data.ctrl[tacCONST.FF_CTRL_2] = \
+            sim.data.ctrl[tacCONST.FF_CTRL_2] + input1
+        sim.data.ctrl[tacCONST.FF_CTRL_3] = \
+            sim.data.ctrl[tacCONST.FF_CTRL_3] + input1
+        sim.data.ctrl[tacCONST.FF_CTRL_4] = \
+            sim.data.ctrl[tacCONST.FF_CTRL_4] + input1
+    else:
+        sim.data.ctrl[tacCONST.FF_CTRL_2] = \
+            sim.data.ctrl[tacCONST.FF_CTRL_2] + input2
+        sim.data.ctrl[tacCONST.FF_CTRL_3] = \
+            sim.data.ctrl[tacCONST.FF_CTRL_3] + input2
+        sim.data.ctrl[tacCONST.FF_CTRL_4] = \
+            sim.data.ctrl[tacCONST.FF_CTRL_4] + input2
 
 # def middle_finger(sim, input1, input2):
 #     if not (np.array(sim.data.sensordata[tacCONST.MF_TAXEL_NUM_MIN:

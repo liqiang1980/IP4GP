@@ -27,7 +27,7 @@ def get_poseuler_from_xml(nodelist):
     """
     pos = nodelist.get('pos')
     euler = nodelist.get('euler')
-    print(">>FIND:", nodelist.tag, ':', nodelist.attrib)
+    # print(">>FIND:", nodelist.tag, ':', nodelist.attrib)
     return pos, euler
 
 
@@ -221,14 +221,6 @@ def euler2R(euler):
     Input euler (zyx), return their R mat in the same frame.
     """
     R = Rotation.from_euler('ZYX', euler).as_matrix()
-    return R
-
-
-def rpy2R(rpy):
-    """
-    Input euler (zyx), return their R mat in the same frame.
-    """
-    R = Rotation.from_euler('xyz', rpy).as_matrix()
     return R
 
 
@@ -731,16 +723,24 @@ def cal_col_in_J(A):
     return col_J
 
 
-def get_T_taxel(pos, rpy, T_tip_in_palm):
+def rpy2R(rpy):
+    """
+    Input euler (zyx), return their R mat in the same frame.
+    """
+    R = Rotation.from_euler('xyz', rpy).as_matrix()
+    return R
+
+
+def posrpy2trans(pos, rpy):
     """
     Translate posrpy to T
     """
-    R_taxl_in_tip = rpy2R(rpy)  # Taxel in tip
-    T_taxel_in_tip = np.mat(np.eye(4))
-    T_taxel_in_tip[:3, :3] = R_taxl_in_tip
-    T_taxel_in_tip[:3, 3] = np.mat(pos).T
-    T_taxel_in_palm = np.dot(T_tip_in_palm, T_taxel_in_tip)
-    return T_taxel_in_palm
+    R = rpy2R(rpy)  # Taxel in tip
+    T = np.mat(np.eye(4))
+    T[:3, :3] = R
+    T[:3, 3] = np.mat(pos).T
+    # T_taxel_in_palm = np.dot(T_tip_in_palm, T_taxel_in_tip)
+    return T
 
 
 def get_taxel_poseuler(taxel_name, xml_path):
@@ -808,7 +808,7 @@ def get_taxel_poseuler(taxel_name, xml_path):
             break
     pos = np.fromstring(pos, dtype=float, sep=' ')
     euler = np.fromstring(euler, dtype=float, sep=' ')
-    print('TOUCH_poseuler_array:', pos, euler)
+    # print('TOUCH_poseuler_array:', pos, euler)
     return pos, euler
 
 

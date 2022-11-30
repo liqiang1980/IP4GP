@@ -20,7 +20,8 @@
             <jnt>link_3.0_tip</jnt>
         </finger>
         <finger name= 'ffd'>
-            <used>1</used>
+<!--            <used>1</used>-->
+            <used>0</used>
             <init_posture>
                 <j1>-1</j1>
                 <j2>6</j2>
@@ -38,7 +39,8 @@
             <jnt>link_2.0_tip</jnt>
         </finger>
         <finger name= 'ffq'>
-            <used>1</used>
+<!--            <used>1</used>-->
+            <used>0</used>
             <init_posture>
                 <j1>-1</j1>
                 <j2>-1</j2>
@@ -74,7 +76,8 @@
             <jnt>link_7.0_tip</jnt>
         </finger>
         <finger name= 'mfd'>
-            <used>1</used>
+<!--            <used>1</used>-->
+            <used>0</used>
             <init_posture>
                 <j1>-1</j1>
                 <j2>6</j2>
@@ -92,7 +95,8 @@
             <jnt>link_6.0_tip</jnt>
         </finger>
         <finger name= 'mfq'>
-            <used>1</used>
+<!--            <used>1</used>-->
+            <used>0</used>
             <init_posture>
                 <j1>-1</j1>
                 <j2>-1</j2>
@@ -128,7 +132,8 @@
             <jnt>link_11.0_tip</jnt>
         </finger>
         <finger name= 'rfd'>
-            <used>1</used>
+<!--            <used>1</used>-->
+            <used>0</used>
             <init_posture>
                 <j1>-1</j1>
                 <j2>6</j2>
@@ -146,7 +151,8 @@
             <jnt>link_10.0_tip</jnt>
         </finger>
         <finger name= 'rfq'>
-            <used>1</used>
+<!--            <used>1</used>-->
+            <used>0</used>
             <init_posture>
                 <j1>-1</j1>
                 <j2>-1</j2>
@@ -182,7 +188,8 @@
             <jnt>link_15.0_tip</jnt>
         </finger>
         <finger name= 'thd'>
-            <used>1</used>
+<!--            <used>1</used>-->
+            <used>0</used>
             <init_posture>
                 <j1>-1</j1>
                 <j2>6</j2>
@@ -200,7 +207,8 @@
             <jnt>link_14.0_tip</jnt>
         </finger>
         <finger name= 'palm'>
-            <used>1</used>
+<!--            <used>1</used>-->
+            <used>0</used>
             <init_posture>
                 <j1>-1</j1>
                 <j2>-1</j2>

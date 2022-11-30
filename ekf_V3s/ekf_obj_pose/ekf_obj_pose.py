@@ -48,9 +48,8 @@ class MainLoop(threading.Thread):
         for ii in range(2000):
             for f_part in hand_param[1:]:
                 f_name = f_part[0]
-                used_flag = f_part[1]
-                if f_name in ctrl_val and used_flag == "1":
-                    fct.ctrl_finger(sim=sim, input1=ctrl_val[f_name][0], input2=ctrl_val[f_name][1], f_name=f_name)
+                if f_name in ctrl_val:
+                    fct.ctrl_finger(sim=sim, f_name=f_name, input1=ctrl_val[f_name][0], input2=ctrl_val[f_name][1])
             # if hand_param[1][1] == '1':
             #     fct.ctrl_finger(sim, 0.005, 0.000001, hand_param[1][0])
             # if hand_param[2][1] == '1':
@@ -63,11 +62,17 @@ class MainLoop(threading.Thread):
             #     # fct.thumb(sim, 0.002, 0.000001)
             #     fct.ctrl_finger(sim, 0.002, 0.000001, hand_param[4][0])
             """EKF process"""
-            rob_control.interaction(sim, model, viewer, hand_param, object_param, alg_param, grasping_ekf,
-                                    tacperception, fk, char)
+            if (np.array(sim.data.sensordata[0: 636]) > 0.0).any():  # If contact, start interaction
+                rob_control.interaction(sim=sim, model=model, viewer=viewer,
+                                        object_param=object_param,
+                                        alg_param=alg_param,
+                                        ekf_grasping=grasping_ekf,
+                                        tacp=tacperception,
+                                        fk=fk,
+                                        char=char)
 
             """Update tacdata for heapmap plot"""
-            tacperception.update_tacdata(sim=sim)
+            # tacperception.update_tacdata(sim=sim)
 
             sim.step()
             viewer.render()
@@ -133,7 +138,7 @@ grasping_ekf.set_store_flag(alg_param[0])
 tacperception = tactile_perception.cls_tactile_perception(xml_path=xml_path, fk=fk)
 
 # init robot
-rob_control = robctrl.ROBCTRL()
+rob_control = robctrl.ROBCTRL(obj_param=object_param, hand_param=hand_param, model=model)
 fct.robot_init(sim)
 mu_env.Camera_set(viewer, model)
 sim.model.eq_active[0] = True

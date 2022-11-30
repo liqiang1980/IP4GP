@@ -1,11 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="554b2367-2b20-4765-ad37-5cb0f089244f" name="Changes" comment="">
+    <list default="true" id="7fc8f587-3352-4b41-a12b-28a70f6a7c40" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ekf.py" beforeDir="false" afterPath="$PROJECT_DIR$/ekf.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ekf_obj_pose/data.xml" beforeDir="false" afterPath="$PROJECT_DIR$/ekf_obj_pose/data.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ekf_obj_pose/ekf_obj_pose.py" beforeDir="false" afterPath="$PROJECT_DIR$/ekf_obj_pose/ekf_obj_pose.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ekf_obj_pose/x_bar_all.txt" beforeDir="false" afterPath="$PROJECT_DIR$/ekf_obj_pose/x_bar_all.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ekf_obj_pose/x_gt_palm.txt" beforeDir="false" afterPath="$PROJECT_DIR$/ekf_obj_pose/x_gt_palm.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ekf_obj_pose/x_state_all.txt" beforeDir="false" afterPath="$PROJECT_DIR$/ekf_obj_pose/x_state_all.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/finger_ctrl_func.py" beforeDir="false" afterPath="$PROJECT_DIR$/finger_ctrl_func.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/forward_kinematics.py" beforeDir="false" afterPath="$PROJECT_DIR$/forward_kinematics.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/object_geometry.py" beforeDir="false" afterPath="$PROJECT_DIR$/object_geometry.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/qgFunc.py" beforeDir="false" afterPath="$PROJECT_DIR$/qgFunc.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/robot_control.py" beforeDir="false" afterPath="$PROJECT_DIR$/robot_control.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tactile_perception.py" beforeDir="false" afterPath="$PROJECT_DIR$/tactile_perception.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/trans_component.py" beforeDir="false" afterPath="$PROJECT_DIR$/trans_component.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/viz.py" beforeDir="false" afterPath="$PROJECT_DIR$/viz.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -15,7 +26,15 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
-  <component name="ProjectId" id="2ID7ecxzrthNN6ZDvBmmSBqzSUm" />
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
+  </component>
+  <component name="ProjectId" id="2IDX1TIHpq2QNRSs445tZJUA6xy" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -28,7 +47,7 @@
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python.ekf_obj_pose">
     <configuration name="ekf_obj_pose" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="ekf_V3s" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -51,21 +70,50 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="ekf_V3s" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
         <item itemvalue="Python.ekf_obj_pose" />
+        <item itemvalue="Python.test" />
       </list>
     </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="554b2367-2b20-4765-ad37-5cb0f089244f" name="Changes" comment="" />
-      <created>1669704396775</created>
+      <changelist id="7fc8f587-3352-4b41-a12b-28a70f6a7c40" name="Changes" comment="" />
+      <created>1669716912495</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1669704396775</updated>
-      <workItem from="1669704398824" duration="862000" />
+      <updated>1669716912495</updated>
+      <workItem from="1669716914432" duration="12684000" />
+      <workItem from="1669730179438" duration="2066000" />
+      <workItem from="1669774906384" duration="3120000" />
+      <workItem from="1669781424566" duration="4000" />
+      <workItem from="1669788686567" duration="10287000" />
+      <workItem from="1669801954352" duration="28000" />
+      <workItem from="1669808204192" duration="2470000" />
     </task>
     <servers />
   </component>
@@ -73,6 +121,7 @@
     <option name="version" value="3" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/ekf_V3s$ekf_obj_pose.coverage" NAME="ekf_obj_pose Coverage Results" MODIFIED="1669704553145" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/ekf_obj_pose" />
+    <SUITE FILE_PATH="coverage/ekf_V3s$test.coverage" NAME="test Coverage Results" MODIFIED="1669792682183" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/ekf_V3s$ekf_obj_pose.coverage" NAME="ekf_obj_pose Coverage Results" MODIFIED="1669809833838" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/ekf_obj_pose" />
   </component>
 </project>

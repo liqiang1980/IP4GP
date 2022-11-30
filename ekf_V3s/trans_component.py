@@ -11,7 +11,7 @@ class TransComponent:
         self.R_cup_palm = np.mat(np.eye(3))
         self.T_cup_palm = np.mat(np.eye(4))
 
-    def components_update(self, x_state, tacperception):
+    def components_update(self, x_state):
         self.pos_cup_palm = x_state[:3]
         self.rotvec_cup_palm = x_state[3:]
         self.quat_cup_palm = Rotation.from_rotvec(self.rotvec_cup_palm).as_quat()

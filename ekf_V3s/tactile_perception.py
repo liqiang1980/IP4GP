@@ -5,7 +5,7 @@ import util_geometry as ug
 import object_geometry as og
 import qgFunc as qg
 import time
-from scipy.spatial.transform import Rotation as R
+from scipy.spatial.transform import Rotation
 
 
 class taxel_pose:
@@ -56,34 +56,34 @@ class cls_tactile_perception:
         self.tacdata_ztid = [[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], -1]
         self.tacdata_htid = [[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], -1]
 
-    def update_tacdata(self, sim):
-        """
-        Updata tac data: 4 tips, 12*6 for each
-        tmp_Af: ff, mf, rf, th: 1*72
-        """
-        tmp_Af = []
-        mapping_const = {0: [tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN, tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX],
-                         1: [tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN, tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX],
-                         2: [tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN, tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX],
-                         3: [tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN, tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX],
-                         }
-        """ Get tacdata from sim """
-        for i in range(4):
-            tmp_Af.append(np.array(sim.data.sensordata[mapping_const[i][0]: mapping_const[i][1]]))
-            tmp_Af[i] = np.int64(tmp_Af[i] > 0) * 2  # Binarize tac data
-            """ Put h_t into tacdata """
-            if self.tacdata_htid[0][i] != -1:  # Is contact
-                tmp_Af[i][self.tacdata_htid[0][i] - mapping_const[i][0]] = -2
-            """ Put z_t into tacdata """
-            if self.tacdata_ztid[0][i] != -1:  # Is contact
-                tmp_Af[i][self.tacdata_ztid[0][i] - mapping_const[i][0]] = -4
-            # print("tac_z:\n", self.tacdata_ztid, "\ntac_h:\n", self.tacdata_htid)
-        """ Ready to plot tacdata """
-        for i in range(11, -1, -1):
-            self.tacdata_ff[i] = tmp_Af[0][i * 6: i * 6 + 6][::-1]
-            self.tacdata_mf[i] = tmp_Af[1][i * 6: i * 6 + 6][::-1]
-            self.tacdata_rf[i] = tmp_Af[2][i * 6: i * 6 + 6][::-1]
-            self.tacdata_th[i] = tmp_Af[3][i * 6: i * 6 + 6][::-1]
+    # def update_tacdata(self, sim):
+    #     """
+    #     Updata tac data: 4 tips, 12*6 for each
+    #     tmp_Af: ff, mf, rf, th: 1*72
+    #     """
+    #     tmp_Af = []
+    #     mapping_const = {0: [tactile_allegro_mujo_const.FF_TAXEL_NUM_MIN, tactile_allegro_mujo_const.FF_TAXEL_NUM_MAX],
+    #                      1: [tactile_allegro_mujo_const.MF_TAXEL_NUM_MIN, tactile_allegro_mujo_const.MF_TAXEL_NUM_MAX],
+    #                      2: [tactile_allegro_mujo_const.RF_TAXEL_NUM_MIN, tactile_allegro_mujo_const.RF_TAXEL_NUM_MAX],
+    #                      3: [tactile_allegro_mujo_const.TH_TAXEL_NUM_MIN, tactile_allegro_mujo_const.TH_TAXEL_NUM_MAX],
+    #                      }
+    #     """ Get tacdata from sim """
+    #     for i in range(4):
+    #         tmp_Af.append(np.array(sim.data.sensordata[mapping_const[i][0]: mapping_const[i][1]]))
+    #         tmp_Af[i] = np.int64(tmp_Af[i] > 0) * 2  # Binarize tac data
+    #         """ Put h_t into tacdata """
+    #         if self.tacdata_htid[0][i] != -1:  # Is contact
+    #             tmp_Af[i][self.tacdata_htid[0][i] - mapping_const[i][0]] = -2
+    #         """ Put z_t into tacdata """
+    #         if self.tacdata_ztid[0][i] != -1:  # Is contact
+    #             tmp_Af[i][self.tacdata_ztid[0][i] - mapping_const[i][0]] = -4
+    #         # print("tac_z:\n", self.tacdata_ztid, "\ntac_h:\n", self.tacdata_htid)
+    #     """ Ready to plot tacdata """
+    #     for i in range(11, -1, -1):
+    #         self.tacdata_ff[i] = tmp_Af[0][i * 6: i * 6 + 6][::-1]
+    #         self.tacdata_mf[i] = tmp_Af[1][i * 6: i * 6 + 6][::-1]
+    #         self.tacdata_rf[i] = tmp_Af[2][i * 6: i * 6 + 6][::-1]
+    #         self.tacdata_th[i] = tmp_Af[3][i * 6: i * 6 + 6][::-1]
 
     def get_hand_tip_center_pose(self, sim, model, ref_frame):
         self.get_tip_center_pose(sim, model, 'ff_tip', ref_frame)
@@ -113,7 +113,7 @@ class cls_tactile_perception:
     #         self.cur_tac[part_name][1] = pv_tac_palm
     #         return False
 
-    def is_finger_contact(self, sim, model, f_part, fk):
+    def is_finger_contact(self, sim, model, f_part):
         """
         Detect if this finger part contacts.
         Yes:
@@ -131,43 +131,47 @@ class cls_tactile_perception:
             """ Update contact_tac name & position & rotvec """
             tac_name, tac_id = self.get_contact_taxel_name(sim=sim, model=model, f_part=f_part)
             # pv_tac_palm = ug.get_relative_posrotvec(sim=sim, src="palm_link", tgt=tac_name)
-            pv_tac_palm = self.contact_renew(sim=sim, model=model, tac_name=tac_name, f_part=f_part, fk=fk)
+            pv_tac_palm = self.Cur_tac_renew(tac_name=tac_name, f_part=f_part)
             self.cur_tac[part_name][0] = tac_name
             self.cur_tac[part_name][1] = pv_tac_palm
             return True
-        else:
+        else:  # No contact
             self.is_contact[part_name] = False
             """ If not contact, use last tac to update cur tac info """
             tac_name = self.last_tac[part_name][0]
             # pv_tac_palm = ug.get_relative_posrotvec(sim=sim, src="palm_link", tgt=tac_name)
-            pv_tac_palm = self.contact_renew(sim=sim, model=model, tac_name=tac_name, f_part=f_part, fk=fk)
+            pv_tac_palm = self.Cur_tac_renew(tac_name=tac_name, f_part=f_part)
             self.cur_tac[part_name][0] = tac_name
             self.cur_tac[part_name][1] = pv_tac_palm
             return False
 
-    def tac_update_cur2last(self, f_param):
+    def Last_tac_renew(self, f_param):
+        """
+        Update last_tac by cur_tac.
+        This func always used in the tail of one EKF round.
+        """
         for f_part in f_param:
             f_name = f_part[0]
             self.last_tac[f_name][0] = self.cur_tac[f_name][0]
             self.last_tac[f_name][1] = self.cur_tac[f_name][1]
 
-    def contact_renew(self, sim, model, tac_name, f_part, fk):
+    def Cur_tac_renew(self, tac_name, f_part):
+        """
+        Update cur_tac by name.
+        Get pos, rpy, Trans of [cur_tac in tip frame] from xml file.
+        Get Trans of [tip in palm frame] from fk calculation in the head of cur EKF round.
+        """
         f_name = f_part[0]
-        default_jnt = f_part[5]
-        default_jnt_R = fk.T_part_in_palm[f_name][:3, :3]
-        default_rotvec = ug.quat2rotvec_hacking(default_pq[3:])
-        pos0, rpy0 = qg.get_taxel_poseuler(taxel_name=tac_name, xml_path=self.xml_path)  # The 'euler' in xml are 'rpy' in fact
-        T_tac_palm = qg.get_T_taxel(pos=pos0, rpy=rpy0, T_tip_in_palm=self.fk.T_part_in_palm[f_name])
-        pos_tac_in_palm = np.ravel(T_tac_palm[:3, 3].T)
-        rotvec_tac_in_palm = default_rotvec
-        if model == "last":
-            self.last_tac[f_name][0] = tac_name
-            self.last_tac[f_name][1][:3] = pos_tac_in_palm
-            self.last_tac[f_name][1][3:] = rotvec_tac_in_palm
-        elif model == "cur":
-            self.cur_tac[f_name][0] = tac_name
-            self.cur_tac[f_name][1][:3] = pos_tac_in_palm
-            self.cur_tac[f_name][1][3:] = rotvec_tac_in_palm
+        pos_tac_tip, rpy_tac_tip = qg.get_taxel_poseuler(taxel_name=tac_name, xml_path=self.xml_path)  # The 'euler' in xml are 'rpy' in fact
+        T_tac_tip = qg.posrpy2trans(pos=pos_tac_tip, rpy=rpy_tac_tip)
+        T_tip_palm = self.fk.T_tip_palm[f_name]
+        T_tac_palm = np.matmul(T_tip_palm, T_tac_tip)
+        pos_tac_palm = np.ravel(T_tac_palm[:3, 3].T)
+        # rotvec_tac_palm = Rotation.from_matrix(T_tac_palm[:3, :3]).as_rotvec()  # Use tac rotvec
+        rotvec_tac_palm = self.fk.rotvec_tip_palm[f_name]  # Use default-jnt rotvec instead of tac rotvec
+        self.cur_tac[f_name][0] = tac_name
+        self.cur_tac[f_name][1][:3] = pos_tac_palm
+        self.cur_tac[f_name][1][3:] = rotvec_tac_palm
         return self.cur_tac[f_name][1]  # return posrotvec
 
 
@@ -361,7 +365,7 @@ class cls_tactile_perception:
     def get_contact_taxel_id(self, sim, f_part):
         id_min = f_part[3][0]
         id_max = f_part[3][1]
-        return np.where(sim.data.sensordata[id_min, id_max] > 0.0)
+        return np.where(sim.data.sensordata[id_min: id_max] > 0.0)
 
     def get_contact_taxel_position(self, sim, model, fingername, ref_frame, z_h_flag):
         """
