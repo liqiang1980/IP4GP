@@ -339,14 +339,14 @@ class ROBCTRL:
 
         """ EKF Posteriori estimation """
         if tacCONST.posteriori_FLAG:
-            # self.x_state, self.P_state_cov = ekf_grasping.ekf_posteriori(x_bar=self.x_bar,
-            #                                                              z_t=self.z_t,
-            #                                                              h_t=self.h_t,
-            #                                                              P_state_cov=P_state_cov,
-            #                                                              tacp=tacp,
-            #                                                              robctrl=self)
-            x_state, P_state_cov = ekf_grasping.ekf_posteriori(sim, model, viewer, self.x_bar, self.z_t, self.h_t,
-                                                               P_state_cov, tacp)
+            self.x_state, self.P_state_cov = ekf_grasping.ekf_posteriori(x_bar=self.x_bar,
+                                                                         z_t=self.z_t,
+                                                                         h_t=self.h_t,
+                                                                         P_state_cov=P_state_cov,
+                                                                         tacp=tacp,
+                                                                         robctrl=self)
+            # self.x_state, self.P_state_cov = ekf_grasping.ekf_posteriori(sim, model, viewer, self.x_bar, self.z_t, self.h_t,
+            #                                                    P_state_cov, tacp, self)
         else:
             self.x_state = self.x_bar
 

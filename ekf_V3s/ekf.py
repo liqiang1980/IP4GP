@@ -75,7 +75,7 @@ class EKF:
             Grasping_matrix[:, 6*i: 6*i+6] = tmp_G
             ju[6*i: 6*i+6] = tacp.cur_tac[f_name][1] - tacp.last_tac[f_name][1]
             print("  ", f_name, " cur:", tacp.cur_tac[f_name][1], "  last:", tacp.last_tac[f_name][1])
-        # print("  >>ju:\n", ju)
+        print("  >>ju:\n", ju)
 
         """ G_pinv calculate: 2 type """
         if tac_const.GT_FLAG == '1G':  # 4 G splice and calculate big GT_pinv
@@ -94,7 +94,7 @@ class EKF:
         prediction = np.append(prediction, [0] * (3 * robctrl.f_size))
         x_bar = xstate + prediction
         # x_bar = xstate
-        print("  >>prediction:\n", prediction)
+        # print("  >>prediction:\n", prediction)
 
         """ F_matrix and P_matrix update """
         if tac_const.GT_FLAG == '4G':
@@ -157,300 +157,96 @@ class EKF:
                 # nv_tac_palm[zt_idx[0]: zt_idx[1]] = R_tac_palm[:, 0]
         return np.array(pos_tac_palm), np.array(nv_tac_palm)
 
-    # def ekf_posteriori(self, x_bar, z_t, h_t, P_state_cov, tacp, robctrl):
-    #     """
-    #     EKF posteriori estimation
-    #     """
+    def ekf_posteriori(self, x_bar, z_t, h_t, P_state_cov, tacp, robctrl):
+        """
+        EKF posteriori estimation
+        """
+        pn_flag = tac_const.PN_FLAG
+        [W1, W2, W3] = robctrl.rotvec_cup_palm  # rotvec of cup in palm frame
+        step = 1
+        if pn_flag == 'pn':  # use pos and normal as observation variable
+            step = 2
+        elif pn_flag == 'p':  # use pos only as observation variable
+            step = 1
+        J_h = np.mat(np.zeros([3*robctrl.f_size*step, 6+3*robctrl.f_size]))
+        R_noi = np.mat(np.zeros([3*robctrl.f_size*step, 3*robctrl.f_size*step]))
+
+        for i, f_part in enumerate(robctrl.f_param):
+            f_name = f_part[0]
+            if tacp.is_contact[f_name]:
+            # if tacp.is_first_contact[f_name]:
+                R_noi[(i*3)*step: (i*3+3)*step, (i*3)*step: (i*3+3)*step] = np.random.normal(0, 0.002) * np.identity(3*step)
+                J_h[i*3:i*3+3, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3,
+                                                     pos_CO_x=robctrl.pos_contact_cup[f_name][0],
+                                                     pos_CO_y=robctrl.pos_contact_cup[f_name][1],
+                                                     pos_CO_z=robctrl.pos_contact_cup[f_name][2])
+        K_t = self.scale_kp * np.linalg.pinv(J_h)
+        # K_t[0:3, :] = 0.08 * np.linalg.pinv(J_h)[0:3, :]
+        # K_t[3:6, :] = 0.001 * np.linalg.pinv(J_h)[3:6, :]
+        u, s, v = np.linalg.svd(J_h)
+        delta_t = z_t - h_t
+        # delta_t[12:24] = 0.0 * (z_t[12:24] - h_t[12:24])
+        # delta_t[3*robctrl.f_size: 3*robctrl.f_size*2] = 0.0 * (z_t[3*robctrl.f_size*step: 3*robctrl.f_size*2] - h_t[3*robctrl.f_size: 3*robctrl.f_size*2])
+        Update = np.ravel(np.matmul(K_t, delta_t))
+        # print("delta_t:", delta_t, "\nUpdate:", Update)
+        nonzeroind = np.nonzero(s)[0]
+        b = []
+        for i in range(len(nonzeroind)):
+            if math.fabs(s[nonzeroind[i]] > 0.00001):
+                b.append(s[nonzeroind[i]])
+        # print("b:", b, "s:", s)
+        c = np.array(b)
+        # if len(b) and np.amin(c) > 0.01:
+        if np.amin(c) > 0.01:
+            x_hat = x_bar + Update
+            P_state_cov = (np.eye(6 + 3 * robctrl.f_size) - K_t @ J_h) @ P_state_cov
+        else:
+            x_hat = x_bar
+        return x_hat, P_state_cov
+
+    # def ekf_posteriori(self, sim, model, viewer, x_bar, z_t, h_t, P_state_cov, tacperception, robctrl):
     #     # print('posterior computation')
     #     # the jocobian matrix of measurement equation
     #     # [W1, W2, W3] = x_bar[3:6]  # the rotvec of object in palm frame {P}
-    #     # pos_c1 = x_bar[6:9]  # the pos of contact point in object frame {O}
-    #     # pos_c2 = x_bar[9:12]  # the pos of contact point in object frame {O}
-    #     # pos_c3 = x_bar[12:15]  # the pos of contact point in object frame {O}
-    #     # pos_c4 = x_bar[15:18]  # the pos of contact point in object frame {O}
-    #     pn_flag = tac_const.PN_FLAG
-    #     [W1, W2, W3] = robctrl.pos_cup_palm
-    #     step = 1
-    #     if pn_flag == 'pn':  # use pos and normal as observation variable
-    #         step = 2
-    #     elif pn_flag == 'p':  # use pos only as observation variable
-    #         step = 1
-    #     J_h = np.mat(np.zeros([3*robctrl.f_size*step, 6+3*robctrl.f_size]))
-    #     R_noi = np.mat(np.zeros([3*robctrl.f_size*step, 3*robctrl.f_size*step]))
-    #
-    #     for i, f_part in enumerate(robctrl.f_param):
-    #         f_name = f_part[0]
-    #         # pos_contact_cup = robctrl.pos_contact_cup[f_name]
-    #         # nv_contact_cup = robctrl.nv_contact_cup[f_name]
-    #         # if tacp.is_contact[f_name]:
-    #         if tacp.is_first_contact[f_name]:
-    #             R_noi[(i*3)*step: (i*3+3)*step, (i*3)*step: (i*3+3)*step] = np.random.normal(0, 0.002) * np.identity(3*step)
-    #             J_h[i*3:i*3+3, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3,
-    #                                                  pos_CO_x=robctrl.pos_contact_cup[f_name][0],
-    #                                                  pos_CO_y=robctrl.pos_contact_cup[f_name][1],
-    #                                                  pos_CO_z=robctrl.pos_contact_cup[f_name][2])
-    #     K_t = self.scale_kp * np.linalg.pinv(J_h)
-    #     # K_t[0:3, :] = 0.08 * np.linalg.pinv(J_h)[0:3, :]
-    #     # K_t[3:6, :] = 0.001 * np.linalg.pinv(J_h)[3:6, :]
-    #     u, s, v = np.linalg.svd(J_h)
-    #     delta_t = z_t - h_t
-    #     # delta_t[12:24] = 0.0 * (z_t[12:24] - h_t[12:24])
-    #     delta_t[3*robctrl.f_size: 3*robctrl.f_size*2] = 0.0 * (z_t[3*robctrl.f_size*step: 3*robctrl.f_size*2] - h_t[3*robctrl.f_size: 3*robctrl.f_size*2])
-    #     Update = np.ravel(np.matmul(K_t, delta_t))
-    #     print("delta_t:", delta_t, "\nUpdate:", Update)
-    #     nonzeroind = np.nonzero(s)[0]
-    #     b = []
-    #     for i in range(len(nonzeroind)):
-    #         if math.fabs(s[nonzeroind[i]] > 0.00001):
-    #             b.append(s[nonzeroind[i]])
-    #     # print("b:", b, "s:", s)
-    #     c = np.array(b)
-    #     # if len(b) and np.amin(c) > 0.01:
-    #     if np.amin(c) > 0.01:
-    #         x_hat = x_bar + Update
-    #         P_state_cov = (np.eye(6 + 3 * robctrl.f_size) - K_t @ J_h) @ P_state_cov
-    #     else:
-    #         x_hat = x_bar
-    #     return x_hat, P_state_cov
-    #
-    #     # if int(obj_param[3]) == 3:
-    #     #     normal_c1 = og.surface_cylinder(pos_c1[0], pos_c1[1], pos_c1[2])[0]  # the normal of contact point in {O}
-    #     #     normal_c2 = og.surface_cylinder(pos_c2[0], pos_c2[1], pos_c2[2])[0]  # the normal of contact point in {O}
-    #     #     normal_c3 = og.surface_cylinder(pos_c3[0], pos_c3[1], pos_c3[2])[0]  # the normal of contact point in {O}
-    #     #     normal_c4 = og.surface_cylinder(pos_c4[0], pos_c4[1], pos_c4[2])[0]  # the normal of contact point in {O}
-    #     # else:
-    #     #     normal_c1 = og.surface_cup(pos_c1[0], pos_c1[1], pos_c1[2])[0]  # the normal of contact point in {O}
-    #     #     normal_c2 = og.surface_cup(pos_c2[0], pos_c2[1], pos_c2[2])[0]  # the normal of contact point in {O}
-    #     #     normal_c3 = og.surface_cup(pos_c3[0], pos_c3[1], pos_c3[2])[0]  # the normal of contact point in {O}
-    #     #     normal_c4 = og.surface_cup(pos_c4[0], pos_c4[1], pos_c4[2])[0]  # the normal of contact point in {O}
+    #     [W1, W2, W3] = robctrl.rotvec_cup_palm  # the rotvec of object in palm frame {P}
+    #     pos_c1 = x_bar[6:9]  # the pos of contact point in object frame {O}
+    #     pos_c2 = x_bar[9:12]  # the pos of contact point in object frame {O}
+    #     pos_c3 = x_bar[12:15]  # the pos of contact point in object frame {O}
+    #     pos_c4 = x_bar[15:18]  # the pos of contact point in object frame {O}
     #     # print("  normal_c1:", normal_c1)
-    #
-    #     # if pn_flag == 'pn':  # use pos and normal as observation variable
-    #     #     J_h = np.zeros([6 * 4, 6 + 4 * 3])
-    #     #     R_noi = np.zeros([24, 24])
-    #     #     if tacperception.is_ff_contact:
-    #     #         J_h[:3, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c1[0], pos_CO_y=pos_c1[1],
-    #     #                                       pos_CO_z=pos_c1[2])
-    #     #         J_h[12:15, :6] = ug.H_calculator_pn(W1=W1, W2=W2, W3=W3, normal_CO_x=normal_c1[0],
-    #     #                                             normal_CO_y=normal_c1[1],
-    #     #                                             normal_CO_z=normal_c1[2])
-    #     #         J_h[12:15, :6] = np.zeros([3, 6])
-    #     #         # R_noi[:6, :6] = np.random.normal(0, 0.002) * np.identity(6)
-    #     #     if tacperception.is_mf_contact:
-    #     #         J_h[3:6, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c2[0], pos_CO_y=pos_c2[1],
-    #     #                                        pos_CO_z=pos_c2[2])
-    #     #         J_h[15:18, :6] = ug.H_calculator_pn(W1=W1, W2=W2, W3=W3, normal_CO_x=normal_c2[0],
-    #     #                                             normal_CO_y=normal_c2[1],
-    #     #                                             normal_CO_z=normal_c2[2])
-    #     #         J_h[15:18, :6] = np.zeros([3, 6])
-    #     #         # R_noi[6:12, 6:12] = np.random.normal(0, 0.002) * np.identity(6)
-    #     #     if tacperception.is_rf_contact:
-    #     #         J_h[6:9, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c3[0], pos_CO_y=pos_c3[1],
-    #     #                                        pos_CO_z=pos_c3[2])
-    #     #         J_h[18:21, :6] = ug.H_calculator_pn(W1=W1, W2=W2, W3=W3, normal_CO_x=normal_c3[0],
-    #     #                                             normal_CO_y=normal_c3[1],
-    #     #                                             normal_CO_z=normal_c3[2])
-    #     #         J_h[18:21, :6] = np.zeros([3, 6])
-    #     #         # R_noi[12:18, 12:18] = np.random.normal(0, 0.002) * np.identity(6)
-    #     #     if tacperception.is_th_contact:
-    #     #         J_h[9:12, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c4[0], pos_CO_y=pos_c4[1],
-    #     #                                         pos_CO_z=pos_c4[2])
-    #     #         J_h[21:24, :6] = ug.H_calculator_pn(W1=W1, W2=W2, W3=W3, normal_CO_x=normal_c4[0],
-    #     #                                             normal_CO_y=normal_c4[1],
-    #     #                                             normal_CO_z=normal_c4[2])
-    #     #         J_h[21:24, :6] = np.zeros([3, 6])
-    #     #         # R_noi[18:24, 18:24] = np.random.normal(0, 0.002) * np.identity(6)
-    #     #     # K_t = P_state_cov @ J_h.transpose() @ \
-    #     #     #       np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi)
-    #     #     K_t = self.scale_kp * np.linalg.pinv(J_h)
-    #     #     # K_t[0:3, :] = 0.08 * np.linalg.pinv(J_h)[0:3, :]
-    #     #     # K_t[3:6, :] = 0.001 * np.linalg.pinv(J_h)[3:6, :]
-    #     #     u, s, v = np.linalg.svd(J_h)
-    #     #     delta_t = z_t - h_t
-    #     #     delta_t[12:24] = 0.0 * (z_t[12:24] - h_t[12:24])
-    #     #     Update = np.ravel(np.matmul(K_t, delta_t))
-    #     #     # print('update is ', Update)
-    #     #     nonzeroind = np.nonzero(s)[0]
-    #     #     b = []
-    #     #     for i in range(len(nonzeroind)):
-    #     #         if math.fabs(s[nonzeroind[i]] > 0.00001):
-    #     #             b.append(s[nonzeroind[i]])
-    #     #     # print(b)
-    #     #     c = np.array(b)
-    #     #     if np.amin(c) > 0.01:
-    #     #         x_hat = x_bar + Update
-    #     #         P_state_cov = (np.eye(6 + 4 * 3) - K_t @ J_h) @ P_state_cov
-    #     #     else:
-    #     #         x_hat = x_bar
-    #     #
-    #     # elif pn_flag == 'p':  # use pos only as observation variable
-    #     #     J_h = np.zeros([3 * 4, 6 + 4 * 3])
-    #     #     R_noi = np.zeros([12, 12])
-    #     #     if tacperception.is_ff_contact == True:
-    #     #         J_h[:3, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c1[0], pos_CO_y=pos_c1[1],
-    #     #                                       pos_CO_z=pos_c1[2])
-    #     #         # R_noi[:3, :3] = np.random.normal(0, 0.002) * np.identity(3)
-    #     #     if tacperception.is_mf_contact == True:
-    #     #         J_h[3:6, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c2[0], pos_CO_y=pos_c2[1],
-    #     #                                        pos_CO_z=pos_c2[2])
-    #     #         # R_noi[3:6, 3:6] = np.random.normal(0, 0.002) * np.identity(3)
-    #     #     if tacperception.is_rf_contact == True:
-    #     #         J_h[6:9, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c3[0], pos_CO_y=pos_c3[1],
-    #     #                                        pos_CO_z=pos_c3[2])
-    #     #         # R_noi[6:9, 6:9] = np.random.normal(0, 0.002) * np.identity(3)
-    #     #     if tacperception.is_th_contact == True:
-    #     #         J_h[9:12, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c4[0], pos_CO_y=pos_c4[1],
-    #     #                                         pos_CO_z=pos_c4[2])
-    #     #         # R_noi[9:12, 9:12] = np.random.normal(0, 0.002) * np.identity(3)
-    #     #     # K_t = P_state_cov @ J_h.transpose() @ \
-    #     #     #       np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi)
-    #     #     K_t = self.scale_kp * np.linalg.pinv(J_h)
-    #     #     u, s, v = np.linalg.svd(J_h)
-    #     #     # print('s is ', s)
-    #     #     # print('in posteria P_state_cov before', P_state_cov)
-    #     #     # print('J_h ', J_h)
-    #     #     # print('pinv ', np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi))
-    #     #     # h_t[:3] = -h_t[:3]
-    #     #     # normal direction of the object is oposite to the contact tacxel
-    #     #     # h_t[12:] = -h_t[12:]
-    #     #     Update = np.ravel(np.matmul(K_t, (z_t - h_t)))
-    #     #     # print('update is ', Update)
-    #     #     nonzeroind = np.nonzero(s)[0]
-    #     #     b = []
-    #     #     for i in range(len(nonzeroind)):
-    #     #         if math.fabs(s[nonzeroind[i]] > 0.00001):
-    #     #             b.append(s[nonzeroind[i]])
-    #     #     # print(b)
-    #     #     c = np.array(b)
-    #     #     if np.amin(c) > 0.01:
-    #     #         x_hat = x_bar + Update
-    #     #         P_state_cov = (np.eye(6 + 4 * 3) - K_t @ J_h) @ P_state_cov
-    #     #     else:
-    #     #         x_hat = x_bar
-    #
-    #     # return x_hat, P_state_cov
-
-    def ekf_posteriori(self, sim, model, viewer, x_bar, z_t, h_t, P_state_cov, tacperception):
-        # print('posterior computation')
-        # the jocobian matrix of measurement equation
-        [W1, W2, W3] = x_bar[3:6]  # the rotvec of object in palm frame {P}
-        pos_c1 = x_bar[6:9]  # the pos of contact point in object frame {O}
-        pos_c2 = x_bar[9:12]  # the pos of contact point in object frame {O}
-        pos_c3 = x_bar[12:15]  # the pos of contact point in object frame {O}
-        pos_c4 = x_bar[15:18]  # the pos of contact point in object frame {O}
-        normal_c1 = og.surface_cup(pos_c1[0], pos_c1[1], pos_c1[2])[0]  # the normal of contact point in {O}
-        normal_c2 = og.surface_cup(pos_c2[0], pos_c2[1], pos_c2[2])[0]  # the normal of contact point in {O}
-        normal_c3 = og.surface_cup(pos_c3[0], pos_c3[1], pos_c3[2])[0]  # the normal of contact point in {O}
-        normal_c4 = og.surface_cup(pos_c4[0], pos_c4[1], pos_c4[2])[0]  # the normal of contact point in {O}
-        # print("  normal_c1:", normal_c1)
-        pn_flag = tac_const.PN_FLAG
-        if pn_flag == 'pn':  # use pos and normal as observation variable
-            J_h = np.zeros([6 * 4, 6 + 4 * 3])
-            R_noi = np.zeros([24, 24])
-            if tacperception.is_ff_contact:
-                J_h[:3, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c1[0], pos_CO_y=pos_c1[1],
-                                              pos_CO_z=pos_c1[2])
-                J_h[12:15, :6] = ug.H_calculator_pn(W1=W1, W2=W2, W3=W3, normal_CO_x=normal_c1[0],
-                                                    normal_CO_y=normal_c1[1],
-                                                    normal_CO_z=normal_c1[2])
-                J_h[12:15, :6] = np.zeros([3, 6])
-                R_noi[:6, :6] = np.random.normal(0, 0.002) * np.identity(6)
-            if tacperception.is_mf_contact:
-                J_h[3:6, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c2[0], pos_CO_y=pos_c2[1],
-                                               pos_CO_z=pos_c2[2])
-                J_h[15:18, :6] = ug.H_calculator_pn(W1=W1, W2=W2, W3=W3, normal_CO_x=normal_c2[0],
-                                                    normal_CO_y=normal_c2[1],
-                                                    normal_CO_z=normal_c2[2])
-                J_h[15:18, :6] = np.zeros([3, 6])
-                R_noi[6:12, 6:12] = np.random.normal(0, 0.002) * np.identity(6)
-            if tacperception.is_rf_contact:
-                J_h[6:9, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c3[0], pos_CO_y=pos_c3[1],
-                                               pos_CO_z=pos_c3[2])
-                J_h[18:21, :6] = ug.H_calculator_pn(W1=W1, W2=W2, W3=W3, normal_CO_x=normal_c3[0],
-                                                    normal_CO_y=normal_c3[1],
-                                                    normal_CO_z=normal_c3[2])
-                J_h[18:21, :6] = np.zeros([3, 6])
-                R_noi[12:18, 12:18] = np.random.normal(0, 0.002) * np.identity(6)
-            if tacperception.is_th_contact:
-                J_h[9:12, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c4[0], pos_CO_y=pos_c4[1],
-                                                pos_CO_z=pos_c4[2])
-                J_h[21:24, :6] = ug.H_calculator_pn(W1=W1, W2=W2, W3=W3, normal_CO_x=normal_c4[0],
-                                                    normal_CO_y=normal_c4[1],
-                                                    normal_CO_z=normal_c4[2])
-                J_h[21:24, :6] = np.zeros([3, 6])
-                R_noi[18:24, 18:24] = np.random.normal(0, 0.002) * np.identity(6)
-            # K_t = P_state_cov @ J_h.transpose() @ \
-            #       np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi)
-            K_t = self.scale_kp * np.linalg.pinv(J_h)
-            # K_t[0:3, :] = 0.08 * np.linalg.pinv(J_h)[0:3, :]
-            # K_t[3:6, :] = 0.001 * np.linalg.pinv(J_h)[3:6, :]
-            u, s, v = np.linalg.svd(J_h)
-            # print('s is ', s)
-            # print('in posteria P_state_cov before', P_state_cov)
-            # print('J_h ', J_h)
-            # print('pinv ', np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi))
-            # h_t[:3] = -h_t[:3]
-            # normal direction of the object is oposite to the contact tacxel
-            # h_t[12:] = -h_t[12:]
-            delta_t = z_t - h_t
-            delta_t[12:24] = 0.0 * (z_t[12:24] - h_t[12:24])
-            Update = np.ravel(np.matmul(K_t, delta_t))
-            # print('update is ', Update)
-            nonzeroind = np.nonzero(s)[0]
-            b = []
-            for i in range(len(nonzeroind)):
-                if math.fabs(s[nonzeroind[i]] > 0.00001):
-                    b.append(s[nonzeroind[i]])
-            # print(b)
-            c = np.array(b)
-            if np.amin(c) > 0.01:
-                x_hat = x_bar + Update
-                P_state_cov = (np.eye(6 + 4 * 3) - K_t @ J_h) @ P_state_cov
-            else:
-                x_hat = x_bar
-
-        elif pn_flag == 'p':  # use pos only as observation variable
-            J_h = np.zeros([3 * 4, 6 + 4 * 3])
-            R_noi = np.zeros([12, 12])
-            if tacperception.is_contact["ff"]:
-                J_h[:3, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c1[0], pos_CO_y=pos_c1[1],
-                                              pos_CO_z=pos_c1[2])
-                R_noi[:3, :3] = np.random.normal(0, 0.002) * np.identity(3)
-            if tacperception.is_contact["mf"]:
-                J_h[3:6, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c2[0], pos_CO_y=pos_c2[1],
-                                               pos_CO_z=pos_c2[2])
-                R_noi[3:6, 3:6] = np.random.normal(0, 0.002) * np.identity(3)
-            if tacperception.is_contact["rf"]:
-                J_h[6:9, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c3[0], pos_CO_y=pos_c3[1],
-                                               pos_CO_z=pos_c3[2])
-                R_noi[6:9, 6:9] = np.random.normal(0, 0.002) * np.identity(3)
-            if tacperception.is_contact["th"]:
-                J_h[9:12, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c4[0], pos_CO_y=pos_c4[1],
-                                                pos_CO_z=pos_c4[2])
-                R_noi[9:12, 9:12] = np.random.normal(0, 0.002) * np.identity(3)
-            # K_t = P_state_cov @ J_h.transpose() @ \
-            #       np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi)
-            K_t = self.scale_kp * np.linalg.pinv(J_h)
-            u, s, v = np.linalg.svd(J_h)
-            # print('s is ', s)
-            # print('in posteria P_state_cov before', P_state_cov)
-            # print('J_h ', J_h)
-            # print('pinv ', np.linalg.pinv(J_h @ P_state_cov @ J_h.transpose() + R_noi))
-            # h_t[:3] = -h_t[:3]
-            # normal direction of the object is oposite to the contact tacxel
-            # h_t[12:] = -h_t[12:]
-            Update = np.ravel(np.matmul(K_t, (z_t - h_t)))
-            # print('update is ', Update)
-            nonzeroind = np.nonzero(s)[0]
-            b = []
-            for i in range(len(nonzeroind)):
-                if math.fabs(s[nonzeroind[i]] > 0.00001):
-                    b.append(s[nonzeroind[i]])
-            # print(b)
-            c = np.array(b)
-            if np.amin(c) > 0.01:
-                x_hat = x_bar + Update
-                P_state_cov = (np.eye(6 + 4 * 3) - K_t @ J_h) @ P_state_cov
-            else:
-                x_hat = x_bar
-        return x_hat, P_state_cov
+    #     pn_flag = tac_const.PN_FLAG
+    #     if pn_flag == 'p':  # use pos only as observation variable
+    #         J_h = np.zeros([3 * 4, 6 + 4 * 3])
+    #         R_noi = np.zeros([12, 12])
+    #         if tacperception.is_contact["ff"]:
+    #             J_h[:3, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c1[0], pos_CO_y=pos_c1[1],
+    #                                           pos_CO_z=pos_c1[2])
+    #             R_noi[:3, :3] = np.random.normal(0, 0.002) * np.identity(3)
+    #         if tacperception.is_contact["mf"]:
+    #             J_h[3:6, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c2[0], pos_CO_y=pos_c2[1],
+    #                                            pos_CO_z=pos_c2[2])
+    #             R_noi[3:6, 3:6] = np.random.normal(0, 0.002) * np.identity(3)
+    #         if tacperception.is_contact["rf"]:
+    #             J_h[6:9, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c3[0], pos_CO_y=pos_c3[1],
+    #                                            pos_CO_z=pos_c3[2])
+    #             R_noi[6:9, 6:9] = np.random.normal(0, 0.002) * np.identity(3)
+    #         if tacperception.is_contact["th"]:
+    #             J_h[9:12, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c4[0], pos_CO_y=pos_c4[1],
+    #                                             pos_CO_z=pos_c4[2])
+    #             R_noi[9:12, 9:12] = np.random.normal(0, 0.002) * np.identity(3)
+    #         K_t = self.scale_kp * np.linalg.pinv(J_h)
+    #         u, s, v = np.linalg.svd(J_h)
+    #         Update = np.ravel(np.matmul(K_t, (z_t - h_t)))
+    #         # print('update is ', Update)
+    #         nonzeroind = np.nonzero(s)[0]
+    #         b = []
+    #         for i in range(len(nonzeroind)):
+    #             if math.fabs(s[nonzeroind[i]] > 0.00001):
+    #                 b.append(s[nonzeroind[i]])
+    #         c = np.array(b)
+    #         if np.amin(c) > 0.01:
+    #             x_hat = x_bar + Update
+    #             P_state_cov = (np.eye(6 + 4 * 3) - K_t @ J_h) @ P_state_cov
+    #         else:
+    #             x_hat = x_bar
+    #     return x_hat, P_state_cov

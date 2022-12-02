@@ -122,8 +122,8 @@ class cls_tactile_perception:
         for f_part in f_param:
             self.is_finger_contact(sim=sim, model=model, f_part=f_part)
         """ If no any contact, use contacts in last round """
-        # if not any(list(self.is_contact.values())):
-        #     self.is_contact = self.is_contact_recent
+        if not any(list(self.is_contact.values())):
+            self.is_contact = self.is_contact_recent
 
     def is_finger_contact(self, sim, model, f_part):
         """
