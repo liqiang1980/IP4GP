@@ -209,8 +209,8 @@ def posquat2trans(posquat):
     # input is w x y z
     # quat = np.array(posquat[-4:])
     quat = np.array(posquat[3:])
-    pos = np.array(posquat[:3])
     quat = np.hstack((quat[1:], quat[0]))  # Change to x y z w
+    pos = np.array(posquat[:3])
     r = Rotation.from_quat(quat)
     rot = r.as_matrix()
     # rot = as_matrix(np.hstack((quat[1:], quat[0])))
@@ -400,6 +400,7 @@ def pos_quat2axis_angle(pos_quat):
     pos_xyz_axis_angle = np.zeros(6, dtype=np.double)
     pos_xyz_axis_angle[:3] = pos_quat[:3]
     pos_xyz_axis_angle[3:] = axis_angle
+    # print(pos_xyz_axis_angle)
     return pos_xyz_axis_angle
 
 

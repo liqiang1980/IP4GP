@@ -241,4 +241,5 @@ class ForwardKinematics:
         self.get_cur_jnt(sim=sim)
         self.joint_update()
         self.fk_dealer()
+        # print("--fk update:", self.T_tip_palm)
 

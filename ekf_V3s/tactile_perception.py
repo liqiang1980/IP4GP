@@ -6,6 +6,7 @@ import object_geometry as og
 import qgFunc as qg
 import time
 from scipy.spatial.transform import Rotation
+from copy import deepcopy
 
 
 class taxel_pose:
@@ -22,6 +23,10 @@ class cls_tactile_perception:
         self.tuple_fin_ref_pose = ()
         """Record which f_part is contact in current interaction round"""
         self.is_contact = {"ff": False, "ffd": False, "ffq": False,
+                           "mf": False, "mfd": False, "mfq": False,
+                           "rf": False, "rfd": False, "rfq": False,
+                           "th": False, "thd": False, "palm": False}
+        self.is_contact_recent = {"ff": False, "ffd": False, "ffq": False,
                            "mf": False, "mfd": False, "mfq": False,
                            "rf": False, "rfd": False, "rfq": False,
                            "th": False, "thd": False, "palm": False}
@@ -113,6 +118,13 @@ class cls_tactile_perception:
     #         self.cur_tac[part_name][1] = pv_tac_palm
     #         return False
 
+    def is_fingers_contact(self, sim, model, f_param):
+        for f_part in f_param:
+            self.is_finger_contact(sim=sim, model=model, f_part=f_part)
+        """ If no any contact, use contacts in last round """
+        # if not any(list(self.is_contact.values())):
+        #     self.is_contact = self.is_contact_recent
+
     def is_finger_contact(self, sim, model, f_part):
         """
         Detect if this finger part contacts.
@@ -122,27 +134,28 @@ class cls_tactile_perception:
             Update cur_tac_rotvec by default jnt
         No：
         """
-        part_name = f_part[0]
+        f_name = f_part[0]
         min_id = f_part[3][0]
         max_id = f_part[3][1]
-        if (np.array(sim.data.sensordata[min_id:max_id]) > 0.0).any():
+        if (np.array(sim.data.sensordata[min_id: max_id]) > 0.0).any():
             """ Update contact_flags """
-            self.is_contact[part_name] = True
+            self.is_contact[f_name] = True
             """ Update contact_tac name & position & rotvec """
             tac_name, tac_id = self.get_contact_taxel_name(sim=sim, model=model, f_part=f_part)
             # pv_tac_palm = ug.get_relative_posrotvec(sim=sim, src="palm_link", tgt=tac_name)
             pv_tac_palm = self.Cur_tac_renew(tac_name=tac_name, f_part=f_part)
-            self.cur_tac[part_name][0] = tac_name
-            self.cur_tac[part_name][1] = pv_tac_palm
+            self.cur_tac[f_name][0] = tac_name
+            self.cur_tac[f_name][1] = pv_tac_palm
+            print(">>", f_name, " contact: ", tac_name)
             return True
         else:  # No contact
-            self.is_contact[part_name] = False
+            self.is_contact[f_name] = False
             """ If not contact, use last tac to update cur tac info """
-            tac_name = self.last_tac[part_name][0]
+            tac_name = self.last_tac[f_name][0]
             # pv_tac_palm = ug.get_relative_posrotvec(sim=sim, src="palm_link", tgt=tac_name)
             pv_tac_palm = self.Cur_tac_renew(tac_name=tac_name, f_part=f_part)
-            self.cur_tac[part_name][0] = tac_name
-            self.cur_tac[part_name][1] = pv_tac_palm
+            self.cur_tac[f_name][0] = tac_name
+            self.cur_tac[f_name][1] = pv_tac_palm
             return False
 
     def Last_tac_renew(self, f_param):
@@ -152,8 +165,9 @@ class cls_tactile_perception:
         """
         for f_part in f_param:
             f_name = f_part[0]
-            self.last_tac[f_name][0] = self.cur_tac[f_name][0]
-            self.last_tac[f_name][1] = self.cur_tac[f_name][1]
+            self.last_tac[f_name][0] = deepcopy(self.cur_tac[f_name][0])
+            self.last_tac[f_name][1] = deepcopy(self.cur_tac[f_name][1])
+        self.is_contact_recent = deepcopy(self.is_contact)
 
     def Cur_tac_renew(self, tac_name, f_part):
         """
@@ -497,10 +511,9 @@ class cls_tactile_perception:
 
     # get normal vector direction
     def get_contact_taxel_nv(self, sim, model, fingername, ref_frame):
-        c_point_name = self.get_contact_taxel_name(sim, model, fingername, "z")
+        c_point_name = self.get_contact_taxel_name(sim, model, fingername)
         # get the position
-        pos_contact = ug.get_relative_posquat(sim, ref_frame, c_point_name)
-
+        pos_contact = ug.get_relative_posquat(sim, ref_frame, c_point_name)  # wxyz
         T_contact = ug.posquat2trans(pos_contact)
         # nv = T_contact[:3, 2]  # Get R of contact point
         # attention here, normal direciton is x axis.

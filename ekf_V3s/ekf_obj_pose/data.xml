@@ -229,7 +229,11 @@
             <name>cup</name>
             <noise_position>0.1</noise_position>
             <noise_orientation>0.5</noise_orientation>
-            <static>3</static>
+<!--            <static>0</static>-->
+            <static>1</static>
+<!--            <static>2</static>-->
+<!--            <static>3</static>-->
+<!--            <static>4</static>-->
         </object>
     <alg>
         <store_data>1</store_data>

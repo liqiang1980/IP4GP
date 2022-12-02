@@ -2,7 +2,7 @@ import threading
 
 import finger_ctrl_func as fct
 import config_param
-import robot_control as robctrl
+import robot_control
 import mujoco_environment as mu_env
 import ekf
 import tactile_perception
@@ -28,7 +28,7 @@ class LineChartLoop(Thread):
         Thread.__init__(self)
 
     def run(self):
-        tactile_plotter.LineChartAnimate_Obj(rob_control, 100, 1,
+        tactile_plotter.LineChartAnimate_Obj(robo=robctrl, x_len=100, y_len=1,
                                              label1='x[mm]', label2='y[mm]', label3='z[mm]',
                                              label4='theta_x[deg]', label5='theta_y[deg]',
                                              label6='theta_z[deg]')
@@ -45,6 +45,7 @@ class MainLoop(threading.Thread):
                     "rf": [0.005, 0.000001],
                     "th": [0.002, 0.000001]
                     }
+        first_contact_flag = False
         for ii in range(2000):
             for f_part in hand_param[1:]:
                 f_name = f_part[0]
@@ -62,14 +63,17 @@ class MainLoop(threading.Thread):
             #     # fct.thumb(sim, 0.002, 0.000001)
             #     fct.ctrl_finger(sim, 0.002, 0.000001, hand_param[4][0])
             """EKF process"""
-            if (np.array(sim.data.sensordata[0: 636]) > 0.0).any():  # If contact, start interaction
-                rob_control.interaction(sim=sim, model=model, viewer=viewer,
-                                        object_param=object_param,
-                                        alg_param=alg_param,
-                                        ekf_grasping=grasping_ekf,
-                                        tacp=tacperception,
-                                        fk=fk,
-                                        char=char)
+            if not first_contact_flag and (np.array(sim.data.sensordata[0: 636]) > 0.0).any():
+                first_contact_flag = True
+            if first_contact_flag:  # EKF Start
+                print(robctrl.cnt_test, "EKF round:")
+                robctrl.interaction(sim=sim, model=model, viewer=viewer,
+                                    object_param=object_param,
+                                    alg_param=alg_param,
+                                    ekf_grasping=grasping_ekf,
+                                    tacp=tacperception,
+                                    fk=fk,
+                                    char=char)
 
             """Update tacdata for heapmap plot"""
             # tacperception.update_tacdata(sim=sim)
@@ -138,7 +142,7 @@ grasping_ekf.set_store_flag(alg_param[0])
 tacperception = tactile_perception.cls_tactile_perception(xml_path=xml_path, fk=fk)
 
 # init robot
-rob_control = robctrl.ROBCTRL(obj_param=object_param, hand_param=hand_param, model=model)
+robctrl = robot_control.ROBCTRL(obj_param=object_param, hand_param=hand_param, model=model)
 fct.robot_init(sim)
 mu_env.Camera_set(viewer, model)
 sim.model.eq_active[0] = True
@@ -158,7 +162,7 @@ for _ in range(50):
     # number of triggered fingers
 tacperception.fin_num = 0
 # The fingers which are triggered are Marked them with "1"
-tacperception.fin_tri = np.zeros(len(hand_param)-1)
+tacperception.fin_tri = np.zeros(len(hand_param) - 1)
 
 # Thumb root movement
 fct.pre_thumb(sim, viewer)

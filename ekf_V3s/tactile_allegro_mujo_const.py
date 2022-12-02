@@ -55,7 +55,7 @@ TH_CTRL_4 = 21
 # if object (as a joint) is no type, then OFF_SET = 7
 
 # OFF_SET = 7
-OFF_SET = 0
+OFF_SET = 7
 FF_MEA_1 = 126-OFF_SET
 FF_MEA_2 = 127-OFF_SET
 FF_MEA_3 = 164-OFF_SET
@@ -112,5 +112,5 @@ posteriori_FLAG = True
 # posteriori_FLAG = False
 initE_FLAG = True
 # initE_FLAG = False
-betterJ_FLAG = True
+# betterJ_FLAG = True
 solver_ik_type_wdls = False
