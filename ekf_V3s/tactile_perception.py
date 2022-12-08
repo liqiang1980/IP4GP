@@ -402,7 +402,7 @@ class cls_tactile_perception:
         """
         Always use the contact point closest to the center position of contact area.
         """
-        fingername = f_part[0]
+        f_name = f_part[0]
         tac_id = f_part[3]  # tac_id = [min, max]
         default_tac_name = f_part[4][0]
         default_tac_id = f_part[4][1]
@@ -412,13 +412,17 @@ class cls_tactile_perception:
             return default_tac_name, default_tac_id
         c_points = taxels_id[0] + tac_id[0]
 
+        tac_pos_all = []
+        for tid in range(tac_id[0], tac_id[1], 1):
+            tac_name = model._sensor_id2name[tid]
+            tac_pos_all.append(ug.get_relative_posquat(sim, "palm_link", tac_name)[:3])
+
         actived_tmp_position = np.zeros((3, len(c_points)))
-        taxel_position = np.zeros((3, 72))
         active_taxel_name = []
         dev_taxel_value = []
         """ Get average position of contact points """
         if len(c_points) > 1:
-            print(fingername + " pose compute taxels: ", end='')
+            print(f_name + " pose compute taxels: ", end='')
             for i in range(len(c_points)):
                 active_taxel_name.append(model._sensor_id2name[c_points[i]])
                 print(model._sensor_id2name[c_points[i]] + ' ', end='')
@@ -431,12 +435,15 @@ class cls_tactile_perception:
         """ Get the name of contact point closest to avg_position """
 
         if len(c_points) > 1:
-            for i in range(len(c_points)):
-                taxel_position[:, i] = ug.get_relative_posquat(sim, "palm_link", active_taxel_name[i])[:3]
-                # The norm() defaults to 2-norm, that is, distance
-                dev_taxel_value.append(np.linalg.norm(taxel_position[:, i] - avg_position))
+            # for i in range(len(c_points)):
+            #     taxel_position[:, i] = ug.get_relative_posquat(sim, "palm_link", active_taxel_name[i])[:3]
+            #     # The norm() defaults to 2-norm, that is, distance
+            #     dev_taxel_value.append(np.linalg.norm(taxel_position[:, i] - avg_position))
+            for i, _tac_pos in enumerate(tac_pos_all):
+                dev_taxel_value.append(np.linalg.norm(np.array(_tac_pos) - avg_position))
             min_value = min(dev_taxel_value)
-            id_chosen = c_points[dev_taxel_value.index(min_value)]
+            # id_chosen = c_points[dev_taxel_value.index(min_value)]
+            id_chosen = dev_taxel_value.index(min_value) + tac_id[0]
             c_point_name = model._sensor_id2name[id_chosen]
         else:
             id_chosen = -1
@@ -448,6 +455,8 @@ class cls_tactile_perception:
         #     self.tacdata_htid[0][self.mapping[fingername]] = id_chosen
 
         return c_point_name, id_chosen
+
+
 
     # get the median of all contact_nums, and translate to contact_name
     # def get_c_point_name(self, model, c_points):

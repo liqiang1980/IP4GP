@@ -317,6 +317,8 @@ class ROBCTRL:
                 self.x_state = self.update_augmented_state(sim=sim, idx=idx, f_name=f_name,
                                                            tacp=tacp, xstate=self.x_state)
                 tacp.is_first_contact[f_name] = True
+        """ If contact, always contact """
+        tacp.is_contact = deepcopy(tacp.is_first_contact)  # This code overrides the previous renew of tacp.is_contact
 
         """ EKF Forward prediction """
         self.x_bar, P_state_cov = ekf_grasping.state_predictor(xstate=self.x_state,

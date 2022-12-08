@@ -74,8 +74,8 @@ class EKF:
             tmp_G = ug.get_Grasp_matrix(pos_tac_palm=pos_tac_palm, pos_cup_palm=pos_cup_palm)
             Grasping_matrix[:, 6*i: 6*i+6] = tmp_G
             ju[6*i: 6*i+6] = tacp.cur_tac[f_name][1] - tacp.last_tac[f_name][1]
-            print("  ", f_name, " cur:", tacp.cur_tac[f_name][1], "  last:", tacp.last_tac[f_name][1])
-        print("  >>ju:\n", ju)
+            # print("  ", f_name, " cur:", tacp.cur_tac[f_name][1], "  last:", tacp.last_tac[f_name][1])
+        # print("  >>ju:\n", ju)
 
         """ G_pinv calculate: 2 type """
         if tac_const.GT_FLAG == '1G':  # 4 G splice and calculate big GT_pinv
@@ -114,8 +114,8 @@ class EKF:
         for i, f_part in enumerate(robctrl.f_param):
             f_name = f_part[0]
             ht_idx = [3 * i, 3 * i + 3]
-            # if tacp.is_contact[f_name]:  # Keep at np.zeros(3) if no contact
-            if tacp.is_first_contact[f_name]:  # Keep at np.zeros(3) if no contact
+            if tacp.is_contact[f_name]:  # Keep at np.zeros(3) if no contact
+            # if tacp.is_first_contact[f_name]:  # Keep at np.zeros(3) if no contact
                 # _pq_cup_palm = ug.get_relative_posquat(sim=sim, src="palm_link", tgt="cup")  # wxyz
                 # _quat_cup_palm = np.hstack((_pq_cup_palm[4:], _pq_cup_palm[3]))
                 # _R_cup_palm = Rotation.from_quat(_quat_cup_palm).as_matrix()
@@ -148,8 +148,8 @@ class EKF:
         for i, f_part in enumerate(robctrl.f_param):
             f_name = f_part[0]
             zt_idx = [3 * i, 3 * i + 3]
-            # if tacp.is_contact[f_name]:  # Keep at np.zeros(3) if no contact
-            if tacp.is_first_contact[f_name]:  # Keep at np.zeros(3) if no contact
+            if tacp.is_contact[f_name]:  # Keep at np.zeros(3) if no contact
+            # if tacp.is_first_contact[f_name]:  # Keep at np.zeros(3) if no contact
                 # pos_tac_palm[zt_idx[0]: zt_idx[1]] = tacp.cur_tac[f_name][1][:3]
                 pos_tac_palm[zt_idx[0]: zt_idx[1]] = tacp.cur_tac[f_name][1][:3] + np.random.normal(0.00, 0.0, 3)
                 R_tac_palm = Rotation.from_rotvec(tacp.cur_tac[f_name][1][3:]).as_matrix()
@@ -203,50 +203,3 @@ class EKF:
         else:
             x_hat = x_bar
         return x_hat, P_state_cov
-
-    # def ekf_posteriori(self, sim, model, viewer, x_bar, z_t, h_t, P_state_cov, tacperception, robctrl):
-    #     # print('posterior computation')
-    #     # the jocobian matrix of measurement equation
-    #     # [W1, W2, W3] = x_bar[3:6]  # the rotvec of object in palm frame {P}
-    #     [W1, W2, W3] = robctrl.rotvec_cup_palm  # the rotvec of object in palm frame {P}
-    #     pos_c1 = x_bar[6:9]  # the pos of contact point in object frame {O}
-    #     pos_c2 = x_bar[9:12]  # the pos of contact point in object frame {O}
-    #     pos_c3 = x_bar[12:15]  # the pos of contact point in object frame {O}
-    #     pos_c4 = x_bar[15:18]  # the pos of contact point in object frame {O}
-    #     # print("  normal_c1:", normal_c1)
-    #     pn_flag = tac_const.PN_FLAG
-    #     if pn_flag == 'p':  # use pos only as observation variable
-    #         J_h = np.zeros([3 * 4, 6 + 4 * 3])
-    #         R_noi = np.zeros([12, 12])
-    #         if tacperception.is_contact["ff"]:
-    #             J_h[:3, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c1[0], pos_CO_y=pos_c1[1],
-    #                                           pos_CO_z=pos_c1[2])
-    #             R_noi[:3, :3] = np.random.normal(0, 0.002) * np.identity(3)
-    #         if tacperception.is_contact["mf"]:
-    #             J_h[3:6, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c2[0], pos_CO_y=pos_c2[1],
-    #                                            pos_CO_z=pos_c2[2])
-    #             R_noi[3:6, 3:6] = np.random.normal(0, 0.002) * np.identity(3)
-    #         if tacperception.is_contact["rf"]:
-    #             J_h[6:9, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c3[0], pos_CO_y=pos_c3[1],
-    #                                            pos_CO_z=pos_c3[2])
-    #             R_noi[6:9, 6:9] = np.random.normal(0, 0.002) * np.identity(3)
-    #         if tacperception.is_contact["th"]:
-    #             J_h[9:12, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3, pos_CO_x=pos_c4[0], pos_CO_y=pos_c4[1],
-    #                                             pos_CO_z=pos_c4[2])
-    #             R_noi[9:12, 9:12] = np.random.normal(0, 0.002) * np.identity(3)
-    #         K_t = self.scale_kp * np.linalg.pinv(J_h)
-    #         u, s, v = np.linalg.svd(J_h)
-    #         Update = np.ravel(np.matmul(K_t, (z_t - h_t)))
-    #         # print('update is ', Update)
-    #         nonzeroind = np.nonzero(s)[0]
-    #         b = []
-    #         for i in range(len(nonzeroind)):
-    #             if math.fabs(s[nonzeroind[i]] > 0.00001):
-    #                 b.append(s[nonzeroind[i]])
-    #         c = np.array(b)
-    #         if np.amin(c) > 0.01:
-    #             x_hat = x_bar + Update
-    #             P_state_cov = (np.eye(6 + 4 * 3) - K_t @ J_h) @ P_state_cov
-    #         else:
-    #             x_hat = x_bar
-    #     return x_hat, P_state_cov
