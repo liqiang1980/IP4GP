@@ -26,13 +26,15 @@ class IK_type(Enum):
 
 
 class ROBCTRL:
-    def __init__(self, obj_param, hand_param, model):
+    def __init__(self, obj_param, hand_param, model, xml_path, fk):
         self.cnt_test = 0
         self.obj_param = obj_param
         self.f_param = hand_param[1:]
         self.f_size = len(self.f_param)
         print("f_size:", self.f_size)
         self.model = model
+        self.xml_path = xml_path
+        self.fk = fk
         self.FIRST_INTERACTION_FLAG = False
         self.robot = URDF.from_xml_file('../../robots/allegro_hand_right_with_tactile.urdf')
         # self.robot = URDF.from_xml_file('../../robots/UR5_allegro_hand_right.urdf')
@@ -213,10 +215,12 @@ class ROBCTRL:
 
     def update_augmented_state(self, sim, idx, f_name, tacp, xstate):
         contact_name = tacp.cur_tac[f_name][0]
-        self.pos_contact_cup[f_name] = np.ravel(ug.get_relative_posquat(sim, "cup",
-                                                                        contact_name)[:3] + np.random.normal(0, 0.0,
-                                                                                                             size=(
-                                                                                                                 1, 3)))
+        # self.pos_contact_cup[f_name] = np.ravel(ug.get_relative_posquat(sim, "cup", contact_name)[:3] + np.random.normal(0, 0.0, size=(1, 3)))
+        pos_tac_palm, rotvec_tac_palm, T_contact_palm = self.fk.get_relative_posrot(tac_name=contact_name,
+                                                                                    f_name=f_name,
+                                                                                    xml_path=self.xml_path)
+        T_contact_cup = np.matmul(np.linalg.pinv(self.T_cup_palm), T_contact_palm)
+        self.pos_contact_cup[f_name] = np.ravel(np.ravel(T_contact_cup[:3, 3].T) + np.random.normal(0, 0.0, size=(1, 3)))
         self.nv_contact_cup[f_name] = og.get_nv_contact_cup(obj_param=self.obj_param,
                                                             pos_contact_cup=self.pos_contact_cup[f_name])
         xstate[6 + 3 * idx] = self.pos_contact_cup[f_name][0]
@@ -230,9 +234,13 @@ class ROBCTRL:
             if tacp.is_finger_contact(sim=sim, model=self.model, f_part=f_part):
                 # contact_name = tacp.get_contact_taxel_name(sim=sim, model=model, f_part=f_part, z_h_flag="h")
                 contact_name = tacp.cur_tac[f_name][0]
-                self.pos_contact_cup[f_name] = np.ravel(
-                    ug.get_relative_posquat(sim, "cup", contact_name)[:3] + np.random.normal(
-                        0, 0.0, size=(1, 3)))
+                # self.pos_contact_cup[f_name] = np.ravel(
+                #     ug.get_relative_posquat(sim, "cup", contact_name)[:3] + np.random.normal(0, 0.0, size=(1, 3)))
+                pos_tac_palm, rotvec_tac_palm, T_contact_palm = self.fk.get_relative_posrot(tac_name=contact_name,
+                                                                                            f_name=f_name,
+                                                                                            xml_path=self.xml_path)
+                T_contact_cup = np.matmul(np.linalg.pinv(self.T_cup_palm), T_contact_palm)
+                self.pos_contact_cup[f_name] = np.ravel(np.ravel(T_contact_cup[:3, 3].T) + np.random.normal(0, 0.0, size=(1, 3)))
                 self.nv_contact_cup[f_name] = og.get_nv_contact_cup(obj_param=self.obj_param,
                                                                     pos_contact_cup=self.pos_contact_cup[f_name])
                 # xstate = np.append(xstate, [self.pos_contact_cup[f_name]])

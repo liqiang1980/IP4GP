@@ -142,7 +142,7 @@ grasping_ekf.set_store_flag(alg_param[0])
 tacperception = tactile_perception.cls_tactile_perception(xml_path=xml_path, fk=fk)
 
 # init robot
-robctrl = robot_control.ROBCTRL(obj_param=object_param, hand_param=hand_param, model=model)
+robctrl = robot_control.ROBCTRL(obj_param=object_param, hand_param=hand_param, model=model, xml_path=xml_path, fk=fk)
 fct.robot_init(sim)
 mu_env.Camera_set(viewer, model)
 sim.model.eq_active[0] = True
@@ -166,8 +166,8 @@ tacperception.fin_tri = np.zeros(len(hand_param) - 1)
 
 # Thumb root movement
 fct.pre_thumb(sim, viewer)
-char = "v"
-# char = "i"
+# char = "v"
+char = "i"
 
 #######################################################################
 ekfer = MainLoop()

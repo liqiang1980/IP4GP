@@ -16,7 +16,7 @@ class ForwardKinematics:
         self.qpos_pos = {"ff": [kdl.JntArray(4), kdl.Frame()], "ffd": [kdl.JntArray(3), kdl.Frame()], "ffq": [kdl.JntArray(2), kdl.Frame()],
                          "mf": [kdl.JntArray(4), kdl.Frame()], "mfd": [kdl.JntArray(3), kdl.Frame()], "mfq": [kdl.JntArray(2), kdl.Frame()],
                          "rf": [kdl.JntArray(4), kdl.Frame()], "rfd": [kdl.JntArray(3), kdl.Frame()], "rfq": [kdl.JntArray(2), kdl.Frame()],
-                         "th": [kdl.JntArray(4), kdl.Frame()], "thd": [kdl.JntArray(3), kdl.Frame()], "palm": [kdl.JntArray(0), kdl.Frame()]}
+                         "th": [kdl.JntArray(4), kdl.Frame()], "thd": [kdl.JntArray(4), kdl.Frame()], "palm": [kdl.JntArray(0), kdl.Frame()]}
         self.jnt_num = tac_const.FULL_FINGER_JNTS_NUM
         self.cur_jnt = np.zeros(self.jnt_num)
         self.kdl_chain = {}
@@ -131,6 +131,7 @@ class ForwardKinematics:
         self.qpos_pos["thd"][0][0] = _all_joint[12]
         self.qpos_pos["thd"][0][1] = _all_joint[13]
         self.qpos_pos["thd"][0][2] = _all_joint[14]
+        self.qpos_pos["thd"][0][3] = _all_joint[15]
 
         self.qpos_pos["ffq"][0][0] = _all_joint[0]
         self.qpos_pos["ffq"][0][1] = _all_joint[1]
@@ -236,6 +237,19 @@ class ForwardKinematics:
         # thumb_in_palm_T[:3, 3] = p
 
         # return index_in_palm_T, mid_in_palm_T, ring_in_palm_T, thumb_in_palm_T
+
+    def get_relative_posrot(self, tac_name, f_name, xml_path):
+        """
+        Get pos & rpy of tac-in-tip from xml.
+        Translate to tac-in-palm.
+        """
+        pos_tac_tip, rpy_tac_tip = qg.get_taxel_poseuler(taxel_name=tac_name, xml_path=xml_path)
+        T_tac_tip = qg.posrpy2trans(pos=pos_tac_tip, rpy=rpy_tac_tip)
+        T_tip_palm = self.T_tip_palm[f_name]
+        T_tac_palm = np.matmul(T_tip_palm, T_tac_tip)
+        pos_tac_palm = np.ravel(T_tac_palm[:3, 3].T)
+        rotvec_tac_palm = self.rotvec_tip_palm[f_name]  # Use default-jnt rotvec instead of tac rotvec
+        return pos_tac_palm, rotvec_tac_palm, T_tac_palm
 
     def fk_update_all(self, sim):
         self.get_cur_jnt(sim=sim)
