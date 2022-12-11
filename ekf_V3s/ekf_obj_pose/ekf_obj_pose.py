@@ -38,30 +38,63 @@ class LineChartLoop(Thread):
 class MainLoop(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
+        self.ctrl_val = [{"ff": [0.0044, 0.000001, False],
+                          "mf": [0.0065, 0.000001, False],
+                          "rf": [0.0067, 0.000001, False],
+                          "th": [0.002, 0.000001, False]
+                          },  # case 0: cup free
+                         {"ff": [0.0044, 0.000001, False],
+                          "mf": [0.0065, 0.000001, False],
+                          "rf": [0.0067, 0.000001, False],
+                          "th": [0.002, 0.000001, False]
+                          },  # case 1: cup frozen
+                         {"ff": [0.0044, 0.000001, False],
+                          "mf": [0.0065, 0.000001, False],
+                          "rf": [0.0067, 0.000001, False],
+                          "th": [0.002, 0.000001, False]
+                          },  # case 2: cup upsidedown free
+                         {"ff": [0.0041, 0.000001, False],
+                          "mf": [0.0057, 0.000001, False],
+                          "rf": [0.0055, 0.000001, False],
+                          "th": [0.002, 0.000001, False]
+                          },  # case 3: cylinder free
+                         {"ff": [0.0041, 0.000001, False],
+                          "mf": [0.0057, 0.000001, False],
+                          "rf": [0.0055, 0.000001, False],
+                          "th": [0.002, 0.000001, False]
+                          }  # case 4: cylinder frozen
+                         ]
 
     def run(self):
-        ctrl_val = {"ff": [0.005, 0.000001],
-                    "mf": [0.005, 0.000001],
-                    "rf": [0.005, 0.000001],
-                    "th": [0.002, 0.000001]
-                    }
+        f_param = hand_param[1:]
         first_contact_flag = False
-        for ii in range(2000):
-            for f_part in hand_param[1:]:
+
+        # if not first_contact_flag:
+        #     while True:
+        #         # print("Pre set fingers")
+        #         for f_part in f_param:
+        #             f_name = f_part[0]
+        #             tac_id = f_part[3]  # [min_id, max_id]
+        #             if f_name in ctrl_val and not ctrl_val[f_name][2] and not (np.array(sim.data.sensordata[tac_id[0]: tac_id[1]]) > 0.0).any():
+        #                 print(f_name, " step.")
+        #                 fct.ctrl_finger_pre(sim=sim, f_part=f_part, input1=ctrl_val[f_name][0], stop=False)
+        #             elif f_name in ctrl_val and not ctrl_val[f_name][2]:
+        #                 print(f_name, "Contact!")
+        #                 ctrl_val[f_name][2] = True
+        #                 fct.ctrl_finger_pre(sim=sim, f_part=f_part, input1=0, stop=True)
+        #         sim.step()
+        #         viewer.render()
+        #         del viewer._markers[:]
+        #         if all([x[2] for x in list(ctrl_val.values())]):
+        #             first_contact_flag = True
+        #             break
+        # print("Preset OK！")
+        ctrl_val = self.ctrl_val[object_param[3]]
+        for ii in range(1500):
+            for f_part in f_param:
                 f_name = f_part[0]
                 if f_name in ctrl_val:
-                    fct.ctrl_finger(sim=sim, f_name=f_name, input1=ctrl_val[f_name][0], input2=ctrl_val[f_name][1])
-            # if hand_param[1][1] == '1':
-            #     fct.ctrl_finger(sim, 0.005, 0.000001, hand_param[1][0])
-            # if hand_param[2][1] == '1':
-            #     # fct.middle_finger(sim, 0.005, 0.000001)
-            #     fct.ctrl_finger(sim, 0.005, 0.000001, hand_param[2][0])
-            # if hand_param[3][1] == '1':
-            #     # fct.ring_finger(sim, 0.005, 0.000001)
-            #     fct.ctrl_finger(sim, 0.005, 0.000001, hand_param[3][0])
-            # if hand_param[4][1] == '1':
-            #     # fct.thumb(sim, 0.002, 0.000001)
-            #     fct.ctrl_finger(sim, 0.002, 0.000001, hand_param[4][0])
+                    fct.ctrl_finger(sim=sim, f_part=f_part, input1=ctrl_val[f_name][0], input2=ctrl_val[f_name][1])
             """EKF process"""
             if not first_contact_flag and (np.array(sim.data.sensordata[0: 636]) > 0.0).any():
                 first_contact_flag = True
@@ -166,8 +199,8 @@ tacperception.fin_tri = np.zeros(len(hand_param) - 1)
 
 # Thumb root movement
 fct.pre_thumb(sim, viewer)
-# char = "v"
-char = "i"
+char = "v"
+# char = "i"
 
 #######################################################################
 ekfer = MainLoop()

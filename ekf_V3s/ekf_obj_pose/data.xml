@@ -207,8 +207,8 @@
             <jnt>link_15.0_silicon</jnt>
         </finger>
         <finger name= 'palm'>
-<!--            <used>1</used>-->
-            <used>0</used>
+            <used>1</used>
+<!--            <used>0</used>-->
             <init_posture>
                 <j1>-1</j1>
                 <j2>-1</j2>
@@ -232,8 +232,8 @@
 <!--            <static>0</static>-->
 <!--            <static>1</static>-->
 <!--            <static>2</static>-->
-            <static>3</static>
-<!--            <static>4</static>-->
+<!--            <static>3</static>-->
+            <static>4</static>
         </object>
     <alg>
         <store_data>1</store_data>

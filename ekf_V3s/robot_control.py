@@ -105,87 +105,94 @@ class ROBCTRL:
         self.T_cup_palm[:3, :3] = self.R_cup_palm
         self.T_cup_palm[:3, 3] = np.mat(self.pos_cup_palm).T
 
-    def fk_offset(self, sim, finger_name, active_taxel_name, ref_frame='world'):
-        if finger_name == 'ff':
-            q = self.get_cur_jnt(sim)[0:4]
-            position_tip_inpalm, orien_tip_inpalm = self.kdl_kin_ff.FK(q)
-            pose_taxels_intip = ug.get_relative_posquat(sim, "link_3.0_tip", active_taxel_name)
-        if finger_name == 'mf':
-            q = self.get_cur_jnt(sim)[4:8]
-            position_tip_inpalm, orien_tip_inpalm = self.kdl_kin_mf.FK(q)
-            pose_taxels_intip = ug.get_relative_posquat(sim, "link_7.0_tip", active_taxel_name)
-        if finger_name == 'rf':
-            q = self.get_cur_jnt(sim)[8:12]
-            position_tip_inpalm, orien_tip_inpalm = self.kdl_kin_rf.FK(q)
-            pose_taxels_intip = ug.get_relative_posquat(sim, "link_11.0_tip", active_taxel_name)
-        if finger_name == 'th':
-            q = self.get_cur_jnt(sim)[12:16]
-            position_tip_inpalm, orien_tip_inpalm = self.kdl_kin_th.FK(q)
-            pose_taxels_intip = ug.get_relative_posquat(sim, "link_15.0_tip", active_taxel_name)
-        pos_p_intip, pos_o_intip = ug.posquat2pos_p_o(pose_taxels_intip)
+    def pos_contact_cup_update(self, tacp):
+        _T_palm_cup = np.linalg.pinv(self.T_cup_palm)
+        for f_part in self.f_param:
+            f_name = f_part[0]
+            _pos_contact_palm = tacp.cur_tac[f_name][1][:3]
+            self.pos_contact_cup[f_name] = np.ravel(_T_palm_cup[:3, 3]) + np.ravel(np.matmul(_T_palm_cup[:3, :3], _pos_contact_palm))
 
-        position_taxel_inpalm = position_tip_inpalm + (np.matmul(orien_tip_inpalm, pos_p_intip)).transpose()
-        orien_taxel_inpalm = np.matmul(orien_tip_inpalm, pos_o_intip)
-        position_taxel_inworld, orien_taxel_inworld = ug.pose_trans_palm_to_world(sim, position_taxel_inpalm,
-                                                                                  orien_taxel_inpalm)
-        if ref_frame == 'palm':
-            return position_taxel_inpalm, orien_taxel_inpalm
-        else:
-            return position_taxel_inworld, orien_taxel_inworld
+    # def fk_offset(self, sim, finger_name, active_taxel_name, ref_frame='world'):
+    #     if finger_name == 'ff':
+    #         q = self.get_cur_jnt(sim)[0:4]
+    #         position_tip_inpalm, orien_tip_inpalm = self.kdl_kin_ff.FK(q)
+    #         pose_taxels_intip = ug.get_relative_posquat(sim, "link_3.0_tip", active_taxel_name)
+    #     if finger_name == 'mf':
+    #         q = self.get_cur_jnt(sim)[4:8]
+    #         position_tip_inpalm, orien_tip_inpalm = self.kdl_kin_mf.FK(q)
+    #         pose_taxels_intip = ug.get_relative_posquat(sim, "link_7.0_tip", active_taxel_name)
+    #     if finger_name == 'rf':
+    #         q = self.get_cur_jnt(sim)[8:12]
+    #         position_tip_inpalm, orien_tip_inpalm = self.kdl_kin_rf.FK(q)
+    #         pose_taxels_intip = ug.get_relative_posquat(sim, "link_11.0_tip", active_taxel_name)
+    #     if finger_name == 'th':
+    #         q = self.get_cur_jnt(sim)[12:16]
+    #         position_tip_inpalm, orien_tip_inpalm = self.kdl_kin_th.FK(q)
+    #         pose_taxels_intip = ug.get_relative_posquat(sim, "link_15.0_tip", active_taxel_name)
+    #     pos_p_intip, pos_o_intip = ug.posquat2pos_p_o(pose_taxels_intip)
+    #
+    #     position_taxel_inpalm = position_tip_inpalm + (np.matmul(orien_tip_inpalm, pos_p_intip)).transpose()
+    #     orien_taxel_inpalm = np.matmul(orien_tip_inpalm, pos_o_intip)
+    #     position_taxel_inworld, orien_taxel_inworld = ug.pose_trans_palm_to_world(sim, position_taxel_inpalm,
+    #                                                                               orien_taxel_inpalm)
+    #     if ref_frame == 'palm':
+    #         return position_taxel_inpalm, orien_taxel_inpalm
+    #     else:
+    #         return position_taxel_inworld, orien_taxel_inworld
 
-    def get_cur_jnt(self, sim):
-        # print("|||shape||||qpos: ", len(sim.data.qpos))
+    # def get_cur_jnt(self, sim):
+    #     # print("|||shape||||qpos: ", len(sim.data.qpos))
+    #
+    #     cur_jnt = np.zeros(tacCONST.FULL_FINGER_JNTS_NUM)
+    #     cur_jnt[0:4] = np.array([sim.data.qpos[tacCONST.FF_MEA_1],
+    #                              sim.data.qpos[tacCONST.FF_MEA_2],
+    #                              sim.data.qpos[tacCONST.FF_MEA_3],
+    #                              sim.data.qpos[tacCONST.FF_MEA_4]])
+    #
+    #     cur_jnt[4:8] = np.array([sim.data.qpos[tacCONST.MF_MEA_1],
+    #                              sim.data.qpos[tacCONST.MF_MEA_2],
+    #                              sim.data.qpos[tacCONST.MF_MEA_3],
+    #                              sim.data.qpos[tacCONST.MF_MEA_4]])
+    #
+    #     cur_jnt[8:12] = np.array([sim.data.qpos[tacCONST.RF_MEA_1],
+    #                               sim.data.qpos[tacCONST.RF_MEA_2],
+    #                               sim.data.qpos[tacCONST.RF_MEA_3],
+    #                               sim.data.qpos[tacCONST.RF_MEA_4]])
+    #
+    #     cur_jnt[12:16] = np.array([sim.data.qpos[tacCONST.TH_MEA_1],
+    #                                sim.data.qpos[tacCONST.TH_MEA_2],
+    #                                sim.data.qpos[tacCONST.TH_MEA_3],
+    #                                sim.data.qpos[tacCONST.TH_MEA_4]])
+    #     return cur_jnt
 
-        cur_jnt = np.zeros(tacCONST.FULL_FINGER_JNTS_NUM)
-        cur_jnt[0:4] = np.array([sim.data.qpos[tacCONST.FF_MEA_1],
-                                 sim.data.qpos[tacCONST.FF_MEA_2],
-                                 sim.data.qpos[tacCONST.FF_MEA_3],
-                                 sim.data.qpos[tacCONST.FF_MEA_4]])
-
-        cur_jnt[4:8] = np.array([sim.data.qpos[tacCONST.MF_MEA_1],
-                                 sim.data.qpos[tacCONST.MF_MEA_2],
-                                 sim.data.qpos[tacCONST.MF_MEA_3],
-                                 sim.data.qpos[tacCONST.MF_MEA_4]])
-
-        cur_jnt[8:12] = np.array([sim.data.qpos[tacCONST.RF_MEA_1],
-                                  sim.data.qpos[tacCONST.RF_MEA_2],
-                                  sim.data.qpos[tacCONST.RF_MEA_3],
-                                  sim.data.qpos[tacCONST.RF_MEA_4]])
-
-        cur_jnt[12:16] = np.array([sim.data.qpos[tacCONST.TH_MEA_1],
-                                   sim.data.qpos[tacCONST.TH_MEA_2],
-                                   sim.data.qpos[tacCONST.TH_MEA_3],
-                                   sim.data.qpos[tacCONST.TH_MEA_4]])
-        return cur_jnt
-
-    def robjac_offset(self, sim, finger_name, q, taxel_name):
-        if finger_name == 'ff':
-            position_tip_inpalm, orien_tip_inpalm = self.kdl_kin_ff.FK(q)
-            pose_taxels_intip = ug.get_relative_posquat(sim, "link_3.0_tip", taxel_name)
-            pos_p_intip, pos_o_intip = ug.posquat2pos_p_o(pose_taxels_intip)
-            position_taxel_inpalm = position_tip_inpalm + \
-                                    (np.matmul(orien_tip_inpalm, pos_p_intip)).transpose()
-            jac = self.kdl_kin_ff.jacobian(q, position_taxel_inpalm)
-        if finger_name == 'mf':
-            position_tip_inpalm, orien_tip_inpalm = self.kdl_kin_mf.FK(q)
-            pose_taxels_intip = ug.get_relative_posquat(sim, "link_7.0_tip", taxel_name)
-            pos_p_intip, pos_o_intip = ug.posquat2pos_p_o(pose_taxels_intip)
-            position_taxel_inpalm = position_tip_inpalm + (np.matmul(orien_tip_inpalm, pos_p_intip)).transpose()
-            jac = self.kdl_kin_mf.jacobian(q, position_taxel_inpalm)
-        if finger_name == 'rf':
-            position_tip_inpalm, orien_tip_inpalm = self.kdl_kin_rf.FK(q)
-            pose_taxels_intip = ug.get_relative_posquat(sim, "link_11.0_tip", taxel_name)
-            pos_p_intip, pos_o_intip = ug.posquat2pos_p_o(pose_taxels_intip)
-            position_taxel_inpalm = position_tip_inpalm + (np.matmul(orien_tip_inpalm, pos_p_intip)).transpose()
-            jac = self.kdl_kin_rf.jacobian(q, position_taxel_inpalm)
-        if finger_name == 'th':
-            position_tip_inpalm, orien_tip_inpalm = self.kdl_kin_th.FK(q)
-            pose_taxels_intip = ug.get_relative_posquat(sim, "link_15.0_tip", taxel_name)
-            pos_p_intip, pos_o_intip = ug.posquat2pos_p_o(pose_taxels_intip)
-            position_taxel_inpalm = position_tip_inpalm + (np.matmul(orien_tip_inpalm, pos_p_intip)).transpose()
-            jac = self.kdl_kin_th.jacobian(q, position_taxel_inpalm)
-        # orien_taxel_inpalm = np.matmul(orien_tip_inpalm, pos_o_intip)
-        return jac
+    # def robjac_offset(self, sim, finger_name, q, taxel_name):
+    #     if finger_name == 'ff':
+    #         position_tip_inpalm, orien_tip_inpalm = self.kdl_kin_ff.FK(q)
+    #         pose_taxels_intip = ug.get_relative_posquat(sim, "link_3.0_tip", taxel_name)
+    #         pos_p_intip, pos_o_intip = ug.posquat2pos_p_o(pose_taxels_intip)
+    #         position_taxel_inpalm = position_tip_inpalm + \
+    #                                 (np.matmul(orien_tip_inpalm, pos_p_intip)).transpose()
+    #         jac = self.kdl_kin_ff.jacobian(q, position_taxel_inpalm)
+    #     if finger_name == 'mf':
+    #         position_tip_inpalm, orien_tip_inpalm = self.kdl_kin_mf.FK(q)
+    #         pose_taxels_intip = ug.get_relative_posquat(sim, "link_7.0_tip", taxel_name)
+    #         pos_p_intip, pos_o_intip = ug.posquat2pos_p_o(pose_taxels_intip)
+    #         position_taxel_inpalm = position_tip_inpalm + (np.matmul(orien_tip_inpalm, pos_p_intip)).transpose()
+    #         jac = self.kdl_kin_mf.jacobian(q, position_taxel_inpalm)
+    #     if finger_name == 'rf':
+    #         position_tip_inpalm, orien_tip_inpalm = self.kdl_kin_rf.FK(q)
+    #         pose_taxels_intip = ug.get_relative_posquat(sim, "link_11.0_tip", taxel_name)
+    #         pos_p_intip, pos_o_intip = ug.posquat2pos_p_o(pose_taxels_intip)
+    #         position_taxel_inpalm = position_tip_inpalm + (np.matmul(orien_tip_inpalm, pos_p_intip)).transpose()
+    #         jac = self.kdl_kin_rf.jacobian(q, position_taxel_inpalm)
+    #     if finger_name == 'th':
+    #         position_tip_inpalm, orien_tip_inpalm = self.kdl_kin_th.FK(q)
+    #         pose_taxels_intip = ug.get_relative_posquat(sim, "link_15.0_tip", taxel_name)
+    #         pos_p_intip, pos_o_intip = ug.posquat2pos_p_o(pose_taxels_intip)
+    #         position_taxel_inpalm = position_tip_inpalm + (np.matmul(orien_tip_inpalm, pos_p_intip)).transpose()
+    #         jac = self.kdl_kin_th.jacobian(q, position_taxel_inpalm)
+    #     # orien_taxel_inpalm = np.matmul(orien_tip_inpalm, pos_o_intip)
+    #     return jac
 
     def active_fingers_taxels_render(self, sim, viewer, tacperception):
         self.active_finger_taxels_render(sim, viewer, 'ff', tacperception)
@@ -220,7 +227,8 @@ class ROBCTRL:
                                                                                     f_name=f_name,
                                                                                     xml_path=self.xml_path)
         T_contact_cup = np.matmul(np.linalg.pinv(self.T_cup_palm), T_contact_palm)
-        self.pos_contact_cup[f_name] = np.ravel(np.ravel(T_contact_cup[:3, 3].T) + np.random.normal(0, 0.0, size=(1, 3)))
+        self.pos_contact_cup[f_name] = np.ravel(np.ravel(T_contact_cup[:3, 3].T))
+        # self.pos_contact_cup[f_name] = np.ravel(np.ravel(T_contact_cup[:3, 3].T) + np.random.normal(0, 0.0, size=(1, 3)))
         self.nv_contact_cup[f_name] = og.get_nv_contact_cup(obj_param=self.obj_param,
                                                             pos_contact_cup=self.pos_contact_cup[f_name])
         xstate[6 + 3 * idx] = self.pos_contact_cup[f_name][0]
@@ -231,7 +239,8 @@ class ROBCTRL:
     def augmented_state(self, sim, tacp, xstate):
         for i, f_part in enumerate(self.f_param):
             f_name = f_part[0]
-            if tacp.is_finger_contact(sim=sim, model=self.model, f_part=f_part):
+    #        if tacp.is_finger_contact(sim=sim, model=self.model, f_part=f_part):
+            if tacp.is_contact[f_name]:
                 # contact_name = tacp.get_contact_taxel_name(sim=sim, model=model, f_part=f_part, z_h_flag="h")
                 contact_name = tacp.cur_tac[f_name][0]
                 # self.pos_contact_cup[f_name] = np.ravel(
@@ -240,7 +249,8 @@ class ROBCTRL:
                                                                                             f_name=f_name,
                                                                                             xml_path=self.xml_path)
                 T_contact_cup = np.matmul(np.linalg.pinv(self.T_cup_palm), T_contact_palm)
-                self.pos_contact_cup[f_name] = np.ravel(np.ravel(T_contact_cup[:3, 3].T) + np.random.normal(0, 0.0, size=(1, 3)))
+                self.pos_contact_cup[f_name] = np.ravel(np.ravel(T_contact_cup[:3, 3].T))
+                # self.pos_contact_cup[f_name] = np.ravel(np.ravel(T_contact_cup[:3, 3].T) + np.random.normal(0, 0.0, size=(1, 3)))
                 self.nv_contact_cup[f_name] = og.get_nv_contact_cup(obj_param=self.obj_param,
                                                                     pos_contact_cup=self.pos_contact_cup[f_name])
                 # xstate = np.append(xstate, [self.pos_contact_cup[f_name]])
@@ -249,6 +259,7 @@ class ROBCTRL:
             #     xstate = np.append(xstate, [0, 0, 0])
         # print("              First augmented_state:", xstate)
         return xstate
+
 
     def interaction(self, sim, model, viewer, object_param, alg_param, ekf_grasping, tacp, fk, char):
         # global first_contact_flag, x_all, gd_all, P_state_cov, x_state, last_angles, x_bar, z_t, h_t
@@ -319,14 +330,18 @@ class ROBCTRL:
             return
 
         """ Detect new contact tacs that have never been touched before """
-        for idx, f_part in enumerate(self.f_param):
-            f_name = f_part[0]
-            if tacp.is_contact[f_name] and not tacp.is_first_contact[f_name]:
-                self.x_state = self.update_augmented_state(sim=sim, idx=idx, f_name=f_name,
-                                                           tacp=tacp, xstate=self.x_state)
-                tacp.is_first_contact[f_name] = True
-        """ If contact, always contact """
+        if self.cnt_test < 10:
+            for idx, f_part in enumerate(self.f_param):
+                f_name = f_part[0]
+                if tacp.is_contact[f_name] and not tacp.is_first_contact[f_name]:
+                    self.x_state = self.update_augmented_state(sim=sim, idx=idx, f_name=f_name,
+                                                               tacp=tacp, xstate=self.x_state)
+                    tacp.is_first_contact[f_name] = True
+        """ If one tac contact, always contact """
         tacp.is_contact = deepcopy(tacp.is_first_contact)  # This code overrides the previous renew of tacp.is_contact
+        tacp.is_contact["th"] = False
+        tacp.is_contact["thd"] = False
+        tacp.is_contact["palm"] = False
 
         """ EKF Forward prediction """
         self.x_bar, P_state_cov = ekf_grasping.state_predictor(xstate=self.x_state,
@@ -338,7 +353,7 @@ class ROBCTRL:
         self.Xcomponents_update(x=self.x_bar[:6])
 
         """ h_t & z_t updates """
-        h_t_position, h_t_nv = ekf_grasping.observe_computation(tacp=tacp, robctrl=self, sim=sim)
+        h_t_position, h_t_nv = ekf_grasping.observe_computation(tacp=tacp, robctrl=self)
         z_t_position, z_t_nv = ekf_grasping.measure_fb(tacp=tacp, robctrl=self)
         if tacCONST.PN_FLAG == 'p':
             self.z_t = np.ravel(z_t_position)
@@ -392,6 +407,7 @@ class ROBCTRL:
         """
         tacp.Last_tac_renew(f_param=self.f_param)
         self.Xcomponents_update(x=self.x_state[:6])  # Mathematical components update for next EKF round
+        self.pos_contact_cup_update(tacp=tacp)
         print(".........................................")
         # self.cnt_test += 1
 

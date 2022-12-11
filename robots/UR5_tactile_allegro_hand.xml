@@ -170,7 +170,8 @@ Control Engineering / Automation Engineering
 <!--            <geom type="mesh" material="gripper_mat" mesh="cup" euler="0 0 0" friction="1 0.1 0.5"/>  -->
 <!--            <geom type="mesh" material="tablecube" mesh="cup" euler="0 0 0" friction="1 0.1 0.5"/>  -->
             <geom type="mesh" material="bench_mat_qg" mesh="cup" euler="0 0 0" friction="1 0.1 0.5"/>
-            <inertial pos="0 0 0" mass="0.3" diaginertia="0.0035 0.0035 0.0035" />
+<!--            <inertial pos="0 0 0" mass="0.3" diaginertia="0.0035 0.0035 0.0035" />-->
+            <inertial pos="0 0 0" mass="300" diaginertia="0 0 0" />
         </body>
 
         <body name="mocap_ee" mocap="true" pos="0.81725  0.10915  0.779509" quat="0 0 1 0">

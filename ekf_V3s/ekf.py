@@ -103,7 +103,7 @@ class EKF:
 
         return x_bar, P_state_cov
 
-    def observe_computation(self, tacp, robctrl, sim):
+    def observe_computation(self, tacp, robctrl):
         """
         Calculation of ht: position and normal.
         """
@@ -114,8 +114,8 @@ class EKF:
         for i, f_part in enumerate(robctrl.f_param):
             f_name = f_part[0]
             ht_idx = [3 * i, 3 * i + 3]
-            if tacp.is_contact[f_name]:  # Keep at np.zeros(3) if no contact
-            # if tacp.is_first_contact[f_name]:  # Keep at np.zeros(3) if no contact
+            # if tacp.is_contact[f_name]:  # Keep at np.zeros(3) if no contact
+            if tacp.is_first_contact[f_name]:  # Keep at np.zeros(3) if no contact
                 # _pq_cup_palm = ug.get_relative_posquat(sim=sim, src="palm_link", tgt="cup")  # wxyz
                 # _quat_cup_palm = np.hstack((_pq_cup_palm[4:], _pq_cup_palm[3]))
                 # _R_cup_palm = Rotation.from_quat(_quat_cup_palm).as_matrix()
@@ -148,13 +148,13 @@ class EKF:
         for i, f_part in enumerate(robctrl.f_param):
             f_name = f_part[0]
             zt_idx = [3 * i, 3 * i + 3]
-            if tacp.is_contact[f_name]:  # Keep at np.zeros(3) if no contact
-            # if tacp.is_first_contact[f_name]:  # Keep at np.zeros(3) if no contact
-                # pos_tac_palm[zt_idx[0]: zt_idx[1]] = tacp.cur_tac[f_name][1][:3]
-                pos_tac_palm[zt_idx[0]: zt_idx[1]] = tacp.cur_tac[f_name][1][:3] + np.random.normal(0.00, 0.0, 3)
+            # if tacp.is_contact[f_name]:  # Keep at np.zeros(3) if no contact
+            if tacp.is_first_contact[f_name]:  # Keep at np.zeros(3) if no contact
+                pos_tac_palm[zt_idx[0]: zt_idx[1]] = tacp.cur_tac[f_name][1][:3]
+                # pos_tac_palm[zt_idx[0]: zt_idx[1]] = tacp.cur_tac[f_name][1][:3] + np.random.normal(0.00, 0.0, 3)
                 R_tac_palm = Rotation.from_rotvec(tacp.cur_tac[f_name][1][3:]).as_matrix()
-                nv_tac_palm[zt_idx[0]: zt_idx[1]] = R_tac_palm[:, 0] + np.random.normal(0, 0., 3)
-                # nv_tac_palm[zt_idx[0]: zt_idx[1]] = R_tac_palm[:, 0]
+                # nv_tac_palm[zt_idx[0]: zt_idx[1]] = R_tac_palm[:, 0] + np.random.normal(0, 0., 3)
+                nv_tac_palm[zt_idx[0]: zt_idx[1]] = R_tac_palm[:, 0]
         return np.array(pos_tac_palm), np.array(nv_tac_palm)
 
     def ekf_posteriori(self, x_bar, z_t, h_t, P_state_cov, tacp, robctrl):
