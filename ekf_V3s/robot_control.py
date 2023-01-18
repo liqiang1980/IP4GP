@@ -222,13 +222,12 @@ class ROBCTRL:
 
     def update_augmented_state(self, sim, idx, f_name, tacp, xstate):
         contact_name = tacp.cur_tac[f_name][0]
-        # self.pos_contact_cup[f_name] = np.ravel(ug.get_relative_posquat(sim, "cup", contact_name)[:3] + np.random.normal(0, 0.0, size=(1, 3)))
-        pos_tac_palm, rotvec_tac_palm, T_contact_palm = self.fk.get_relative_posrot(tac_name=contact_name,
-                                                                                    f_name=f_name,
-                                                                                    xml_path=self.xml_path)
-        T_contact_cup = np.matmul(np.linalg.pinv(self.T_cup_palm), T_contact_palm)
-        self.pos_contact_cup[f_name] = np.ravel(np.ravel(T_contact_cup[:3, 3].T))
-        # self.pos_contact_cup[f_name] = np.ravel(np.ravel(T_contact_cup[:3, 3].T) + np.random.normal(0, 0.0, size=(1, 3)))
+        self.pos_contact_cup[f_name] = np.ravel(ug.get_relative_posquat(sim, "cup", contact_name)[:3] + np.random.normal(0, 0.5, size=(1, 3)))
+        # pos_tac_palm, rotvec_tac_palm, T_contact_palm = self.fk.get_relative_posrot(tac_name=contact_name,
+        #                                                                             f_name=f_name,
+        #                                                                             xml_path=self.xml_path)
+        # T_contact_cup = np.matmul(np.linalg.pinv(self.T_cup_palm), T_contact_palm)
+        # self.pos_contact_cup[f_name] = np.ravel(np.ravel(T_contact_cup[:3, 3].T))
         self.nv_contact_cup[f_name] = og.get_nv_contact_cup(obj_param=self.obj_param,
                                                             pos_contact_cup=self.pos_contact_cup[f_name])
         xstate[6 + 3 * idx] = self.pos_contact_cup[f_name][0]
@@ -243,14 +242,13 @@ class ROBCTRL:
             if tacp.is_contact[f_name]:
                 # contact_name = tacp.get_contact_taxel_name(sim=sim, model=model, f_part=f_part, z_h_flag="h")
                 contact_name = tacp.cur_tac[f_name][0]
-                # self.pos_contact_cup[f_name] = np.ravel(
-                #     ug.get_relative_posquat(sim, "cup", contact_name)[:3] + np.random.normal(0, 0.0, size=(1, 3)))
-                pos_tac_palm, rotvec_tac_palm, T_contact_palm = self.fk.get_relative_posrot(tac_name=contact_name,
-                                                                                            f_name=f_name,
-                                                                                            xml_path=self.xml_path)
-                T_contact_cup = np.matmul(np.linalg.pinv(self.T_cup_palm), T_contact_palm)
-                self.pos_contact_cup[f_name] = np.ravel(np.ravel(T_contact_cup[:3, 3].T))
-                # self.pos_contact_cup[f_name] = np.ravel(np.ravel(T_contact_cup[:3, 3].T) + np.random.normal(0, 0.0, size=(1, 3)))
+                self.pos_contact_cup[f_name] = np.ravel(
+                    ug.get_relative_posquat(sim, "cup", contact_name)[:3] + np.random.normal(0, .5, size=(1, 3)))
+                # pos_tac_palm, rotvec_tac_palm, T_contact_palm = self.fk.get_relative_posrot(tac_name=contact_name,
+                #                                                                             f_name=f_name,
+                #                                                                             xml_path=self.xml_path)
+                # T_contact_cup = np.matmul(np.linalg.pinv(self.T_cup_palm), T_contact_palm)
+                # self.pos_contact_cup[f_name] = np.ravel(np.ravel(T_contact_cup[:3, 3].T))
                 self.nv_contact_cup[f_name] = og.get_nv_contact_cup(obj_param=self.obj_param,
                                                                     pos_contact_cup=self.pos_contact_cup[f_name])
                 # xstate = np.append(xstate, [self.pos_contact_cup[f_name]])
@@ -292,9 +290,10 @@ class ROBCTRL:
             np.set_printoptions(suppress=True)
             print('x_state from beginning before add noise', self.x_state)
             if tacCONST.initE_FLAG:
-                init_e = np.hstack(
-                    (np.random.uniform((-1) * float(object_param[1]), float(object_param[1]), (1, 3)),
-                     np.random.uniform(-1 * float(object_param[2]), float(object_param[2]), (1, 3))))
+                init_e = np.hstack((
+                    np.random.uniform(-1 * float(object_param[1]), float(object_param[1]), (1, 3)),
+                    np.random.uniform(-1 * float(object_param[2]), float(object_param[2]), (1, 3))
+                ))
                 self.x_state[:6] = np.ravel(self.x_state[:6] + init_e)
             self.Xcomponents_update(x=self.x_state[:6])  # Mathematical components initialization
 
@@ -339,9 +338,9 @@ class ROBCTRL:
                     tacp.is_first_contact[f_name] = True
         """ If one tac contact, always contact """
         tacp.is_contact = deepcopy(tacp.is_first_contact)  # This code overrides the previous renew of tacp.is_contact
-        tacp.is_contact["th"] = False
-        tacp.is_contact["thd"] = False
-        tacp.is_contact["palm"] = False
+        # tacp.is_contact["th"] = False
+        # tacp.is_contact["thd"] = False
+        # tacp.is_contact["palm"] = False
 
         """ EKF Forward prediction """
         self.x_bar, P_state_cov = ekf_grasping.state_predictor(xstate=self.x_state,

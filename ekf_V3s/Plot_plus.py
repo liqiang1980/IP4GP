@@ -446,3 +446,43 @@ def plot_2err_6in1(Af1, Af2, GD, label1, label2, label3, label4, label5, label6,
 
     plt.show()
 
+def plot_all_BAND2(mean1, std1, mean2, std2, mean3, std3,
+                  GD1, GD2, GD3,
+                  label1, label2, label3):
+    t = np.arange(0, mean1.shape[0], 1)
+
+    fig, ax = plt.subplots(3, 1, figsize=(9, 11), sharex='all', sharey='row', dpi=240)
+
+    ax1 = ax[0]
+    ax1.fill_between(t, mean1 + 3 * std1, mean1 - 3 * std1, facecolor='green', alpha=0.3, label='3$\sigma$ uncertainty area')
+    ax1.plot(t, mean1, color='red', label='Posterior mean values of pose trajectory')
+    # ax1.plot(t, mean4, color='blue', linestyle='--', label='Prior mean values of predict state')
+    ax1.plot(t, GD1, color='black', label='Ground truth')
+    ax1.set_ylabel(label1, {'size': 20})
+    ax1.grid(axis="both")
+    ax1.tick_params(labelsize=20)
+    ax1.margins(x=0)
+    # ax1.legend(bbox_to_anchor=(0.285, 1.005), loc=3, borderaxespad=0, prop={'size': 15})
+
+    ax2 = ax[1]
+    ax2.fill_between(t, mean2 + 3 * std2, mean2 - 3 * std2, facecolor='green', alpha=0.3)
+    ax2.plot(t, mean2, color='red')
+    # ax2.plot(t, mean5, color='blue', linestyle='--')
+    ax2.plot(t, GD2, color='black')
+    ax2.set_ylabel(label2, {'size': 20})
+    ax2.grid(axis="both")
+    ax2.tick_params(labelsize=20)
+    ax2.legend()
+
+    ax3 = ax[2]
+    ax3.fill_between(t, mean3 + 3 * std3, mean3 - 3 * std3, facecolor='green', alpha=0.3)
+    ax3.plot(t, mean3, color='red')
+    # ax3.plot(t, mean6, color='blue', linestyle='--')
+    ax3.plot(t, GD3, color='black')
+    ax3.set_ylabel(label3, {'size': 20})
+    ax3.set_xlabel('Steps', {'size': 20})
+    ax3.grid(axis="both")
+    ax3.tick_params(labelsize=20)
+
+    plt.show()
+

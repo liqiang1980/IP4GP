@@ -168,8 +168,8 @@ Control Engineering / Automation Engineering
 <!-- 	    <joint type="hinge" axis="0 0 1"/> -->
             <site name="cup" pos="0 0 0 " euler="0 0 0"/>
 <!--            <geom type="mesh" material="gripper_mat" mesh="cup" euler="0 0 0" friction="1 0.1 0.5"/>  -->
-<!--            <geom type="mesh" material="tablecube" mesh="cup" euler="0 0 0" friction="1 0.1 0.5"/>  -->
-            <geom type="mesh" material="bench_mat_qg" mesh="cup" euler="0 0 0" friction="1 0.1 0.5"/>
+            <geom type="mesh" material="tablecube" mesh="cup" euler="0 0 0" friction="1 0.1 0.5"/> 
+           <!-- <geom type="mesh" material="bench_mat_qg" mesh="cup" euler="0 0 0" friction="1 0.1 0.5"/> -->
             <inertial pos="0 0 0" mass="0.3" diaginertia="0.0035 0.0035 0.0035" />
         </body>
 

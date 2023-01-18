@@ -47,13 +47,13 @@ class EKF:
     def state_predictor(self, xstate, P_state_cov, tacp, robctrl):
         # print("xstate_aug:", xstate)
         robctrl.cnt_test += 1
-
+        contact_num = sum(list(tacp.is_contact.values()))  # number of contact tacs
         f_param = robctrl.f_param
         """ Matrix Initialization: F, P, G """
         F_Matrix = np.mat(np.zeros((6+3*robctrl.f_size, 6+3*robctrl.f_size)))
         Q_state_noise_cov = np.zeros((6+3*robctrl.f_size, 6+3*robctrl.f_size))
-        for i in range(6):
-            Q_state_noise_cov[i, i] = math.fabs(np.random.normal(0, 0.001))
+        # for i in range(6):
+        #     Q_state_noise_cov[i, i] = math.fabs(np.random.normal(0, 0.001))
         Grasping_matrix = np.zeros([6, 6 * robctrl.f_size])
         G_pinv = np.zeros([6, 6 * robctrl.f_size])
         ju = np.zeros(6 * robctrl.f_size)
@@ -90,7 +90,9 @@ class EKF:
                 G_pinv[:, 0 + i * 6: 6 + i * 6] = inv_tmp  # 4 GT_inv splice a big G
 
         """ Prediction calculation """
+        # print(contact_num)
         prediction = np.matmul(G_pinv, ju)
+        # prediction = prediction / contact_num
         prediction = np.append(prediction, [0] * (3 * robctrl.f_size))
         x_bar = xstate + prediction
         # x_bar = xstate
@@ -173,8 +175,8 @@ class EKF:
 
         for i, f_part in enumerate(robctrl.f_param):
             f_name = f_part[0]
-            if tacp.is_contact[f_name]:
-            # if tacp.is_first_contact[f_name]:
+            # if tacp.is_contact[f_name]:
+            if tacp.is_first_contact[f_name]:
                 R_noi[(i*3)*step: (i*3+3)*step, (i*3)*step: (i*3+3)*step] = np.random.normal(0, 0.002) * np.identity(3*step)
                 J_h[i*3:i*3+3, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3,
                                                      pos_CO_x=robctrl.pos_contact_cup[f_name][0],

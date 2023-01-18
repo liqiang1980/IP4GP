@@ -28,7 +28,7 @@ def ctrl_finger(sim, input1, input2, f_part):
     ctrl_id = {"ff": [tacCONST.FF_CTRL_2, tacCONST.FF_CTRL_3, tacCONST.FF_CTRL_4],
                "mf": [tacCONST.MF_CTRL_2, tacCONST.MF_CTRL_3, tacCONST.MF_CTRL_4],
                "rf": [tacCONST.RF_CTRL_2, tacCONST.RF_CTRL_3, tacCONST.RF_CTRL_4],
-               "th": [tacCONST.TH_CTRL_2, tacCONST.TH_CTRL_3, tacCONST.TH_CTRL_4]
+               "th": [tacCONST.TH_CTRL_3, tacCONST.TH_CTRL_4]
                }
     _input = 0
     if not (np.array(sim.data.sensordata[tac_id[0]: tac_id[1]]) > 0.0).any():

@@ -121,6 +121,9 @@ class cls_tactile_perception:
     def is_fingers_contact(self, sim, model, f_param):
         for f_part in f_param:
             self.is_finger_contact(sim=sim, model=model, f_part=f_part)
+        """ If no any contact, use contacts in last round """
+        # if not any(list(self.is_contact.values())):
+        #     self.is_contact = self.is_contact_recent
 
     def is_finger_contact(self, sim, model, f_part):
         """
@@ -430,7 +433,6 @@ class cls_tactile_perception:
             avg_position = ug.get_relative_posquat(sim, "palm_link", model._sensor_id2name[c_points[0]])[:3]
 
         """ Get the name of contact point closest to avg_position """
-
         if len(c_points) > 1:
             # for i in range(len(c_points)):
             #     taxel_position[:, i] = ug.get_relative_posquat(sim, "palm_link", active_taxel_name[i])[:3]
