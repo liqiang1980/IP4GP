@@ -142,6 +142,7 @@ Control Engineering / Automation Engineering
         <!--Camera parameters-->
         <!-- <camera name="main1" mode="fixed" target="bottle" pos="2 2 2.7" axisangle="2 2 -2 1"/> -->
         <camera name="main1" mode="fixed" target="cup" pos="2 2 2.7" axisangle="2 2 -2 1"/>
+        <camera name="main3" mode="fixed" target="cup" pos="-0.15 0.55 1.7" axisangle="0.83 0 -0.55 0.1"/>
         <!--Floor Property-->
         <geom name='floor' material="floor_mat" pos='0 0 0' size='2.5 2.5 0.1'  type='plane' />
 

@@ -706,10 +706,11 @@ def Euler2posquat1D(Eula):
     return posquat
 
 
-def posquat2posrotvec(posquat):
+def posquat2posrotvec(posquat):  # input: wxyz
     posrotvec = np.zeros(6)
     posrotvec[:3] = posquat[:3]
     _quat = np.hstack((posquat[4:], posquat[3]))
+    # print(posquat, posquat[4:], posquat[3], _quat)
     posrotvec[3:] = Rotation.from_quat(_quat).as_rotvec()
     return posrotvec
 

@@ -35,6 +35,33 @@ def ctrl_finger(sim, input1, input2, f_part):
         _input = input1
     else:
         _input = input2
+    # print("check in ctrl_func:", f_part, _input)
+    for cid in ctrl_id[f_name]:
+        sim.data.ctrl[cid] += _input
+
+
+def ctrl_finger_4tips(sim, input1, input2, f_part):
+    """
+    One finger control
+    """
+    f_name = f_part[0]
+    tac_id = f_part[3]  # tac_id = [min, max]
+    # ctrl_id = {"ff": [tacCONST.FF_CTRL_2, tacCONST.FF_CTRL_3, tacCONST.FF_CTRL_4],
+    #            "mf": [tacCONST.MF_CTRL_2, tacCONST.MF_CTRL_3, tacCONST.MF_CTRL_4],
+    #            "rf": [tacCONST.RF_CTRL_2, tacCONST.RF_CTRL_3, tacCONST.RF_CTRL_4],
+    #            "th": [tacCONST.TH_CTRL_3, tacCONST.TH_CTRL_4]
+    #            }
+    ctrl_id = {"ff": [tacCONST.FF_CTRL_2, tacCONST.FF_CTRL_4],
+               "mf": [tacCONST.MF_CTRL_2, tacCONST.MF_CTRL_4],
+               "rf": [tacCONST.RF_CTRL_2, tacCONST.RF_CTRL_4],
+               "th": [tacCONST.TH_CTRL_3, ]
+               }
+    _input = 0
+    if not (np.array(sim.data.sensordata[tac_id[0]: tac_id[1]]) > 0.0).any():
+        _input = input1
+    else:
+        _input = input2
+    # print("check in ctrl_func:", f_part, _input)
     for cid in ctrl_id[f_name]:
         sim.data.ctrl[cid] += _input
 
@@ -62,6 +89,7 @@ def pre_thumb(sim, viewer):
         sim.data.ctrl[tacCONST.TH_CTRL_1] += 0.05
         sim.step()
         viewer.render()
+
 
 def index_finger(sim, input1, input2):
     # print("|||shape||||ctrl: ", len(sim.data.ctrl))

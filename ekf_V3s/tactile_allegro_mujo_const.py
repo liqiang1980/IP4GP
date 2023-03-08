@@ -33,7 +33,6 @@ FF_CTRL_2 = 7
 FF_CTRL_3 = 8
 FF_CTRL_4 = 9
 
-
 MF_CTRL_1 = 10
 MF_CTRL_2 = 11
 MF_CTRL_3 = 12
@@ -56,26 +55,25 @@ TH_CTRL_4 = 21
 
 # OFF_SET = 7
 OFF_SET = 0
-FF_MEA_1 = 126-OFF_SET
-FF_MEA_2 = 127-OFF_SET
-FF_MEA_3 = 164-OFF_SET
-FF_MEA_4 = 201-OFF_SET
+FF_MEA_1 = 126 - OFF_SET
+FF_MEA_2 = 127 - OFF_SET
+FF_MEA_3 = 164 - OFF_SET
+FF_MEA_4 = 201 - OFF_SET
 
-MF_MEA_1 = 274-OFF_SET
-MF_MEA_2 = 275-OFF_SET
-MF_MEA_3 = 312-OFF_SET
-MF_MEA_4 = 349-OFF_SET
+MF_MEA_1 = 274 - OFF_SET
+MF_MEA_2 = 275 - OFF_SET
+MF_MEA_3 = 312 - OFF_SET
+MF_MEA_4 = 349 - OFF_SET
 
-RF_MEA_1 = 422-OFF_SET
-RF_MEA_2 = 423-OFF_SET
-RF_MEA_3 = 460-OFF_SET
-RF_MEA_4 = 497-OFF_SET
+RF_MEA_1 = 422 - OFF_SET
+RF_MEA_2 = 423 - OFF_SET
+RF_MEA_3 = 460 - OFF_SET
+RF_MEA_4 = 497 - OFF_SET
 
-TH_MEA_1 = 570-OFF_SET
-TH_MEA_2 = 571-OFF_SET
-TH_MEA_3 = 572-OFF_SET
-TH_MEA_4 = 573-OFF_SET
-
+TH_MEA_1 = 570 - OFF_SET
+TH_MEA_2 = 571 - OFF_SET
+TH_MEA_3 = 572 - OFF_SET
+TH_MEA_4 = 573 - OFF_SET
 
 FF_TAXEL_NUM_MIN = 0
 FF_TAXEL_NUM_MAX = 72
@@ -110,7 +108,71 @@ PN_FLAG = 'p'  # Observation controller: assign 'p' (position) or 'pn' (position
 GT_FLAG = '1G'  # G Matrix controller: assign '1G' (splice a big G, then pinv) or '4G' (inv 4 GT, then splice)
 posteriori_FLAG = True
 # posteriori_FLAG = False
-initE_FLAG = True
-# initE_FLAG = False
+# initE_FLAG = True
+initE_FLAG = False
 # betterJ_FLAG = True
 solver_ik_type_wdls = False
+
+VIS_CTRL = {"obj": 1, "zt": 1, "ht": 1}  # Visualization control
+
+CTRL_ORDER = [{"ff": [0.005, 0.000001, False],
+               "mf": [0.005, 0.000001, False],
+               "rf": [0.005, 0.000001, False],
+               "th": [0.002, 0.000001, False]
+               },  # case 0: cup free
+              {"ff": [0.005, 0.000001, False],
+               "mf": [0.005, 0.000001, False],
+               "rf": [0.005, 0.000001, False],
+               "th": [0.002, 0.000001, False]
+               },  # case 1: cup frozen
+              {"ff": [0.0044, 0.000001, False],
+               "mf": [0.0065, 0.000001, False],
+               "rf": [0.0067, 0.000001, False],
+               "th": [0.002, 0.000001, False]
+               },  # case 2: cup upsidedown free
+              {"ff": [0.0041, 0.000001, False],
+               "mf": [0.0057, 0.000001, False],
+               "rf": [0.0055, 0.000001, False],
+               "th": [0.002, 0.000001, False]
+               },  # case 3: cylinder free
+              {"ff": [0.0041, 0.000001, False],
+               "mf": [0.0057, 0.000001, False],
+               "rf": [0.0055, 0.000001, False],
+               "th": [0.002, 0.000001, False]
+               },  # case 4: cylinder frozen
+              {"ff": [0.0041, 0.000001, False],
+               "mf": [0.0, 0.0, False],
+               "rf": [0.0, 0.0, False],
+               "th": [0.002, 0.000001, False],
+               },  # case 5: cup free, tips operation1: Clip
+              {"ff": [0.0041, 0.00004, False],
+               "mf": [0.0, 0.0, False],
+               "rf": [0.0, 0.0, False],
+               "th": [-0.002, -0.00035, False],
+               },  # case 6: cup free, tips operation2: Move right
+              {"ff": [-0.002, -0.00035, False],
+               "mf": [0.0, 0.0, False],
+               "rf": [0.0, 0.0, False],
+               "th": [0.0041, 0.00004, False],
+               },  # case 7: cup free, tips operation3: Move left
+              {"ff": [0.0057, 0.0, False],
+               "mf": [0.006, 0.0, False],
+               "rf": [0.0062, 0.0, False],
+               "th": [0.0025, 0.0, False],
+               },  # case 8: cup free, 4 tips operation1: Clip
+              {"ff": [0.00006, 0.00006, False],
+               "mf": [0.00006, 0.00006, False],
+               "rf": [0.00006, 0.00006, False],
+               "th": [-0.00055, -0.00055, False],
+               },  # case 9: cup free, 4 tips operation2: Move right
+              {"ff": [0.00006, 0.00006, False],
+               "mf": [0.000069, 0.000065, False],
+               "rf": [0.000079, 0.000069, False],
+               "th": [0.0, 0.0, False],
+               },  # case 10: cup free, 4 tips operation3: Move left
+              {"ff": [0.0, 0.0, False],
+               "mf": [0.0, 0.0, False],
+               "rf": [0.0, 0.0, False],
+               "th": [0.0, 0.0, False],
+               },  # case -1: fingers stop
+              ]

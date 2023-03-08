@@ -1,8 +1,9 @@
 import numpy as np
 from matplotlib import pyplot as plt
+import matplotlib.ticker as mtick
 
 #############**********#############**********#############**********#############**********#############**********#####
-def plot_xt_GD_6in1(Af, GD, label1, label2, label3, label4, label5, label6, mode, cut):
+def plot_xt_GD_6in1(Af, GD, label1, label2, label3, label4, label5, label6, mode, cut, offset, offset_ct):
     print("Plot, shape1, shape2:", Af.shape, GD.shape)
     Plot_mode = mode  # Mode0: Plot all; Mode1: cut end part; Mode2: cut start part
     early_end = 19
@@ -59,6 +60,8 @@ def plot_xt_GD_6in1(Af, GD, label1, label2, label3, label4, label5, label6, mode
     ax1.grid(axis="both")
     ax1.tick_params(labelsize=13)
     # ax1.set_ylim(-600, 600)
+    if offset_ct:
+        ax1.set_ylim(GD1[0] - offset[0], GD1[0] + offset[0])
 
     ax2 = ax[1, 0]
     ax2.plot(t, Af2, color='red')
@@ -67,6 +70,8 @@ def plot_xt_GD_6in1(Af, GD, label1, label2, label3, label4, label5, label6, mode
     ax2.grid(axis="both")
     ax2.tick_params(labelsize=13)
     # ax2.set_ylim(-600, 600)
+    if offset_ct:
+        ax2.set_ylim(GD2[0]-offset[1], GD2[0]+offset[1])
 
     ax3 = ax[2, 0]
     ax3.plot(t, Af3, color='red')
@@ -76,6 +81,8 @@ def plot_xt_GD_6in1(Af, GD, label1, label2, label3, label4, label5, label6, mode
     ax3.grid(axis="both")
     ax3.tick_params(labelsize=13)
     # ax3.set_ylim(-600, 600)
+    if offset_ct:
+        ax3.set_ylim(GD3[0] - offset[2], GD3[0] + offset[2])
 
     ax4 = ax[0, 1]
     ax4.plot(t, Af4, color='red')
@@ -83,6 +90,8 @@ def plot_xt_GD_6in1(Af, GD, label1, label2, label3, label4, label5, label6, mode
     ax4.set_ylabel(label4, {'size': 13})
     ax4.grid(axis="both")
     # ax4.set_ylim(-50, 50)
+    if offset_ct:
+        ax4.set_ylim(GD4[0] - offset[3], GD4[0] + offset[3])
 
     ax5 = ax[1, 1]
     ax5.plot(t, Af5, color='red')
@@ -90,6 +99,8 @@ def plot_xt_GD_6in1(Af, GD, label1, label2, label3, label4, label5, label6, mode
     ax5.set_ylabel(label5, {'size': 13})
     ax5.grid(axis="both")
     # ax5.set_ylim(-200, 200)
+    if offset_ct:
+        ax5.set_ylim(GD5[0] - offset[4], GD5[0] + offset[4])
 
     ax6 = ax[2, 1]
     ax6.plot(t, Af6, color='red')
@@ -99,6 +110,8 @@ def plot_xt_GD_6in1(Af, GD, label1, label2, label3, label4, label5, label6, mode
     ax6.grid(axis="both")
     ax6.tick_params(labelsize=13)
     # ax6.set_ylim(-200, 200)
+    if offset_ct:
+        ax6.set_ylim(GD6[0] - offset[5], GD6[0] + offset[5])
 
     plt.show()
 
@@ -450,39 +463,50 @@ def plot_all_BAND2(mean1, std1, mean2, std2, mean3, std3,
                   GD1, GD2, GD3,
                   label1, label2, label3):
     t = np.arange(0, mean1.shape[0], 1)
+    tt = np.arange(0, mean2.shape[0], 1)
+    ttt = np.arange(0, mean3.shape[0], 1)
 
     fig, ax = plt.subplots(3, 1, figsize=(9, 11), sharex='all', sharey='row', dpi=240)
 
     ax1 = ax[0]
-    ax1.fill_between(t, mean1 + 3 * std1, mean1 - 3 * std1, facecolor='green', alpha=0.3, label='3$\sigma$ uncertainty area')
-    ax1.plot(t, mean1, color='red', label='Posterior mean values of pose trajectory')
+    # ax1.fill_between(t, mean1 + 3 * std1, mean1 - 3 * std1, facecolor='green', alpha=0.3, label='3$\sigma$ uncertainty area')
+    ax1.fill_between(t, mean1 + 3 * std1, mean1 - 3 * std1, facecolor='gray', alpha=0.3, label='3$\sigma$ uncertainty area')
+    ax1.plot(t, mean1, color='red', label='Posterior mean values of pose trajectory', linewidth=2.0)
+    # ax1.plot(t, mean1, color='red', linestyle=':', label='Posterior mean values of pose trajectory', linewidth=2.0)
     # ax1.plot(t, mean4, color='blue', linestyle='--', label='Prior mean values of predict state')
-    ax1.plot(t, GD1, color='black', label='Ground truth')
-    ax1.set_ylabel(label1, {'size': 20})
+    ax1.plot(t, GD1, color='black', linestyle='--', label='Ground truth', linewidth=2.0)
+    ax1.set_ylabel(label1, {'size': 40})
     ax1.grid(axis="both")
-    ax1.tick_params(labelsize=20)
+    ax1.tick_params(labelsize=40)
     ax1.margins(x=0)
     # ax1.legend(bbox_to_anchor=(0.285, 1.005), loc=3, borderaxespad=0, prop={'size': 15})
+    ax1.yaxis.set_major_formatter(mtick.FormatStrFormatter('%d'))
 
     ax2 = ax[1]
-    ax2.fill_between(t, mean2 + 3 * std2, mean2 - 3 * std2, facecolor='green', alpha=0.3)
-    ax2.plot(t, mean2, color='red')
-    # ax2.plot(t, mean5, color='blue', linestyle='--')
-    ax2.plot(t, GD2, color='black')
-    ax2.set_ylabel(label2, {'size': 20})
+    # ax2.fill_between(tt, mean2 + 3 * std2, mean2 - 3 * std2, facecolor='green', alpha=0.3)
+    ax2.fill_between(tt, mean2 + 3 * std2, mean2 - 3 * std2, facecolor='gray', alpha=0.3)
+    ax2.plot(tt, mean2, color='red', linewidth=2.0)
+    # ax2.plot(tt, mean2, color='red', linestyle=':', linewidth=2.0)
+    # ax2.plot(tt, mean5, color='blue', linestyle='--')
+    ax2.plot(tt, GD2, color='black', linestyle='--', linewidth=2.0)
+    ax2.set_ylabel(label2, {'size': 40})
     ax2.grid(axis="both")
-    ax2.tick_params(labelsize=20)
+    ax2.tick_params(labelsize=40)
     ax2.legend()
+    ax2.yaxis.set_major_formatter(mtick.FormatStrFormatter('%d'))
 
     ax3 = ax[2]
-    ax3.fill_between(t, mean3 + 3 * std3, mean3 - 3 * std3, facecolor='green', alpha=0.3)
-    ax3.plot(t, mean3, color='red')
-    # ax3.plot(t, mean6, color='blue', linestyle='--')
-    ax3.plot(t, GD3, color='black')
-    ax3.set_ylabel(label3, {'size': 20})
-    ax3.set_xlabel('Steps', {'size': 20})
+    # ax3.fill_between(ttt, mean3 + 3 * std3, mean3 - 3 * std3, facecolor='green', alpha=0.3)
+    ax3.fill_between(ttt, mean3 + 3 * std3, mean3 - 3 * std3, facecolor='gray', alpha=0.3)
+    ax3.plot(ttt, mean3, color='red', linewidth=2.0)
+    # ax3.plot(ttt, mean3, color='red', linestyle=':', linewidth=2.0)
+    # ax3.plot(ttt, mean6, color='blue', linestyle='--')
+    ax3.plot(ttt, GD3, color='black', linestyle='--', linewidth=2.0)
+    ax3.set_ylabel(label3, {'size': 40})
+    ax3.set_xlabel('Steps', {'size': 40})
     ax3.grid(axis="both")
-    ax3.tick_params(labelsize=20)
-
+    ax3.tick_params(labelsize=40)
+    ax3.yaxis.set_major_formatter(mtick.FormatStrFormatter('%d'))
+    plt.tight_layout()
     plt.show()
 

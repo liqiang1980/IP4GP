@@ -93,21 +93,22 @@ def vis_state_contact(sim, viewer, tacp, z_t, h_t, robctrl, char, fk):
     # visualize coordinate frame of the global, palm
     # cor_frame_visual(viewer, T_palm_world[:3, 3], T_palm_world[:3, :3], 0.3, "Palm")
     """ z_t visualization """
-    # for i, f_part in enumerate(robctrl.f_param):
-    #     f_name = f_part[0]
-    #     zt_idx = [3 * i, 3 * i + 3]
-    #     if tacp.is_contact[f_name]:
-    #         pos_zt_palm = z_t[zt_idx[0]: zt_idx[1]]
-    #         pos_zt_world = np.ravel(T_palm_world[:3, 3] + np.matmul(T_palm_world[:3, :3], pos_zt_palm.T))
-    #         if tactile_allegro_mujo_const.PN_FLAG == 'pn':
-    #             rot_zt_palm = ug.vec2rot(z_t[3 * i + 12:3 * i + 15])
-    #             rot_zt_world = np.matmul(T_palm_world[:3, :3], rot_zt_palm)
-    #             geo_visual(viewer, pos_zt_world, rot_zt_world, 0.001, tactile_allegro_mujo_const.GEOM_BOX, i, "z")
-    #             geo_visual(viewer, pos_zt_world, rot_zt_world, 0.1, tactile_allegro_mujo_const.GEOM_ARROW, i, "z")
-    #         else:
-    #             # geo_visual(viewer, pos_zt_world, np.eye(3), 0.001, tactile_allegro_mujo_const.GEOM_BOX, i, "z")
-    #             viewer.add_marker(pos=pos_zt_world, mat=np.eye(3), type=const.GEOM_BOX, label=f_name+"_z",
-    #                               size=np.array([0.001, 0.001, 0.001]), rgba=np.array([1.0, 0.0, 0.0, 1.0]))  # red
+    if char["zt"]:
+        for i, f_part in enumerate(robctrl.f_param):
+            f_name = f_part[0]
+            zt_idx = [3 * i, 3 * i + 3]
+            if tacp.is_contact[f_name]:
+                pos_zt_palm = z_t[zt_idx[0]: zt_idx[1]]
+                pos_zt_world = np.ravel(T_palm_world[:3, 3] + np.matmul(T_palm_world[:3, :3], pos_zt_palm.T))
+                if tactile_allegro_mujo_const.PN_FLAG == 'pn':
+                    rot_zt_palm = ug.vec2rot(z_t[3 * i + 12:3 * i + 15])
+                    rot_zt_world = np.matmul(T_palm_world[:3, :3], rot_zt_palm)
+                    geo_visual(viewer, pos_zt_world, rot_zt_world, 0.001, tactile_allegro_mujo_const.GEOM_BOX, i, "z")
+                    geo_visual(viewer, pos_zt_world, rot_zt_world, 0.1, tactile_allegro_mujo_const.GEOM_ARROW, i, "z")
+                else:
+                    # geo_visual(viewer, pos_zt_world, np.eye(3), 0.001, tactile_allegro_mujo_const.GEOM_BOX, i, "z")
+                    viewer.add_marker(pos=pos_zt_world, mat=np.eye(3), type=const.GEOM_BOX, label=f_name+"_z",
+                                      size=np.array([0.001, 0.001, 0.001]), rgba=np.array([1.0, 0.0, 0.0, 1.0]))  # red
 
             # draw linear vel of contact point (part of twist from ju)
             # from vel generate frame
@@ -121,21 +122,22 @@ def vis_state_contact(sim, viewer, tacp, z_t, h_t, robctrl, char, fk):
             # np.savetxt('ct_g_z_position.txt', self.ct_g_z_position)
             # np.savetxt('ct_p_z_position.txt', self.ct_p_z_position)
     """ h_t visualization """
-    # for i, f_part in enumerate(robctrl.f_param):
-    #     f_name = f_part[0]
-    #     ht_idx = [3 * i, 3 * i + 3]
-    #     if tacp.is_contact[f_name]:
-    #         pos_ht_palm = h_t[ht_idx[0]: ht_idx[1]]
-    #         pos_ht_world = np.ravel(T_palm_world[:3, 3] + np.matmul(T_palm_world[:3, :3], pos_ht_palm.T))
-    #         if tactile_allegro_mujo_const.PN_FLAG == 'pn':
-    #             rot_ht_palm = ug.vec2rot(h_t[3 * i + 12:3 * i + 15])
-    #             rot_ht_world = np.matmul(T_palm_world[:3, :3], rot_ht_palm)
-    #             geo_visual(viewer, pos_ht_world, rot_ht_world, 0.001, tactile_allegro_mujo_const.GEOM_BOX, i, "h")
-    #             geo_visual(viewer, pos_ht_world, rot_ht_world, 0.1, tactile_allegro_mujo_const.GEOM_ARROW, i, "h")
-    #         else:
-    #             # geo_visual(viewer, pos_ht_world, np.eye(3), 0.001, tactile_allegro_mujo_const.GEOM_BOX, i, "h")
-    #             viewer.add_marker(pos=pos_ht_world, mat=np.eye(3), type=const.GEOM_BOX, label=f_name+"_h",
-    #                               size=np.array([0.001, 0.001, 0.001]), rgba=np.array([0.34, 0.98, 1., 1.0]))  # gray
+    if char["ht"]:
+        for i, f_part in enumerate(robctrl.f_param):
+            f_name = f_part[0]
+            ht_idx = [3 * i, 3 * i + 3]
+            if tacp.is_contact[f_name]:
+                pos_ht_palm = h_t[ht_idx[0]: ht_idx[1]]
+                pos_ht_world = np.ravel(T_palm_world[:3, 3] + np.matmul(T_palm_world[:3, :3], pos_ht_palm.T))
+                if tactile_allegro_mujo_const.PN_FLAG == 'pn':
+                    rot_ht_palm = ug.vec2rot(h_t[3 * i + 12:3 * i + 15])
+                    rot_ht_world = np.matmul(T_palm_world[:3, :3], rot_ht_palm)
+                    geo_visual(viewer, pos_ht_world, rot_ht_world, 0.001, tactile_allegro_mujo_const.GEOM_BOX, i, "h")
+                    geo_visual(viewer, pos_ht_world, rot_ht_world, 0.1, tactile_allegro_mujo_const.GEOM_ARROW, i, "h")
+                else:
+                    # geo_visual(viewer, pos_ht_world, np.eye(3), 0.001, tactile_allegro_mujo_const.GEOM_BOX, i, "h")
+                    viewer.add_marker(pos=pos_ht_world, mat=np.eye(3), type=const.GEOM_BOX, label=f_name+"_h",
+                                      size=np.array([0.001, 0.001, 0.001]), rgba=np.array([0.34, 0.98, 1., 1.0]))  # gray
 
     """ FK tip Visualization"""
     # for f_part in robctrl.f_param:
@@ -155,17 +157,17 @@ def vis_state_contact(sim, viewer, tacp, z_t, h_t, robctrl, char, fk):
     rot_x_world = np.matmul(T_palm_world[:3, :3], rot_x_palm)
     # cor_frame_visual(viewer, pos_x_world, rot_x_world, 0.2, "est_Obj")
 
-    if (char == "v"):
+    if char["obj"]:
         if int(robctrl.obj_param[3]) == 3 or int(robctrl.obj_param[3]) == 4:
             """Add marker type in mujoco_py.const: const.GEOM_MESH=7, const.GEOM_ARROW=100 ... """
             """For Cylinder, size=[semi-major axis, semi-minor axis, height], unit=Meter(m)"""
             viewer.add_marker(pos=pos_x_world, mat=rot_x_world, type=const.GEOM_CYLINDER, size=[0.04, 0.04, 0.08],
-                              label=' ', rgba=np.array([0.0, 0.0, 1.0, 1.0]), dataid=0)
+                              label=' ', rgba=np.array([0.54, 0.81, 0.94, 0.4]), dataid=0)
         else:
             # viewer.add_marker(pos=pos_x_world, mat=rot_x_world, type=7,
             #                   label=' ', rgba=np.array([0.0, 0.0, 1.0, 1.0]), dataid=0)
             viewer.add_marker(pos=pos_x_world, mat=rot_x_world, type=const.GEOM_MESH,
-                              label=' ', rgba=np.array([0.0, 0.0, 1.0, 1.0]), dataid=0)
+                              label=' ', rgba=np.array([0.54, 0.81, 0.94, 0.4]), dataid=0)
 
     # viewer.add_marker(pos=pos_x_world, mat=rot_x_world, type=tactile_allegro_mujo_const.GEOM_ARROW,
     #                   label="x_state", size=np.array([0.001, 0.001, 0.1]), rgba=np.array([0.34, 0.98, 1., 1.0]))

@@ -107,7 +107,7 @@ class EKF:
 
     def observe_computation(self, tacp, robctrl):
         """
-        Calculation of ht: position and normal.
+        Calculation of ht: position and normal (tac in palm).
         """
         pos_contact_palm = np.zeros(3 * robctrl.f_size)
         nv_contact_palm = np.zeros(3 * robctrl.f_size)
@@ -141,7 +141,7 @@ class EKF:
 
     def measure_fb(self, tacp, robctrl):
         """
-        Calculation of zt: position and normal.
+        Calculation of zt: position and normal (tac in palm).
         """
         pos_tac_palm = np.zeros(3 * robctrl.f_size)
         nv_tac_palm = np.zeros(3 * robctrl.f_size)
@@ -182,6 +182,7 @@ class EKF:
                                                      pos_CO_x=robctrl.pos_contact_cup[f_name][0],
                                                      pos_CO_y=robctrl.pos_contact_cup[f_name][1],
                                                      pos_CO_z=robctrl.pos_contact_cup[f_name][2])
+        print("Take off:", robctrl.rotvec_cup_palm, robctrl.pos_contact_cup)
         K_t = self.scale_kp * np.linalg.pinv(J_h)
         # K_t[0:3, :] = 0.08 * np.linalg.pinv(J_h)[0:3, :]
         # K_t[3:6, :] = 0.001 * np.linalg.pinv(J_h)[3:6, :]
@@ -198,6 +199,7 @@ class EKF:
                 b.append(s[nonzeroind[i]])
         # print("b:", b, "s:", s)
         c = np.array(b)
+        print("b:", b, "s:", s, "c:", c)
         # if len(b) and np.amin(c) > 0.01:
         if np.amin(c) > 0.01:
             x_hat = x_bar + Update

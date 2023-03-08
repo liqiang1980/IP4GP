@@ -39,47 +39,7 @@ class LineChartLoop(Thread):
 class MainLoop(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
-        self.ctrl_val = [{"ff": [0.0044, 0.000001, False],
-                          "mf": [0.0065, 0.000001, False],
-                          "rf": [0.0067, 0.000001, False],
-                          "th": [0.002, 0.000001, False]
-                          },  # case 0: cup free
-                         {"ff": [0.0044, 0.000001, False],
-                          "mf": [0.0065, 0.000001, False],
-                          "rf": [0.0067, 0.000001, False],
-                          "th": [0.002, 0.000001, False]
-                          },  # case 1: cup frozen
-                         {"ff": [0.0044, 0.000001, False],
-                          "mf": [0.0065, 0.000001, False],
-                          "rf": [0.0067, 0.000001, False],
-                          "th": [0.002, 0.000001, False]
-                          },  # case 2: cup upsidedown free
-                         {"ff": [0.0041, 0.000001, False],
-                          "mf": [0.0057, 0.000001, False],
-                          "rf": [0.0055, 0.000001, False],
-                          "th": [0.002, 0.000001, False]
-                          },  # case 3: cylinder free
-                         {"ff": [0.0041, 0.000001, False],
-                          "mf": [0.0057, 0.000001, False],
-                          "rf": [0.0055, 0.000001, False],
-                          "th": [0.002, 0.000001, False]
-                          },  # case 4: cylinder frozen
-                         {"ff": [0.0041, 0.000001, False],
-                          "mf": [0.0, 0.0, False],
-                          "rf": [0.0, 0.0, False],
-                          "th": [0.002, 0.000001, False],
-                          },  # case 5: cup free, tips operation
-                         {"ff": [0.0041, 0.00004, False],
-                          "mf": [0.0, 0.0, False],
-                          "rf": [0.0, 0.0, False],
-                          "th": [-0.002, -0.00035, False],
-                          },  # case 6: cup free, tips operation
-                         {"ff": [-0.002, -0.00035, False],
-                          "mf": [0.0, 0.0, False],
-                          "rf": [0.0, 0.0, False],
-                          "th": [0.0041, 0.00004, False],
-                          },  # case 7: cup free, tips operation
-                         ]
+        self.ctrl_val = tacConst.CTRL_ORDER
 
     def run(self):
         f_param = hand_param[1:]
@@ -108,22 +68,33 @@ class MainLoop(threading.Thread):
         ctrl_val = self.ctrl_val[object_param[3]]
 
         fin_tran = 0
-        _f_param_th = f_param[-1]
-        # for ii in range(1500):
-        for ii in range(700):
-            if object_param[3] == 5 and (
+        fin_tran0 = 0
+        tran_cnt = [0, 0, 0, 0, 0, 150, 0, 0, 100]
+        tran_cnt0 = [0, 0, 0, 0, 0, 350, 0, 0, 300]
+        round_choose = [610, 1200, 0, 0, 0, 1200, 0, 0, 1200]
+        # _f_param_th = f_param[-1]
+        for ii in range(round_choose[object_param[3]]):
+            if (object_param[3] == 5 or object_param[3] == 8) and (
                     np.array(sim.data.sensordata[0: tacConst.FF_TAXEL_NUM_MAX]) > 0.0).any() and not fin_tran:
-                # print("?????????????", np.array(sim.data.sensordata[0: tacConst.FF_TAXEL_NUM_MAX]))
                 ctrl_val = self.ctrl_val[object_param[3] + 1]
-                fin_tran = ii + 150
+                fin_tran = ii + tran_cnt[object_param[3]]
+                fin_tran0 = ii + tran_cnt0[object_param[3]]
+                print("tran 11", ctrl_val)
             if fin_tran != 0 and ii == fin_tran:
                 ctrl_val = self.ctrl_val[object_param[3] + 2]
-            # print("uuuuuuuuuu:", ctrl_val)
+                print("tran 22", ctrl_val)
+            if fin_tran0 != 0 and ii == fin_tran0:
+                ctrl_val = self.ctrl_val[-1]
+            # print("ctrl_val:", ctrl_val)
+            """ Fingers control """
             for f_part in f_param:
                 f_name = f_part[0]
                 tac_id = f_part[3]  # tac_id = [min, max]
                 if f_name in ctrl_val:
-                    fct.ctrl_finger(sim=sim, f_part=f_part, input1=ctrl_val[f_name][0], input2=ctrl_val[f_name][1])
+                    if object_param[3] == 8:
+                        fct.ctrl_finger_4tips(sim=sim, f_part=f_part, input1=ctrl_val[f_name][0], input2=ctrl_val[f_name][1])
+                    else:
+                        fct.ctrl_finger(sim=sim, f_part=f_part, input1=ctrl_val[f_name][0], input2=ctrl_val[f_name][1])
             """EKF process"""
             if not first_contact_flag and (np.array(sim.data.sensordata[0: 636]) > 0.0).any():
                 first_contact_flag = True
@@ -145,7 +116,7 @@ class MainLoop(threading.Thread):
 
         """ Save Data for multiple exps """
         _FOLDER = ["res_free_cup", "res_frozen_cup", "res_upsidedown_cup", "res_free_cylinder", "res_frozen_cylinder",
-                   "res_free_cup_tips"]
+                   "res_free_cup_tips", "res_free_cup_tips", "res_free_cup_tips", "res_free_cup_4tips"]
         FOLDER = _FOLDER[object_param[3]]
         CNT = [np.loadtxt(FOLDER + "/CNT.txt")]
         print("CNT:", CNT)
@@ -251,8 +222,7 @@ tacperception.fin_tri = np.zeros(len(hand_param) - 1)
 
 # Thumb root movement
 fct.pre_thumb(sim, viewer)
-# char = "v"
-char = "i"
+char = tacConst.VIS_CTRL
 
 #######################################################################
 ekfer = MainLoop()

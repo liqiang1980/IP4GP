@@ -62,7 +62,10 @@ class ForwardKinematics:
         # self.T_ring_palm = np.mat(np.eye(4))
         # self.T_thumb_palm = np.mat(np.eye(4))
 
-    def get_cur_jnt(self, sim):
+    def get_cur_jnt(self, sim, object_param):
+        OFF_SET = 0  # This OFF_SET can also be set manually in tac_const
+        if object_param[3] == 1 or object_param[3] == 4:
+            OFF_SET = 7
         # jnt_num = tac_const.FULL_FINGER_JNTS_NUM
         # cur_jnt = np.zeros(jnt_num)
         jnt_id = [tac_const.FF_MEA_1, tac_const.FF_MEA_2, tac_const.FF_MEA_3, tac_const.FF_MEA_4,
@@ -71,7 +74,7 @@ class ForwardKinematics:
                   tac_const.TH_MEA_1, tac_const.TH_MEA_2, tac_const.TH_MEA_3, tac_const.TH_MEA_4
                   ]
         for i in range(self.jnt_num):
-            self.cur_jnt[i] = sim.data.qpos[jnt_id[i]]
+            self.cur_jnt[i] = sim.data.qpos[jnt_id[i] - OFF_SET]
         return self.cur_jnt
         # cur_jnt[0:4] = np.array([sim.data.qpos[],
         #                          sim.data.qpos[tac_const.FF_MEA_2],
@@ -251,8 +254,8 @@ class ForwardKinematics:
         rotvec_tac_palm = self.rotvec_tip_palm[f_name]  # Use default-jnt rotvec instead of tac rotvec
         return pos_tac_palm, rotvec_tac_palm, T_tac_palm
 
-    def fk_update_all(self, sim):
-        self.get_cur_jnt(sim=sim)
+    def fk_update_all(self, sim, object_param):
+        self.get_cur_jnt(sim=sim, object_param=object_param)
         self.joint_update()
         self.fk_dealer()
         # print("--fk update:", self.T_tip_palm)

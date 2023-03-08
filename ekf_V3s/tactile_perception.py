@@ -142,8 +142,8 @@ class cls_tactile_perception:
             self.is_contact[f_name] = True
             """ Update contact_tac name & position & rotvec """
             tac_name, tac_id = self.get_contact_taxel_name(sim=sim, model=model, f_part=f_part)
-            # pv_tac_palm = ug.get_relative_posrotvec(sim=sim, src="palm_link", tgt=tac_name)
-            pv_tac_palm = self.Cur_tac_renew(tac_name=tac_name, f_part=f_part)
+            # pv_tac_palm = ug.get_relative_posrotvec(sim=sim, src="palm_link", tgt=tac_name)  # get pv from simulator
+            pv_tac_palm = self.Cur_tac_renew(tac_name=tac_name, f_part=f_part, sim=sim)  # get pv from fk, and update tacp.cur_tac
             self.cur_tac[f_name][0] = tac_name
             self.cur_tac[f_name][1] = pv_tac_palm
             print(">>", f_name, " contact: ", tac_name)
@@ -152,8 +152,8 @@ class cls_tactile_perception:
             self.is_contact[f_name] = False
             """ If not contact, use last tac to update cur tac info """
             tac_name = self.last_tac[f_name][0]
-            # pv_tac_palm = ug.get_relative_posrotvec(sim=sim, src="palm_link", tgt=tac_name)
-            pv_tac_palm = self.Cur_tac_renew(tac_name=tac_name, f_part=f_part)
+            # pv_tac_palm = ug.get_relative_posrotvec(sim=sim, src="palm_link", tgt=tac_name)  # get pv from simulator
+            pv_tac_palm = self.Cur_tac_renew(tac_name=tac_name, f_part=f_part, sim=sim)  # get pv from fk, and update tacp.cur_tac
             self.cur_tac[f_name][0] = tac_name
             self.cur_tac[f_name][1] = pv_tac_palm
             return False
@@ -169,18 +169,23 @@ class cls_tactile_perception:
             self.last_tac[f_name][1] = deepcopy(self.cur_tac[f_name][1])
         self.is_contact_recent = deepcopy(self.is_contact)
 
-    def Cur_tac_renew(self, tac_name, f_part):
+    def Cur_tac_renew(self, tac_name, f_part, sim):
         """
         Update cur_tac by name.
         Get pos, rpy, Trans of [cur_tac in tip frame] from xml file.
         Get Trans of [tip in palm frame] from fk calculation in the head of cur EKF round.
         """
         f_name = f_part[0]
-        pos_tac_tip, rpy_tac_tip = qg.get_taxel_poseuler(taxel_name=tac_name,
-                                                         xml_path=self.xml_path)  # The 'euler' in xml are 'rpy' in fact
-        T_tac_tip = qg.posrpy2trans(pos=pos_tac_tip, rpy=rpy_tac_tip)
-        T_tip_palm = self.fk.T_tip_palm[f_name]
-        T_tac_palm = np.matmul(T_tip_palm, T_tac_tip)
+        # pos_tac_tip, rpy_tac_tip = qg.get_taxel_poseuler(taxel_name=tac_name,
+        #                                                  xml_path=self.xml_path)  # The 'euler' in xml are 'rpy' in fact
+        # T_tac_tip = qg.posrpy2trans(pos=pos_tac_tip, rpy=rpy_tac_tip)
+        # T_tip_palm = self.fk.T_tip_palm[f_name]
+        # T_tac_palm = np.matmul(T_tip_palm, T_tac_tip)
+
+        pq_tac_palm = ug.get_relative_posquat(sim=sim, src="palm_link", tgt=tac_name)  # wxyz
+        T_tac_palm = ug.posquat2trans(pq_tac_palm)
+        # print("!!!:", T_tac_palm)
+
         pos_tac_palm = np.ravel(T_tac_palm[:3, 3].T)
         # rotvec_tac_palm = Rotation.from_matrix(T_tac_palm[:3, :3]).as_rotvec()  # Use tac rotvec
         rotvec_tac_palm = self.fk.rotvec_tip_palm[f_name]  # Use default-jnt rotvec instead of tac rotvec

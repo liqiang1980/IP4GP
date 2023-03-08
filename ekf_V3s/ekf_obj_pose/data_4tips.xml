@@ -59,6 +59,7 @@
         </finger>
         <finger name= 'mf'>
             <used>1</used>
+<!--            <used>0</used>-->
             <init_posture>
                 <j1>5</j1>
                 <j2>6</j2>
@@ -115,6 +116,7 @@
         </finger>
         <finger name= 'rf'>
             <used>1</used>
+<!--            <used>0</used>-->
             <init_posture>
                 <j1>5</j1>
                 <j2>6</j2>
@@ -227,13 +229,9 @@
         </finger>
         <object>
             <name>cup</name>
-            <noise_position>0.01</noise_position>
+            <noise_position>0.005</noise_position>
             <noise_orientation>0.1</noise_orientation>
-<!--            <static>0</static>-->
-            <static>1</static>
-<!--            <static>2</static>-->
-<!--            <static>3</static>-->
-<!--            <static>4</static>-->
+            <static>8</static>
         </object>
     <alg>
         <store_data>1</store_data>

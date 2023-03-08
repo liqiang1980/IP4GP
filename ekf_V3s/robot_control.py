@@ -96,7 +96,14 @@ class ROBCTRL:
         self.R_cup_palm = np.mat(np.eye(3))
         self.T_cup_palm = np.mat(np.eye(4))
 
-    def Xcomponents_update(self, x):
+    def Xcomponents_update(self, sim, x):
+        # pq_cup_palm = ug.get_relative_posquat(sim=sim, src="palm_link", tgt="cup")  # wxyz
+        # # print(">>><<<", pq_cup_palm, pq_cup_palm[3:])
+        # self.pos_cup_palm = pq_cup_palm[:3]
+        # self.rotvec_cup_palm = ug.posquat2posrotvec(pq_cup_palm)[3:]
+        # self.quat_cup_palm = Rotation.from_rotvec(self.rotvec_cup_palm).as_quat()  # xyzw
+        # self.T_cup_palm = ug.posquat2trans(pq_cup_palm)
+        # self.R_cup_palm = self.T_cup_palm[:3, :3]
         self.pos_cup_palm = x[:3]
         self.rotvec_cup_palm = x[3:]
         # print(x, self.rotvec_cup_palm)
@@ -222,7 +229,9 @@ class ROBCTRL:
 
     def update_augmented_state(self, sim, idx, f_name, tacp, xstate):
         contact_name = tacp.cur_tac[f_name][0]
-        self.pos_contact_cup[f_name] = np.ravel(ug.get_relative_posquat(sim, "cup", contact_name)[:3] + np.random.normal(0, 0.5, size=(1, 3)))
+        self.pos_contact_cup[f_name] = np.ravel(ug.get_relative_posquat(sim, "cup", contact_name)[:3]) + np.ravel(np.random.uniform(-0.005, 0.005, (1, 3)))
+        print("contact_name:", contact_name, self.pos_contact_cup[f_name])
+        # self.pos_contact_cup[f_name] = np.ravel(ug.get_relative_posquat(sim, "cup", contact_name)[:3])
         # pos_tac_palm, rotvec_tac_palm, T_contact_palm = self.fk.get_relative_posrot(tac_name=contact_name,
         #                                                                             f_name=f_name,
         #                                                                             xml_path=self.xml_path)
@@ -237,13 +246,16 @@ class ROBCTRL:
 
     def augmented_state(self, sim, tacp, xstate):
         for i, f_part in enumerate(self.f_param):
+            print("  ", f_part)
             f_name = f_part[0]
     #        if tacp.is_finger_contact(sim=sim, model=self.model, f_part=f_part):
             if tacp.is_contact[f_name]:
+                print("MMMM")
                 # contact_name = tacp.get_contact_taxel_name(sim=sim, model=model, f_part=f_part, z_h_flag="h")
                 contact_name = tacp.cur_tac[f_name][0]
-                self.pos_contact_cup[f_name] = np.ravel(
-                    ug.get_relative_posquat(sim, "cup", contact_name)[:3] + np.random.normal(0, .5, size=(1, 3)))
+                self.pos_contact_cup[f_name] = np.ravel(ug.get_relative_posquat(sim, "cup", contact_name)[:3]) + np.ravel(np.random.uniform(-0.005, 0.005, (1, 3)))
+                print("2contact_name:", contact_name, self.pos_contact_cup[f_name])
+                # self.pos_contact_cup[f_name] = np.ravel(ug.get_relative_posquat(sim, "cup", contact_name)[:3])
                 # pos_tac_palm, rotvec_tac_palm, T_contact_palm = self.fk.get_relative_posrot(tac_name=contact_name,
                 #                                                                             f_name=f_name,
                 #                                                                             xml_path=self.xml_path)
@@ -263,7 +275,7 @@ class ROBCTRL:
         # global first_contact_flag, x_all, gd_all, P_state_cov, x_state, last_angles, x_bar, z_t, h_t
         # f_num = 0  # The number of contact finger parts
         """ Update Joint state and FK """
-        fk.fk_update_all(sim=sim)
+        fk.fk_update_all(sim=sim, object_param=object_param)
         """ 
         Update contact state:
         1. contact_flags
@@ -295,7 +307,7 @@ class ROBCTRL:
                     np.random.uniform(-1 * float(object_param[2]), float(object_param[2]), (1, 3))
                 ))
                 self.x_state[:6] = np.ravel(self.x_state[:6] + init_e)
-            self.Xcomponents_update(x=self.x_state[:6])  # Mathematical components initialization
+            self.Xcomponents_update(x=self.x_state[:6], sim=sim)  # Mathematical components initialization
 
             """ 
             Augmented state Initialization.
@@ -324,12 +336,12 @@ class ROBCTRL:
                     tacp.is_first_contact[f_name] = True
             """ Initialization Done """
             tacp.Last_tac_renew(f_param=self.f_param)
-            self.Xcomponents_update(x=self.x_state[:6])  # Mathematical components update for next EKF round
+            self.Xcomponents_update(x=self.x_state[:6], sim=sim)  # Mathematical components update for next EKF round
             print('\n...................Initialization done...................\n')
             return
 
         """ Detect new contact tacs that have never been touched before """
-        if self.cnt_test < 10:
+        if self.cnt_test < 300:
             for idx, f_part in enumerate(self.f_param):
                 f_name = f_part[0]
                 if tacp.is_contact[f_name] and not tacp.is_first_contact[f_name]:
@@ -349,7 +361,7 @@ class ROBCTRL:
                                                                robctrl=self)
         # self.x_bar = deepcopy(_x_bar)
         # Mathematical components update by result of Forward prediction for Posteriori estimation
-        self.Xcomponents_update(x=self.x_bar[:6])
+        self.Xcomponents_update(x=self.x_bar[:6], sim=sim)
 
         """ h_t & z_t updates """
         h_t_position, h_t_nv = ekf_grasping.observe_computation(tacp=tacp, robctrl=self)
@@ -405,8 +417,8 @@ class ROBCTRL:
         Update mathematical components.
         """
         tacp.Last_tac_renew(f_param=self.f_param)
-        self.Xcomponents_update(x=self.x_state[:6])  # Mathematical components update for next EKF round
-        self.pos_contact_cup_update(tacp=tacp)
+        self.Xcomponents_update(x=self.x_state[:6], sim=sim)  # Mathematical components update for next EKF round
+        # self.pos_contact_cup_update(tacp=tacp)  # update pos_contact_cup by predictor, already update by augmented_state
         print(".........................................")
         # self.cnt_test += 1
 
