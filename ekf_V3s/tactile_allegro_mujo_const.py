@@ -98,27 +98,48 @@ TH_TAXEL_NUM_MAX = 504
 THd_TAXEL_NUM_MIN = 504
 THd_TAXEL_NUM_MAX = 540
 PALM_TAXEL_NUM_MIN = 540
-PALM_TAXEL_NUM_MAX = 635
+PALM_TAXEL_NUM_MAX = 63
 
 GEOM_ARROW = 100
 GEOM_BOX = 6
 FULL_FINGER_JNTS_NUM = 16
+TAC_TOTAL_NUM = 635
 
 PN_FLAG = 'p'  # Observation controller: assign 'p' (position) or 'pn' (position and normal)
 GT_FLAG = '1G'  # G Matrix controller: assign '1G' (splice a big G, then pinv) or '4G' (inv 4 GT, then splice)
 posteriori_FLAG = True
 # posteriori_FLAG = False
-# initE_FLAG = True
-initE_FLAG = False
+initE_FLAG = True
+# initE_FLAG = False
 # betterJ_FLAG = True
 solver_ik_type_wdls = False
 
-VIS_CTRL = {"obj": 1, "zt": 1, "ht": 1}  # Visualization control
-
-CTRL_ORDER = [{"ff": [0.005, 0.000001, False],
-               "mf": [0.005, 0.000001, False],
-               "rf": [0.005, 0.000001, False],
-               "th": [0.002, 0.000001, False]
+# repeatEXP = 25
+repeatEXP = 5
+#######################################################################################################################
+txt_dir = [
+    "/home/manipulation-vnc/Code/IP4GP/data/largeshaker/One_fin/1/",  # 0
+    "/home/manipulation-vnc/Code/IP4GP/data/largeshaker/One_fin/2/",  # 1
+    "/home/manipulation-vnc/Code/IP4GP/data/largeshaker/Two_fin/1/",  # 2
+    "/home/manipulation-vnc/Code/IP4GP/data/largeshaker/Two_fin/2/",  # 3
+    "/home/manipulation-vnc/Code/IP4GP/data/largeshaker/Four_fin/1/",  # 4
+    "/home/manipulation-vnc/Code/IP4GP/data/largeshaker/Four_fin/2/",  # 5
+    "/home/manipulation-vnc/Code/IP4GP/data/largeshaker/Four_fin/3/",  # 6
+    "/home/manipulation-vnc/Code/IP4GP/data/bottle/One_fin/1/",  # 7
+    "/home/manipulation-vnc/Code/IP4GP/data/bottle/One_fin/2/",  # 8
+    "/home/manipulation-vnc/Code/IP4GP/data/bottle/One_fin/3/",  # 9
+    "/home/manipulation-vnc/Code/IP4GP/data/bottle/Two_fin/1/",  # 10
+    "/home/manipulation-vnc/Code/IP4GP/data/bottle/Two_fin/2/",  # 11
+    "/home/manipulation-vnc/Code/IP4GP/data/bottle/Two_fin/3/",  # 12
+    "/home/manipulation-vnc/Code/IP4GP/data/bottle/Four_fin/1/",  # 13
+    "/home/manipulation-vnc/Code/IP4GP/data/bottle/Four_fin/2/",  # 14
+    "/home/manipulation-vnc/Code/IP4GP/data/bottle/Four_fin/3/"  # 15
+]
+#######################################################################################################################
+CTRL_ORDER = [{"ff": [0.01, 0.000001, False],
+               "mf": [0.01, 0.000001, False],
+               "rf": [0.01, 0.000001, False],
+               "th": [0.01, 0.000001, False]
                },  # case 0: cup free
               {"ff": [0.005, 0.000001, False],
                "mf": [0.005, 0.000001, False],

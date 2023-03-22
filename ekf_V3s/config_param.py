@@ -65,13 +65,15 @@ def pass_arg():
         # parse object info
         object_param = []
         object_name = dom.getElementsByTagName('object')[0].getElementsByTagName('name')[0].firstChild.data
-        object_position_noise = dom.getElementsByTagName('object')[0].getElementsByTagName('noise_position')[0].firstChild.data
-        object_orientation_noise = dom.getElementsByTagName('object')[0].getElementsByTagName('noise_orientation')[0].firstChild.data
+        object_position_noise = dom.getElementsByTagName('object')[0].getElementsByTagName('noise_position')[
+            0].firstChild.data
+        object_orientation_noise = dom.getElementsByTagName('object')[0].getElementsByTagName('noise_orientation')[
+            0].firstChild.data
         object_static = dom.getElementsByTagName('object')[0].getElementsByTagName('static')[0].firstChild.data
         object_param.append(object_name)
         object_param.append(object_position_noise)
         object_param.append(object_orientation_noise)
-        object_param.append(int(object_static))
+        object_param.append(object_static)
         print('\n', object_param)
 
         # algorithm parameters

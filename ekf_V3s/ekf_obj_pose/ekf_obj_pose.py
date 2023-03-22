@@ -1,6 +1,5 @@
 import threading
 
-import finger_ctrl_func as fct
 import config_param
 import robot_control
 import mujoco_environment as mu_env
@@ -12,230 +11,115 @@ from threading import Thread
 import sys, termios, tty, os, time
 import matplotlib.pyplot as plt
 import forward_kinematics
-import tactile_allegro_mujo_const as tacConst
+from mujoco_py import load_model_from_path
+from scipy.spatial.transform import Rotation
+# sys.path.append('../')
+import tactile_allegro_mujo_const as tac_const
+import forward_kinematics
+# from mujoco_py import load_model_from_path
+import qgFunc as qg
+# from scipy.spatial.transform import Rotation
 
 
-class HeatmapLoop(Thread):
-    def __init__(self):
-        Thread.__init__(self)
+class basicDataClass:
+    def __init__(self, xml_path):
+        # self.data_path = tac_const.txt_dir[6]
+        # self.data_path = tac_const.txt_dir[3]
+        self.data_path = tac_const.txt_dir[2]
+        # self.data_all = np.loadtxt(self.data_path + 'all_data.txt')[90:400]  # txt:2
+        self.data_all = np.loadtxt(self.data_path + 'all_data.txt')[60:]  # txt:6
+        # self.data_all = np.loadtxt(self.data_path + 'all_data.txt')[60:370]  # txt:3
+        self.hand_pose = np.loadtxt(self.data_path + 'hand_pose.txt')  # hand position & quaternion(xyzw) in world
+        # self.no_working_tac = {21: 'touch_0_4_9', 27: 'touch_0_4_8', 33: 'touch_0_4_7', 40: 'touch_0_5_6', 108: 'touch_2_1_1',
+        #                        252: 'touch_9_1_1', 396: 'touch_13_1_1', 504: 'touch_16_1_1'}
+        self.no_working_tac = {22: 'touch_0_5_9', 62: 'touch_0_3_2', 201: 'touch_7_4_3', 516: 'touch_16_3_1',
+                               518: 'touch_16_3_3', 504: 'touch_16_1_1', 108: 'touch_2_1_1', 252: 'touch_9_1_1',
+                               396: 'touch_13_1_1',}
+        self.model = load_model_from_path(xml_path)
 
-    def run(self):
-        ani_Heatmap = tactile_plotter.HeatmapAnimate_Dip(tacperception)
-        plt.show()
+        """ Trans: hand to world """
+        self.hand_world_posquat = self.hand_pose
+        self.hand_world_posquat[:3] += np.array([0.01, 0.01, 0])
+        self.hand_world_R = Rotation.from_quat(self.hand_world_posquat[3:]).as_matrix()
+        self.hand_world_T = np.mat(np.eye(4))
+        self.hand_world_T[:3, :3] = self.hand_world_R
+        self.hand_world_T[:3, 3] = np.mat(self.hand_world_posquat[:3]).T
+        self.world_hand_T = np.linalg.pinv(self.hand_world_T)
 
-
-class LineChartLoop(Thread):
-    def __init__(self):
-        Thread.__init__(self)
-
-    def run(self):
-        tactile_plotter.LineChartAnimate_Obj(robo=robctrl, x_len=100, y_len=1,
-                                             label1='x[mm]', label2='y[mm]', label3='z[mm]',
-                                             label4='theta_x[deg]', label5='theta_y[deg]',
-                                             label6='theta_z[deg]')
-        plt.show()
-
-
-class MainLoop(threading.Thread):
-    def __init__(self):
-        threading.Thread.__init__(self)
-        self.ctrl_val = tacConst.CTRL_ORDER
-
-    def run(self):
-        f_param = hand_param[1:]
-        first_contact_flag = False
-
-        # if not first_contact_flag:
-        #     while True:
-        #         # print("Pre set fingers")
-        #         for f_part in f_param:
-        #             f_name = f_part[0]
-        #             tac_id = f_part[3]  # [min_id, max_id]
-        #             if f_name in ctrl_val and not ctrl_val[f_name][2] and not (np.array(sim.data.sensordata[tac_id[0]: tac_id[1]]) > 0.0).any():
-        #                 print(f_name, " step.")
-        #                 fct.ctrl_finger_pre(sim=sim, f_part=f_part, input1=ctrl_val[f_name][0], stop=False)
-        #             elif f_name in ctrl_val and not ctrl_val[f_name][2]:
-        #                 print(f_name, "Contact!")
-        #                 ctrl_val[f_name][2] = True
-        #                 fct.ctrl_finger_pre(sim=sim, f_part=f_part, input1=0, stop=True)
-        #         sim.step()
-        #         viewer.render()
-        #         del viewer._markers[:]
-        #         if all([x[2] for x in list(ctrl_val.values())]):
-        #             first_contact_flag = True
-        #             break
-        # print("Preset OK！")
-        ctrl_val = self.ctrl_val[object_param[3]]
-
-        fin_tran = 0
-        fin_tran0 = 0
-        tran_cnt = [0, 0, 0, 0, 0, 150, 0, 0, 100]
-        tran_cnt0 = [0, 0, 0, 0, 0, 350, 0, 0, 300]
-        round_choose = [610, 1200, 0, 0, 0, 1200, 0, 0, 1200]
-        # _f_param_th = f_param[-1]
-        for ii in range(round_choose[object_param[3]]):
-            if (object_param[3] == 5 or object_param[3] == 8) and (
-                    np.array(sim.data.sensordata[0: tacConst.FF_TAXEL_NUM_MAX]) > 0.0).any() and not fin_tran:
-                ctrl_val = self.ctrl_val[object_param[3] + 1]
-                fin_tran = ii + tran_cnt[object_param[3]]
-                fin_tran0 = ii + tran_cnt0[object_param[3]]
-                print("tran 11", ctrl_val)
-            if fin_tran != 0 and ii == fin_tran:
-                ctrl_val = self.ctrl_val[object_param[3] + 2]
-                print("tran 22", ctrl_val)
-            if fin_tran0 != 0 and ii == fin_tran0:
-                ctrl_val = self.ctrl_val[-1]
-            # print("ctrl_val:", ctrl_val)
-            """ Fingers control """
-            for f_part in f_param:
-                f_name = f_part[0]
-                tac_id = f_part[3]  # tac_id = [min, max]
-                if f_name in ctrl_val:
-                    if object_param[3] == 8:
-                        fct.ctrl_finger_4tips(sim=sim, f_part=f_part, input1=ctrl_val[f_name][0], input2=ctrl_val[f_name][1])
-                    else:
-                        fct.ctrl_finger(sim=sim, f_part=f_part, input1=ctrl_val[f_name][0], input2=ctrl_val[f_name][1])
-            """EKF process"""
-            if not first_contact_flag and (np.array(sim.data.sensordata[0: 636]) > 0.0).any():
-                first_contact_flag = True
-            if first_contact_flag:  # EKF Start
-                print(robctrl.cnt_test, "EKF round:")
-                robctrl.interaction(sim=sim, model=model, viewer=viewer,
-                                    object_param=object_param,
-                                    alg_param=alg_param,
-                                    ekf_grasping=grasping_ekf,
-                                    tacp=tacperception,
-                                    fk=fk,
-                                    char=char)
-            """Update tacdata for heapmap plot"""
-            # tacperception.update_tacdata(sim=sim)
-
-            sim.step()
-            viewer.render()
-            del viewer._markers[:]
-
-        """ Save Data for multiple exps """
-        _FOLDER = ["res_free_cup", "res_frozen_cup", "res_upsidedown_cup", "res_free_cylinder", "res_frozen_cylinder",
-                   "res_free_cup_tips", "res_free_cup_tips", "res_free_cup_tips", "res_free_cup_4tips"]
-        FOLDER = _FOLDER[object_param[3]]
-        CNT = [np.loadtxt(FOLDER + "/CNT.txt")]
-        print("CNT:", CNT)
-        if CNT[0]:  # >>>>> Not first saving
-            data_cur = np.loadtxt("x_state_all.txt")
-            data_all = list(np.load(FOLDER + "/x_state_repeatEXP.npy", allow_pickle=True))
-            print("data_cur shape:", len(data_cur), len(data_cur[0]))
-            print("data_all shape:", len(data_all), len(data_all[0]), len(data_all[0][0]))
-            data_all.append(data_cur)
-            print("after append, data_all shape:", len(data_all), len(data_all[0]), len(data_all[0][0]))
-            np.save(FOLDER + "/x_state_repeatEXP.npy", data_all)
-        else:  # >>>>> First saving
-            data_cur = [np.loadtxt("x_state_all.txt")]
-            print(data_cur, len(data_cur), len(data_cur[0]), len(data_cur[0][0]))
-            np.save(FOLDER + "/x_state_repeatEXP.npy", data_cur)
-        np.savetxt(FOLDER + "/CNT.txt", [CNT[0] + 1])
-        # save gd values
-        gd_cur = np.loadtxt("x_gt_palm.txt")
-        print(" gd save shape:", FOLDER + "x_gt_palm.txt   ", gd_cur.shape)
-        np.savetxt(FOLDER + "/x_gt_palm.txt", gd_cur)
+        """ Parameters for saving one data in temporarily """
+        self.time_stamp = 0
+        self.obj_palm_posrotvec = [0.0] * 6
+        self.joint_pos = [0.0] * tac_const.FULL_FINGER_JNTS_NUM
+        self.joint_vel = [0.0] * tac_const.FULL_FINGER_JNTS_NUM
+        self.taxel_data = [0.0] * tac_const.TAC_TOTAL_NUM
+        self.tac_tip_pos = {}
 
 
-def getch():
-    fd = sys.stdin.fileno()
-    old_settings = termios.tcgetattr(fd)
-    try:
-        tty.setraw(sys.stdin.fileno())
-        ch = sys.stdin.read(1)
-
-    finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-    return ch
-
-
-# button_delay = 0.2
-
-
-def function02(arg, name):
-    global char
-    while True:
-        char = getch()
-        if (char == "p"):
-            print("Stop!")
-            exit(0)
-
-
-# load task-related parameters
+""" Parameters load """
 hand_param, object_param, alg_param = config_param.pass_arg()
-
-# init mujoco environment
-xml_path = "../../robots/UR5_tactile_allegro_hand.xml"
+""" XML load """
+xml_path = "/home/manipulation-vnc/Code/IP4GP/robots/UR5_tactile_allegro_hand.xml"
 if int(object_param[3]) == 1:
-    xml_path = "../../robots/UR5_tactile_allegro_hand_obj_frozen.xml"
-    # model, sim, viewer = mu_env.init_mujoco("../../robots/UR5_tactile_allegro_hand_obj_frozen.xml")
+    xml_path = "/home/manipulation-vnc/Code/IP4GP/robots/UR5_tactile_allegro_hand_obj_frozen.xml"
 elif int(object_param[3]) == 2:
-    xml_path = "../../robots/UR5_tactile_allegro_hand_obj_upsidedown.xml"
-    # model, sim, viewer = mu_env.init_mujoco("../../robots/UR5_tactile_allegro_hand_obj_upsidedown.xml")
+    xml_path = "/home/manipulation-vnc/Code/IP4GP/robots/UR5_tactile_allegro_hand_obj_upsidedown.xml"
 elif int(object_param[3]) == 3:
-    xml_path = "../../robots/UR5_tactile_allegro_hand_cylinder.xml"
-    # model, sim, viewer = mu_env.init_mujoco("../../robots/UR5_tactile_allegro_hand_cylinder.xml")
+    xml_path = "/home/manipulation-vnc/Code/IP4GP/robots/UR5_tactile_allegro_hand_cylinder.xml"
 elif int(object_param[3]) == 4:
-    xml_path = "../../robots/UR5_tactile_allegro_hand_cylinder_frozen.xml"
-    # model, sim, viewer = mu_env.init_mujoco("../../robots/UR5_tactile_allegro_hand_cylinder_frozen.xml")
-# else:
-#     model, sim, viewer = mu_env.init_mujoco()
-model, sim, viewer = mu_env.init_mujoco(filename=xml_path)
+    xml_path = "/home/manipulation-vnc/Code/IP4GP/robots/UR5_tactile_allegro_hand_cylinder_frozen.xml"
 
-ctrl_wrist_pos, ctrl_wrist_quat = \
-    mu_env.init_robot_object_mujoco(sim, object_param)
-mu_env.config_fcl("cup_1.obj", "fingertip_part.obj")
-
+""" Instantiate basic data class """
+basicData = basicDataClass(xml_path=xml_path)
 """ Instantiate FK class """
 fk = forward_kinematics.ForwardKinematics(hand_param=hand_param)
 """ Instantiate ekf class """
 grasping_ekf = ekf.EKF()
 grasping_ekf.set_contact_flag(False)
 grasping_ekf.set_store_flag(alg_param[0])
-
+""" Instantiate tac-perception class """
 tacperception = tactile_perception.cls_tactile_perception(xml_path=xml_path, fk=fk)
+""" Instantiate robot class """
+robctrl = robot_control.ROBCTRL(obj_param=object_param, hand_param=hand_param, model=basicData.model, xml_path=xml_path, fk=fk)
 
-# init robot
-robctrl = robot_control.ROBCTRL(obj_param=object_param, hand_param=hand_param, model=model, xml_path=xml_path, fk=fk)
-fct.robot_init(sim)
-mu_env.Camera_set(viewer, model)
-sim.model.eq_active[0] = True
+""" Tac_in_tip Initialization """
+f_param = hand_param[1:]
+print("Initializing...")
+for f_part in f_param:
+    f_name = f_part[0]
+    tac_id = f_part[3]  # tac_id = [min, max]
+    basicData.tac_tip_pos[f_name] = []
+    for tid in range(tac_id[0], tac_id[1], 1):
+        tac_name = basicData.model._sensor_id2name[tid]
+        pos_tac_tip, rpy_tac_tip = qg.get_taxel_poseuler(taxel_name=tac_name, xml_path=xml_path)
+        basicData.tac_tip_pos[f_name].append(pos_tac_tip)
+print("                       All tac parts ready.")
 
-for i in range(500):
-    sim.step()
-    viewer.render()
+first_contact_flag = False
+for i, _data in enumerate(basicData.data_all):
+    print("ROUND:", i)
+    basicData.time_stamp = _data[0]
+    obj_world_posquat = _data[1:8]  # posquat of object in world (xyzw)
+    obj_world_R = Rotation.from_quat(obj_world_posquat[3:]).as_matrix()
+    obj_palm_R = np.matmul(basicData.world_hand_T[:3, :3], obj_world_R)
+    obj_palm_rotvec = Rotation.from_matrix(obj_palm_R).as_rotvec()
+    obj_palm_pos = np.ravel(basicData.world_hand_T[:3, 3].T) + np.ravel(np.matmul(basicData.world_hand_T[:3, :3], obj_world_posquat[:3]))
+    basicData.obj_palm_posrotvec[:3] = obj_palm_pos
+    basicData.obj_palm_posrotvec[3:] = obj_palm_rotvec
 
-# move robotic arm to pre-grasping posture
-sim.data.mocap_pos[0] = ctrl_wrist_pos
-sim.data.mocap_quat[0] = ctrl_wrist_quat
-for _ in range(50):
-    sim.step()
-    viewer.render()
+    basicData.joint_pos = _data[8:24]  # joint position
+    basicData.joint_vel = _data[24:40]  # joint vel
+    # _taxel_data = _data[40:]  # tac data
+    _taxel_data = _data[40: 40+540]  # tac data (no palm)
+    basicData.taxel_data = (_taxel_data.astype('int32')).tolist()  # tac data
+    for key in basicData.no_working_tac:
+        basicData.taxel_data[key] = 0
 
-    # start interaction
-    # number of triggered fingers
-tacperception.fin_num = 0
-# The fingers which are triggered are Marked them with "1"
-tacperception.fin_tri = np.zeros(len(hand_param) - 1)
-
-# Thumb root movement
-fct.pre_thumb(sim, viewer)
-char = tacConst.VIS_CTRL
-
-#######################################################################
-ekfer = MainLoop()
-ekfer.start()
-# ani_Heatmap = tactile_plotter.HeatmapAnimate_Dip(tacperception)
-# ani_LineChart = tactile_plotter.LineChartAnimate_Obj(rob_control, 100, 1,
-#                                                      label1='x[mm]', label2='y[mm]', label3='z[mm]',
-#                                                      label4='theta_x[deg]', label5='theta_y[deg]',
-#                                                      label6='theta_z[deg]')
-# plt.show()
-
-# tactile_plotter.AllAnimate(tacperception=tacperception, robo=rob_control, x_len=100, y_len=1, label1='x[mm]',
-#                            label2='y[mm]', label3='z[mm]',
-#                            label4='theta_x[deg]', label5='theta_y[deg]',
-#                            label6='theta_z[deg]')
-# plt.show()
+    """EKF process"""
+    if not first_contact_flag and (np.array(basicData.taxel_data) > 0.0).any():
+        first_contact_flag = True
+    if first_contact_flag:  # EKF Start
+        print(robctrl.cnt_test, "EKF round:")
+        robctrl.interaction(object_param=object_param,
+                            ekf_grasping=grasping_ekf,
+                            tacp=tacperception,
+                            basicData=basicData)

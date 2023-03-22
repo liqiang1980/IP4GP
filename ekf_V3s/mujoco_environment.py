@@ -27,7 +27,7 @@ def init_robot_object_mujoco(sim, object_param):
     pose_cup = ug.get_body_posquat(sim, object_param[0])
     trans_cup = ug.posquat2trans(pose_cup)
     # pregrasping related pose ref:cup
-    if int(object_param[3]) == 0 or int(object_param[3]) == 5 or int(object_param[3]) == 8:
+    if int(object_param[3]) == 0:
         trans_pregrasp = np.array([[0, 0, 1, 0.1],
                                    [0, 1, 0, -0.23],
                                    [-1, 0, 0, 0.05],
@@ -43,7 +43,6 @@ def init_robot_object_mujoco(sim, object_param):
                                    [-1, 0, 0, -0.03],
                                    [0, 0, 0, 1]])
     else:
-        print("ELSE")
         trans_pregrasp = np.array([[0, 0, 1, 0.08],
                                    [0, 1, 0, -0.23],
                                    [-1, 0, 0, 0.02],

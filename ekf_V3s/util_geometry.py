@@ -142,18 +142,18 @@ def vec_palm_to_world(sim, vec):
 
 # 获得相对的位置姿态的四元数
 # outputs: position, rotation:w x y z
-def get_relative_posquat(sim, src, tgt):
-    posquat_src = get_body_posquat(sim, src)
-    trans_src = posquat2trans(posquat_src)
-    posquat_tgt = get_body_posquat(sim, tgt)
-    trans_tgt = posquat2trans(posquat_tgt)
-    srcHtgt = np.matmul(np.linalg.inv(trans_src), trans_tgt)
-    return trans2posquat(srcHtgt)
+# def get_relative_posquat(sim, src, tgt):
+#     posquat_src = get_body_posquat(sim, src)
+#     trans_src = posquat2trans(posquat_src)
+#     posquat_tgt = get_body_posquat(sim, tgt)
+#     trans_tgt = posquat2trans(posquat_tgt)
+#     srcHtgt = np.matmul(np.linalg.inv(trans_src), trans_tgt)
+#     return trans2posquat(srcHtgt)
 
 
-def get_relative_posrotvec(sim, src, tgt):
-    posquat = get_relative_posquat(sim=sim, src=src, tgt=tgt)
-    return posquat2posrotvec_hacking(posquat=posquat)
+# def get_relative_posrotvec(sim, src, tgt):
+#     posquat = get_relative_posquat(sim=sim, src=src, tgt=tgt)
+#     return posquat2posrotvec_hacking(posquat=posquat)
 
 
 def get_prepose_posequat(wHo, oHg):
@@ -706,11 +706,10 @@ def Euler2posquat1D(Eula):
     return posquat
 
 
-def posquat2posrotvec(posquat):  # input: wxyz
+def posquat2posrotvec(posquat):
     posrotvec = np.zeros(6)
     posrotvec[:3] = posquat[:3]
     _quat = np.hstack((posquat[4:], posquat[3]))
-    # print(posquat, posquat[4:], posquat[3], _quat)
     posrotvec[3:] = Rotation.from_quat(_quat).as_rotvec()
     return posrotvec
 
@@ -723,7 +722,8 @@ def posquat2posrotvec_hacking(posquat):
 
 
 def quat2rotvec_hacking(quat):
-    _quat = np.hstack((quat[1:], quat[0]))  # change wxyz to xyzw
+    # _quat = np.hstack((quat[1:], quat[0]))  # change wxyz to xyzw
+    _quat = quat  # change wxyz to xyzw
     rm = Rotation.from_quat(_quat).as_matrix()
     # compute rot_vec
     theta_tmp = math.acos((np.trace(rm) - 1.0) / 2.0)
@@ -1500,7 +1500,7 @@ def normalize(v):
 def normalize_scale(v):
     norm = np.linalg.norm(v)
     if norm == 0:
-        return v
+        return v, norm
     return v / norm, norm
 
 

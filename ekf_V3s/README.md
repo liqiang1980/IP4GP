@@ -44,7 +44,7 @@
 
 - add fcl_python fun fun2 module path
  ```bash
-  export PYTHONPATH=to-your-ekf_V3s-folder:$PYTHONPATH
+  export PYTHONPATH=to-your-ekf_V5_offline-folder:$PYTHONPATH
  ```
 - run one_finger_contact
  ```bash

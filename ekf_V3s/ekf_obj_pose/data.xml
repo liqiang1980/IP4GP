@@ -17,11 +17,11 @@
                 <name>touch_0_3_6</name>
                 <id>38</id>
             </default_tac>
-            <jnt>link_3.0_tip_tactile</jnt>
+            <jnt>link_3.0_tip</jnt>
         </finger>
         <finger name= 'ffd'>
-<!--            <used>1</used>-->
-            <used>0</used>
+            <used>1</used>
+<!--            <used>0</used>-->
             <init_posture>
                 <j1>-1</j1>
                 <j2>6</j2>
@@ -36,11 +36,11 @@
                 <name>touch_1_3_3</name>
                 <id>86</id>
             </default_tac>
-            <jnt>link_2.0_silicon</jnt>
+            <jnt>link_2.0_tip</jnt>
         </finger>
         <finger name= 'ffq'>
-<!--            <used>1</used>-->
-            <used>0</used>
+            <used>1</used>
+<!--            <used>0</used>-->
             <init_posture>
                 <j1>-1</j1>
                 <j2>-1</j2>
@@ -55,7 +55,7 @@
                 <name>touch_2_3_3</name>
                 <id>122</id>
             </default_tac>
-            <jnt>link_1.0_silicon</jnt>
+            <jnt>link_1.0_tip</jnt>
         </finger>
         <finger name= 'mf'>
             <used>1</used>
@@ -73,11 +73,11 @@
                 <name>touch_7_3_6</name>
                 <id>182</id>
             </default_tac>
-            <jnt>link_7.0_tip_tactile</jnt>
+            <jnt>link_7.0_tip</jnt>
         </finger>
         <finger name= 'mfd'>
-<!--            <used>1</used>-->
-            <used>0</used>
+            <used>1</used>
+<!--            <used>0</used>-->
             <init_posture>
                 <j1>-1</j1>
                 <j2>6</j2>
@@ -92,11 +92,11 @@
                 <name>touch_8_3_3</name>
                 <id>230</id>
             </default_tac>
-            <jnt>link_6.0_silicon</jnt>
+            <jnt>link_6.0_tip</jnt>
         </finger>
         <finger name= 'mfq'>
-<!--            <used>1</used>-->
-            <used>0</used>
+            <used>1</used>
+<!--            <used>0</used>-->
             <init_posture>
                 <j1>-1</j1>
                 <j2>-1</j2>
@@ -111,7 +111,7 @@
                 <name>touch_9_3_3</name>
                 <id>266</id>
             </default_tac>
-            <jnt>link_5.0_silicon</jnt>
+            <jnt>link_5.0_tip</jnt>
         </finger>
         <finger name= 'rf'>
             <used>1</used>
@@ -129,11 +129,11 @@
                 <name>touch_11_3_6</name>
                 <id>326</id>
             </default_tac>
-            <jnt>link_11.0_tip_tactile</jnt>
+            <jnt>link_11.0_tip</jnt>
         </finger>
         <finger name= 'rfd'>
-<!--            <used>1</used>-->
-            <used>0</used>
+            <used>1</used>
+<!--            <used>0</used>-->
             <init_posture>
                 <j1>-1</j1>
                 <j2>6</j2>
@@ -148,11 +148,11 @@
                 <name>touch_12_3_3</name>
                 <id>374</id>
             </default_tac>
-            <jnt>link_10.0_silicon</jnt>
+            <jnt>link_10.0_tip</jnt>
         </finger>
         <finger name= 'rfq'>
-<!--            <used>1</used>-->
-            <used>0</used>
+            <used>1</used>
+<!--            <used>0</used>-->
             <init_posture>
                 <j1>-1</j1>
                 <j2>-1</j2>
@@ -167,7 +167,7 @@
                 <name>touch_13_3_3</name>
                 <id>410</id>
             </default_tac>
-            <jnt>link_9.0_silicon</jnt>
+            <jnt>link_9.0_tip</jnt>
         </finger>
         <finger name= 'th'>
             <used>1</used>
@@ -185,11 +185,11 @@
                 <name>touch_15_3_6</name>
                 <id>470</id>
             </default_tac>
-            <jnt>link_15.0_tip_tactile</jnt>
+            <jnt>link_15.0_tip</jnt>
         </finger>
         <finger name= 'thd'>
-<!--            <used>1</used>-->
-            <used>0</used>
+            <used>1</used>
+<!--            <used>0</used>-->
             <init_posture>
                 <j1>-1</j1>
                 <j2>6</j2>
@@ -204,7 +204,7 @@
                 <name>touch_16_3_3</name>
                 <id>518</id>
             </default_tac>
-            <jnt>link_15.0_silicon</jnt>
+            <jnt>link_14.0_tip</jnt>
         </finger>
         <finger name= 'palm'>
 <!--            <used>1</used>-->
@@ -228,9 +228,9 @@
         <object>
             <name>cup</name>
             <noise_position>0.01</noise_position>
-            <noise_orientation>0.1</noise_orientation>
-<!--            <static>0</static>-->
-            <static>1</static>
+            <noise_orientation>0.05</noise_orientation>
+            <static>0</static>
+<!--            <static>1</static>-->
 <!--            <static>2</static>-->
 <!--            <static>3</static>-->
 <!--            <static>4</static>-->

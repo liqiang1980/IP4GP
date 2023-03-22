@@ -46,14 +46,13 @@ class EKF:
 
     def state_predictor(self, xstate, P_state_cov, tacp, robctrl):
         # print("xstate_aug:", xstate)
-        robctrl.cnt_test += 1
-        contact_num = sum(list(tacp.is_contact.values()))  # number of contact tacs
+
         f_param = robctrl.f_param
         """ Matrix Initialization: F, P, G """
         F_Matrix = np.mat(np.zeros((6+3*robctrl.f_size, 6+3*robctrl.f_size)))
         Q_state_noise_cov = np.zeros((6+3*robctrl.f_size, 6+3*robctrl.f_size))
-        # for i in range(6):
-        #     Q_state_noise_cov[i, i] = math.fabs(np.random.normal(0, 0.001))
+        for i in range(6):
+            Q_state_noise_cov[i, i] = math.fabs(np.random.normal(0, 0.001))
         Grasping_matrix = np.zeros([6, 6 * robctrl.f_size])
         G_pinv = np.zeros([6, 6 * robctrl.f_size])
         ju = np.zeros(6 * robctrl.f_size)
@@ -90,9 +89,7 @@ class EKF:
                 G_pinv[:, 0 + i * 6: 6 + i * 6] = inv_tmp  # 4 GT_inv splice a big G
 
         """ Prediction calculation """
-        # print(contact_num)
         prediction = np.matmul(G_pinv, ju)
-        # prediction = prediction / contact_num
         prediction = np.append(prediction, [0] * (3 * robctrl.f_size))
         x_bar = xstate + prediction
         # x_bar = xstate
@@ -107,7 +104,7 @@ class EKF:
 
     def observe_computation(self, tacp, robctrl):
         """
-        Calculation of ht: position and normal (tac in palm).
+        Calculation of ht: position and normal.
         """
         pos_contact_palm = np.zeros(3 * robctrl.f_size)
         nv_contact_palm = np.zeros(3 * robctrl.f_size)
@@ -141,7 +138,7 @@ class EKF:
 
     def measure_fb(self, tacp, robctrl):
         """
-        Calculation of zt: position and normal (tac in palm).
+        Calculation of zt: position and normal.
         """
         pos_tac_palm = np.zeros(3 * robctrl.f_size)
         nv_tac_palm = np.zeros(3 * robctrl.f_size)
@@ -152,11 +149,11 @@ class EKF:
             zt_idx = [3 * i, 3 * i + 3]
             # if tacp.is_contact[f_name]:  # Keep at np.zeros(3) if no contact
             if tacp.is_first_contact[f_name]:  # Keep at np.zeros(3) if no contact
-                pos_tac_palm[zt_idx[0]: zt_idx[1]] = tacp.cur_tac[f_name][1][:3]
-                # pos_tac_palm[zt_idx[0]: zt_idx[1]] = tacp.cur_tac[f_name][1][:3] + np.random.normal(0.00, 0.0, 3)
+                # pos_tac_palm[zt_idx[0]: zt_idx[1]] = tacp.cur_tac[f_name][1][:3]
+                pos_tac_palm[zt_idx[0]: zt_idx[1]] = tacp.cur_tac[f_name][1][:3] + np.random.normal(0.00, 0.0, 3)
                 R_tac_palm = Rotation.from_rotvec(tacp.cur_tac[f_name][1][3:]).as_matrix()
-                # nv_tac_palm[zt_idx[0]: zt_idx[1]] = R_tac_palm[:, 0] + np.random.normal(0, 0., 3)
-                nv_tac_palm[zt_idx[0]: zt_idx[1]] = R_tac_palm[:, 0]
+                nv_tac_palm[zt_idx[0]: zt_idx[1]] = R_tac_palm[:, 0] + np.random.normal(0, 0., 3)
+                # nv_tac_palm[zt_idx[0]: zt_idx[1]] = R_tac_palm[:, 0]
         return np.array(pos_tac_palm), np.array(nv_tac_palm)
 
     def ekf_posteriori(self, x_bar, z_t, h_t, P_state_cov, tacp, robctrl):
@@ -177,12 +174,12 @@ class EKF:
             f_name = f_part[0]
             # if tacp.is_contact[f_name]:
             if tacp.is_first_contact[f_name]:
-                R_noi[(i*3)*step: (i*3+3)*step, (i*3)*step: (i*3+3)*step] = np.random.normal(0, 0.002) * np.identity(3*step)
+                R_noi[(i*3)*step: (i*3+3)*step, (i*3)*step: (i*3+3)*step] = np.random.normal(0, 0.02) * np.identity(3*step)
+                # print("W1, W2, W3, pos_CO:", W1, W2, W3, robctrl.pos_contact_cup[f_name])
                 J_h[i*3:i*3+3, :6] = ug.H_calculator(W1=W1, W2=W2, W3=W3,
                                                      pos_CO_x=robctrl.pos_contact_cup[f_name][0],
                                                      pos_CO_y=robctrl.pos_contact_cup[f_name][1],
                                                      pos_CO_z=robctrl.pos_contact_cup[f_name][2])
-        print("Take off:", robctrl.rotvec_cup_palm, robctrl.pos_contact_cup)
         K_t = self.scale_kp * np.linalg.pinv(J_h)
         # K_t[0:3, :] = 0.08 * np.linalg.pinv(J_h)[0:3, :]
         # K_t[3:6, :] = 0.001 * np.linalg.pinv(J_h)[3:6, :]
@@ -199,7 +196,6 @@ class EKF:
                 b.append(s[nonzeroind[i]])
         # print("b:", b, "s:", s)
         c = np.array(b)
-        print("b:", b, "s:", s, "c:", c)
         # if len(b) and np.amin(c) > 0.01:
         if np.amin(c) > 0.01:
             x_hat = x_bar + Update
