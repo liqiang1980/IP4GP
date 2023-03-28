@@ -35,9 +35,9 @@ labels = ['x position', 'y position', 'z position', 'x rotation', 'y rotation', 
 # Plot x, y, and z positions
 for i in range(7):
     plt.subplot(7, 1, i + 1)
-    # plt.plot(x_bar_all[:, i], label='x_bar')
-    plt.plot(x_state_all[:, i], label='predict')
-    plt.plot(gd_all[:, i], label='GT')
+    plt.plot(x_bar_all[:, i], color='y', alpha=1,label='x_bar')
+    plt.plot(x_state_all[:, i], color='r', alpha=0.5,label='predict')
+    plt.plot(gd_all[:, i], color='b', alpha=0.5,label='GT')
     plt.legend(loc='upper left')
     # plt.xlabel('Time step')
     plt.ylabel(labels[i])

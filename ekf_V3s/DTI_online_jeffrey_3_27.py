@@ -15,9 +15,11 @@ import numpy as np
 import forward_kinematics
 import tactile_allegro_mujo_const as tac_const
 import qgFunc as qg
+import message_filters
 
-
-
+'''
+1. Align the timestamp of subscribed topic.
+'''
 
 class AllegroHandController():
     def __init__(self, xml_path):
@@ -28,9 +30,11 @@ class AllegroHandController():
         self.joint_cmd_pub = rospy.Publisher('/allegroHand_0/joint_cmd', JointState, queue_size=10)
 
         # Set up subscribers for joint states and tactile data
-        self.joint_angles_sub = rospy.Subscriber('/allegroHand_0/joint_states', JointState, self.joint_states_callback, queue_size=1)
-        self.tactile_sub = rospy.Subscriber('/allegro_tactile', tactile_msgs, self.tactile_callback, queue_size= 1)
-        self.vicon_sub = rospy.Subscriber('/vicon/jeffrey_cup/jeffrey_cup', TransformStamped, self.vicon_callback,queue_size=1)
+        self.joint_angles_sub = message_filters.Subscriber('/allegroHand_0/joint_states', JointState, queue_size=1)
+        self.tactile_sub = message_filters.Subscriber('/allegro_tactile', tactile_msgs, queue_size= 1)
+        self.vicon_sub = message_filters.Subscriber('/vicon/jeffrey_cup/jeffrey_cup', TransformStamped, queue_size=1)
+        ts = message_filters.ApproximateTimeSynchronizer([self.joint_angles_sub, self.tactile_sub, self.vicon_sub], 100, 0.1, allow_headerless=True)
+        ts.registerCallback(self.callback)
         # Initialize joint states and tactile data
 
         '''Allegrohand Data Init'''
@@ -64,7 +68,9 @@ class AllegroHandController():
         '''Hand Pose Collected from Vicon.'''
         # self.hand_pose = np.array([-2.52357038e-0, 6.44453981e-01, 5.03844975e+00, 7.26140712e-03, -1.84615072e-03, 2.17123351e-04, 9.99971908e-01])
         # New hand pose
-        self.hand_pose = np.array([ 1.66841289e-01,  3.85029711e+00,  1.20123653e-01, -4.00077320e-03, -3.96872808e-03,  3.33287334e-03,  9.99978567e-01])
+        # self.hand_pose = np.array([ 1.66841289e-01,  3.85029711e+00,  1.20123653e-01, -4.00077320e-03, -3.96872808e-03,  3.33287334e-03,  9.99978567e-01])
+        self.hand_pose = np.array([ 2.51695224e-01, -3.82690607e+00,  8.57502750e-02,  4.49274546e-04,
+        2.41361646e-03, -2.51978068e-03,  9.99993812e-01])
 
 
         '''Model from XML'''
@@ -78,9 +84,12 @@ class AllegroHandController():
         
         '''Trans: hand to world'''
         self.hand_world_posquat = self.hand_pose
-        self.hand_world_posquat[:3] += np.array([0.01, 0.01, 0])
+        '''Add Noise'''
+        # self.hand_world_posquat[:3] += np.array([0.01, 0.01, 0])
+        self.hand_world_posquat[:3] += np.array([-0.13, 0.14, 0])
+        '''10.3 cm, 2.6 cm'''
         self.hand_world_R = Rotation.from_quat(self.hand_world_posquat[3:]).as_matrix()
-        self.hand_world_T = np.mat(np.eye(4))
+        self.hand_world_T = np.mat(np.eye(4)) 
         self.hand_world_T[:3, :3] = self.hand_world_R
         self.hand_world_T[:3, 3] = np.mat(self.hand_world_posquat[:3]).T
         self.world_hand_T = np.linalg.pinv(self.hand_world_T)
@@ -105,11 +114,8 @@ class AllegroHandController():
         elif f_name == 'th':
             return (432, 540)
 
-    def joint_states_callback(self, joint_msg):
+    def callback(self, joint_msg, tac_msg, vicon_msg):
         self.joint_states.position = joint_msg.position
-        # print('Callback Joint States. The joint states are: \n', self.joint_states.position)
-    
-    def tactile_callback(self, tac_msg):
         '''combine the tactile data to taxel_data'''
         self.tactile_data[:72] = tac_msg.index_tip_Value  # 72
         self.tactile_data[72:108] = tac_msg.index_mid_Value  # 36
@@ -122,10 +128,6 @@ class AllegroHandController():
         self.tactile_data[396:432] = tac_msg.ring_end_Value  # 36
         self.tactile_data[432:504] = tac_msg.thumb_tip_Value  # 72
         self.tactile_data[504:540] = tac_msg.thumb_mid_Value  # 36
-        # self.tactile_data[540:653] = tac_msg.palm_Value  # 113
-        # print('Callback Tactile Data. The tactile data is: \n', self.tactile_data)
-
-    def vicon_callback(self, vicon_msg):
         self.object_pose[0] = vicon_msg.transform.translation.x
         self.object_pose[1] = vicon_msg.transform.translation.y
         self.object_pose[2] = vicon_msg.transform.translation.z
@@ -133,7 +135,35 @@ class AllegroHandController():
         self.object_pose[4] = vicon_msg.transform.rotation.y
         self.object_pose[5] = vicon_msg.transform.rotation.z
         self.object_pose[6] = vicon_msg.transform.rotation.w
-        # print('Callback Vicon Data. The Object Pose is:\n', self.object_pose)
+    # def joint_states_callback(self, joint_msg):
+    #     self.joint_states.position = joint_msg.position
+    #     # print('Callback Joint States. The joint states are: \n', self.joint_states.position)
+    
+    # def tactile_callback(self, tac_msg):
+    #     '''combine the tactile data to taxel_data'''
+    #     self.tactile_data[:72] = tac_msg.index_tip_Value  # 72
+    #     self.tactile_data[72:108] = tac_msg.index_mid_Value  # 36
+    #     self.tactile_data[108:144] = tac_msg.index_end_Value  # 36
+    #     self.tactile_data[144:216] = tac_msg.middle_tip_Value  # 72
+    #     self.tactile_data[216:252] = tac_msg.middle_mid_Value  # 36
+    #     self.tactile_data[252:288] = tac_msg.middle_mid_Value  # 36
+    #     self.tactile_data[288:360] = tac_msg.ring_tip_Value  # 72
+    #     self.tactile_data[360:396] = tac_msg.ring_mid_Value  # 36
+    #     self.tactile_data[396:432] = tac_msg.ring_end_Value  # 36
+    #     self.tactile_data[432:504] = tac_msg.thumb_tip_Value  # 72
+    #     self.tactile_data[504:540] = tac_msg.thumb_mid_Value  # 36
+    #     # self.tactile_data[540:653] = tac_msg.palm_Value  # 113
+    #     # print('Callback Tactile Data. The tactile data is: \n', self.tactile_data)
+
+    # def vicon_callback(self, vicon_msg):
+    #     self.object_pose[0] = vicon_msg.transform.translation.x
+    #     self.object_pose[1] = vicon_msg.transform.translation.y
+    #     self.object_pose[2] = vicon_msg.transform.translation.z
+    #     self.object_pose[3] = vicon_msg.transform.rotation.x
+    #     self.object_pose[4] = vicon_msg.transform.rotation.y
+    #     self.object_pose[5] = vicon_msg.transform.rotation.z
+    #     self.object_pose[6] = vicon_msg.transform.rotation.w
+    #     # print('Callback Vicon Data. The Object Pose is:\n', self.object_pose)
 
 
     def finger_control_func(self, input_1, input_2, f_part):

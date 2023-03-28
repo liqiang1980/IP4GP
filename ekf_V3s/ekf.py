@@ -46,7 +46,18 @@ class EKF:
 
     def state_predictor(self, xstate, P_state_cov, tacp, robctrl):
         # print("xstate_aug:", xstate)
-
+        # print('======================================')
+        # print('======================================')
+        # print('======================================')
+        # print('======================================')
+        # print('======================================')
+        # print('======================================')
+        # print('======================================')
+        # print('======================================')
+        # print('======================================')
+        # print('======================================')
+        # print('======================================')
+        # print('======================================')
         f_param = robctrl.f_param
         """ Matrix Initialization: F, P, G """
         F_Matrix = np.mat(np.zeros((6+3*robctrl.f_size, 6+3*robctrl.f_size)))
@@ -160,6 +171,18 @@ class EKF:
         """
         EKF posteriori estimation
         """
+        print('------------Posteriori----------------')
+        print('------------Posteriori----------------')
+        print('------------Posteriori----------------')
+        print('------------Posteriori----------------')
+        print('------------Posteriori----------------')
+        print('------------Posteriori----------------')
+        print('------------Posteriori----------------')
+        print('------------Posteriori----------------')
+        print('------------Posteriori----------------')
+        print('------------Posteriori----------------')
+        print('------------Posteriori----------------')
+        print('------------Posteriori----------------')
         pn_flag = tac_const.PN_FLAG
         [W1, W2, W3] = robctrl.rotvec_cup_palm  # rotvec of cup in palm frame
         step = 1

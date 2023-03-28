@@ -1,0 +1,13 @@
+{
+    "configurations": [
+        {
+            "name": "Python: File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "justMyCode": true
+            "args":["/home/manipulation-vnc/Code/IP4GP/ekf_V3s/ekf_obj_pose/data.xml"]
+
+        }
+    ]
+}
