@@ -1,0 +1,12 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/home/manipulation-vnc/catkin_ws/devel/lib/python3/dist-packages",
+        "/opt/ros/noetic/lib/python3/dist-packages",
+        "/home/manipulation-vnc/Code/IP4GP/ekf_V3s"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/manipulation-vnc/catkin_ws/devel/lib/python3/dist-packages",
+        "/opt/ros/noetic/lib/python3/dist-packages",
+        "/home/manipulation-vnc/Code/IP4GP/ekf_V3s"
+    ]
+}

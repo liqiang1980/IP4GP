@@ -86,6 +86,7 @@ class AllegroHandController():
         self.hand_world_posquat = self.hand_pose
         '''Add Noise'''
         # self.hand_world_posquat[:3] += np.array([0.01, 0.01, 0])
+        '''Refine by RViz'''
         self.hand_world_posquat[:3] += np.array([-0.13, 0.14, 0])
         '''10.3 cm, 2.6 cm'''
         self.hand_world_R = Rotation.from_quat(self.hand_world_posquat[3:]).as_matrix()

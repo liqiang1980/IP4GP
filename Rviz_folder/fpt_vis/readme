@@ -1,0 +1,2 @@
+1. rosbag play xxx.bag -l
+2. roslaunch fpt_vis fpt_test.launch

@@ -1,0 +1,38 @@
+<launch>
+  <node
+    pkg="fpt_vis"
+    type="sub_joint_states.py"
+    name="sub_joint_compute_normal"
+    output="screen"
+  />
+  <node
+    pkg="fpt_vis"
+    type="sub_taxel_marker.py"
+    name="sub_taxel_marker"
+    output="screen"
+  />
+  <node
+    pkg="fpt_vis"
+    type="sub_pose_marker.py"
+    name="sub_pose_marker"
+    output="screen"
+  />
+  <!-- <node
+    pkg="fpt_vis"
+    type="sub_EKFpredictor_marker.py"
+    name="sub_EKFpredictor_marker"
+    output="screen"
+  /> -->
+  <arg name="model" default="$(find fpt_vis)/launch/allegro_hand_tactile_v1.4.urdf"/>
+  <arg name="gui" default="true" />
+  <arg name="rvizconfig" default="$(find fpt_vis)/launch/display.rviz" />
+
+  <param name="robot_description" command="$(find xacro)/xacro $(arg model)" />
+
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+      <!-- <remap from="joint_states" to="allegro_hand_right/joint_states" /> -->
+  <!-- </node> -->
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
+
+</launch>
